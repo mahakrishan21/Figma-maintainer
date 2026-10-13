@@ -18,3 +18,8 @@ Newest last. Max ~6 lines per entry.
 - Open: Thank You "On the call, we'll…" and "be in touch soon to schedule your consultation" left (approved page); step 1 now wraps to 2 lines.
 
 - 2026-10-12 · all clients · rule added: stock placeholders = iStock comps (Basic plan/Essentials, Editorial-first) via scripts/istock_fetch.py; log IDs to buy; replace after approval.
+
+## 2026-10-13 — LSD — Design and Branding V2 client comments
+- File `VXJGRIUY7B71LmsWYifYKQ`; duplicated V2 `12421:2541` -> "Design and Branding V3" `12530:1396` (x=10564) + date band "13 Oct, 2026" `12530:1930`. V2 guard unchanged.
+- Done in V3: "your business"; 2 heading periods removed; "The goal is simple…" deleted; Wireframes bullet deleted; Mobile bullet moved under Info architecture; first sentence pair of Trust paragraph removed.
+- Open: lions-only image (needs image editing) and Juan Lobo desktop+mobile mockup (assets missing) — annotated on `12530:1475`, `12530:1525`. Bullet position to confirm. Approvals #5, #11 logged.

@@ -15,6 +15,8 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Change instance text as an override. Don't detach the instance.
 - Reorder Auto Layout children with `parent.insertChild(index, node)`. Fields keep their component link.
 - Put new top-level nodes below the bottom-most existing node (max of y+height) plus about 600px of spacing.
+- Comment-matched node IDs point at the commented version. After duplicating, find the copies by text content; don't map by findAll index.
+- Text with line separators: a regex literal containing U+2028 breaks the script (use `String.fromCharCode(0x2028)`), and deleting a paragraph can leave a leading `\n`. Check char codes after the edit.
 - Annotations (`node.annotations = [{label}]`) work on instances. Use them for specs the canvas can't show, such as dropdown options and states.
 
 ## Images
