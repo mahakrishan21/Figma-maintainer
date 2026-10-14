@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "e2m-figma",
+  "description": "E2M in-house Figma tooling for Claude Code.",
+  "owner": { "name": "E2M Solutions" },
+  "plugins": [
+    {
+      "name": "figma-maintainer",
+      "source": "./",
+      "description": "Senior UI/UX designer subagent for direct Figma maintenance, client-feedback rounds and audits.",
+      "category": "design",
+      "keywords": ["figma", "design", "maintenance"]
+    }
+  ]
+}
