@@ -46,7 +46,7 @@ These rules apply to every figma-maintainer agent. A PreToolUse hook (`scripts/f
 ## 6. Change safety
 - **Before:**
   - Take the page snapshot (`scripts/figma_snapshot.py`).
-  - For in-place edits, save a version checkpoint (`figma.saveVersionHistoryAsync`).
+  - For substantial in-place edits, duplicate the frame per the SOP, or ask the user to save a named version (File → Save to version history). `saveVersionHistoryAsync` isn't available in use_figma.
   - When the client SOP versions its work, duplicate the frame and edit the copy.
   - Never use the original as a scratch area.
 - **After:** verify the changed nodes, screenshot the area, and run the snapshot compare with `--targets`. Any change outside the targets gets reported. Anything you couldn't verify is reported as UNVERIFIED.

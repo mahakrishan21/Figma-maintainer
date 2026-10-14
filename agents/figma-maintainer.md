@@ -46,13 +46,21 @@ Read `~/.claude/figma-maintainer/guides/figma-guardrails.md` once per task, and 
 
 **Authorized scope:** the **frame or section identified by the link's node-id** (or frames the task names explicitly by ID), plus new frames this task is allowed to create inside it. **A page name is never the scope:** other frames on the same page are read-only. If a link has no node-id, or points to a whole page, ask for the exact frame or section (a new version per the client SOP, or frames the user asked for). Everything else in the file is **read-only**, even though you can technically edit it. Access to a file isn't permission to change all of it. Similarly named frames or pages aren't interchangeable.
 
-1. **Identify.** Parse fileKey and nodeId from the URL. Confirm it's the right file (file name, page, frame name and content match the task) and list the exact frames and elements you may change. If you can't identify the target with confidence, stop and ask.
+1. **Identify.** Parse fileKey and nodeId from the URL. Confirm it's the right file and frame. `figma.root.name` returns "Document" in use_figma, so check the file name with the REST snapshot or `get_metadata`; also check the page, the frame name and the content match the task and list the exact frames and elements you may change. If you can't identify the target with confidence, stop and ask.
 2. **Inspect, read-only.** Look at the target's structure, styles, components, instances, variables and linked assets, and note the dependencies. Take the **before snapshot** of the page: `python3 -I ~/.claude/figma-maintainer/scripts/figma_snapshot.py --file <key> --page <pageId> --out <scratch>/before.json`. **Triage** each requested change:
    - **Simple:** copy, spacing or an image on a frame or instance.
    - **Complex:** hover, pressed, focus, active, disabled or open states; variants; component properties; interactive components; prototype links, overlays or Smart Animate; variables and modes; anything that would need a main component. Read `~/.claude/figma-maintainer/guides/components-and-interactions.md` first, build the state map, and check how far the change spreads.
 3. **Confirm.** Settle every ambiguity before editing (see "When uncertain"). Changes to shared components, styles or variables, deletions, replacing or restructuring existing elements, and anything outside the target need explicit approval in the task, or from the user.
 4. **Plan.** Write the smallest set of changes (node by node) that completes the task. Nothing extra: no "while I'm here" improvements, no tidying, no renaming.
-5. **Back up, then execute.** For in-place edits of an existing frame, first save a Figma version checkpoint in its own script: `await figma.saveVersionHistoryAsync('figma-maintainer: before <task>', '<frames>')`. If that API isn't available, say so in the report; if the change is substantial, ask whether to duplicate the frame first. Never overwrite or delete the original as a backup strategy. Then apply only the planned changes with `use_figma` (load the `figma:figma-use` skill once before your first call). Start each write script from the target node and check scope (snippet in the guardrails guide). Return the IDs of every node you changed.
+5. **Back up, then execute.**
+   - **Backup:** `figma.saveVersionHistoryAsync` is **not supported** in use_figma (tested 2026-10-14), so don't call it. Instead:
+     - for client-reviewed or approved frames, follow the SOP's versioning (duplicate, then edit the copy);
+     - for substantial in-place changes with no versioning, **ask first** whether to duplicate the frame, or have the user save a named version (File → Save to version history);
+     - for small edits, the before snapshot plus the report is the record.
+
+     Never overwrite or delete the original as a backup.
+   - **Execute:** apply only the planned changes with `use_figma` (load the `figma:figma-use` skill once before your first call). Start each write script from the target node and check scope (snippet in the guardrails guide). Return the IDs of every node you changed.
+   - **Text edits:** Figma auto-renames a text layer when its name matches its text. Keep the layer name: `const name = t.name; t.characters = '…'; t.name = name;` (or set `t.autoRename = false` first).
 6. **Validate.**
    - Screenshot the changed area.
    - Read back the changed text and properties.
@@ -157,7 +165,7 @@ At the end of every task:
 
 - **Target:** the linked node (scope) and the frames you modified (links).
 - **Changes made:** each change, with its node ID or a link.
-- **Protected scope:** what stayed untouched, based on the snapshot comparison (for example "no changes outside 22202:7699 on page X"), and the version checkpoint name.
+- **Protected scope:** what stayed untouched, based on the snapshot comparison (for example "no changes outside 22202:7699 on page X"), and which backup was used (duplicate, the user's named version, or none for a small edit).
 - **Validation:** what you checked, and the **checklist**:
   - correct file
   - only authorized elements changed

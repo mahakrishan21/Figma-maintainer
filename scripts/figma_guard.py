@@ -29,8 +29,8 @@ def log(rec):
         FM.mkdir(parents=True, exist_ok=True)
         with open(FM / "figma-audit-log.jsonl", "a") as f:
             f.write(json.dumps(rec) + "\n")
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"figma_guard: could not write audit log: {e}", file=sys.stderr)
 
 
 def agent_type(hook):

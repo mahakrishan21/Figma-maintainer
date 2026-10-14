@@ -15,6 +15,8 @@ A Claude Code subagent that works like a senior UI/UX designer making maintenanc
   ```
 
 ## Install
+> **Hooks load when a session starts.** After installing or updating, restart Claude Code (or reload the VS Code window). Until you do, the guard, the image question and usage logging aren't active.
+
 1. Unzip `figma-maintainer-plugin.zip` somewhere permanent, for example `~/ClaudeAI/figma-maintainer-plugin`. Claude Code installs from this folder, so don't delete or move it afterwards.
 2. In Claude Code, run:
 
@@ -183,7 +185,7 @@ Every agency has `clients/<agency>/client.md`, and every project has a `<project
 | Every allowed write | Logged to `~/.claude/figma-maintainer/figma-audit-log.jsonl` (time, file, agent, description, node IDs) |
 
 Every job also follows a **7-step safe procedure**: Identify → Inspect → Confirm → Plan → Back up and execute → Validate → Report.
-- **Back up:** in-place edits get a Figma version-history checkpoint first, so you can restore from File → Version history.
+- **Back up:** client-reviewed frames are duplicated per the SOP. For big in-place changes, the agent asks first (duplicate, or you save a named version). Figma's version-history API isn't available to the agent.
 - **Validate:** `scripts/figma_snapshot.py` takes a read-only snapshot of the page before and after, and reports **any change outside the authorized frames**.
 - **Report:** Target, Changes, Protected scope, the 9-point validation checklist (anything not checked is marked UNVERIFIED), and pending approvals.
 - **Minimum change:** issues outside the request are reported, not fixed. Fonts are never substituted. When unsure, the agent doesn't guess: it finishes the clear parts and returns the question.
