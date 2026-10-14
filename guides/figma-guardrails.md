@@ -56,7 +56,11 @@ These rules apply to every figma-maintainer agent. A PreToolUse hook (`scripts/f
 - **Failures:** if the same approach fails twice, stop and report. Never "try something bigger".
 
 ## 7. Audit trail
-- Every allowed Figma write is logged to `~/.claude/figma-maintainer/figma-audit-log.jsonl` (time, tool, file key, agent, description). This is enforced.
+- Every Figma call is logged to `~/.claude/figma-maintainer/figma-audit-log.jsonl` (time, tool, file key, agent, description, node IDs). This is enforced. The decision field reads:
+  - `read`: inspection only
+  - `allow`: a write that needed no approval
+  - `ask`: a write that needed your approval
+  - `completed` / `completed-with-error`: the call actually ran, after any approval
 - The job log entry lists the node IDs you changed. The report links every changed frame.
 
 ## 8. Other systems

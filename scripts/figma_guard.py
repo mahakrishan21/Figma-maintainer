@@ -90,6 +90,17 @@ def instructed_text(hook):
     return "\n".join(texts) if texts else None
 
 
+WRITE_RX = re.compile(r"\.\w+\s*=(?!=)|\.(remove|appendChild|insertChild|resize|resizeWithoutConstraints|setProperties|setReactionsAsync|"
+                      r"setBoundVariable|setExplicitVariableModeForCollection|swapComponent|detachInstance|clone|createInstance)\s*\(|"
+                      r"figma\.(create\w+|flatten|group|union|subtract|ungroup)\s*\(|upload|setRangeFills|setRangeTextStyleIdAsync|setTextStyleIdAsync")
+
+
+def is_write(tool, code):
+    if tool != "use_figma":
+        return True
+    return bool(WRITE_RX.search(re.sub(r"(const|let|var)\s+\w+\s*=", "", code)))
+
+
 def node_ids(code):
     return sorted(set(re.findall(r"""getNodeByIdAsync\(\s*['"`]([0-9I;:]+)['"`]""", code)))[:40]
 
@@ -98,6 +109,15 @@ def main():
     try:
         hook = json.load(sys.stdin)
     except Exception:
+        sys.exit(0)
+    if "--post" in sys.argv:  # PostToolUse: record that the call actually ran (after any approval)
+        inp = hook.get("tool_input") or {}
+        resp = json.dumps(hook.get("tool_response", ""))[:400]
+        err = bool(re.search(r'"is_error"\s*:\s*true|Error:', resp))
+        if is_write(hook.get("tool_name", "").split("__")[-1], inp.get("code") or ""):
+            log({"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "tool": hook.get("tool_name", "").split("__")[-1],
+                 "fileKey": inp.get("fileKey", ""), "agent": agent_type(hook), "description": (inp.get("description") or "")[:200],
+                 "decision": "completed-with-error" if err else "completed"})
         sys.exit(0)
     tool = hook.get("tool_name", "")
     inp = hook.get("tool_input") or {}
@@ -131,7 +151,10 @@ def main():
             risky.append("changes variables (shared design tokens)")
         if re.search(r"create(Paint|Text|Effect|Grid)Style\s*\(|style\w*\.remove\s*\(|(Paint|Text|Effect|Grid)Style[^;\n]*\.(paints|fontSize|fontName|effects|name)\s*=", code):
             risky.append("changes shared styles")
-        if re.search(r"(forEach|for\s*\(|\.map\s*\(|while\s*\()[\s\S]{0,300}?\.remove\s*\(\s*\)", code):
+        scan = re.sub(r"for\s*\(\s*(let|var)\s+(\w+)\s*=[^;]*;\s*\2\s*;\s*\2\s*=\s*\2\.parent\s*\)", "", code)  # ancestor-walk scope checks
+        n_remove = len(re.findall(r"\.remove\s*\(\s*\)", scan))
+        loop_remove = re.search(r"(\.forEach\s*\(|\.map\s*\(|for\s*\(\s*(const|let|var)\s+\w+\s+of\b|while\s*\()[^;{]*[{(]?[\s\S]{0,200}?\.remove\s*\(\s*\)", scan)
+        if loop_remove or n_remove > 3:
             risky.append("deletes nodes in a loop (bulk delete)")
         if re.search(r"\.detachInstance\s*\(", code):
             risky.append("detaches component instances")
@@ -140,8 +163,8 @@ def main():
         if re.search(r"addComponentProperty|editComponentProperty|deleteComponentProperty|combineAsVariants|createComponent(FromNode)?\s*\(|swapComponent\s*\(", code) or \
            re.search(r"(mainComponent|getMainComponentAsync\(\))[\s\S]{0,400}?\.(characters|fills|strokes|resize|appendChild|insertChild|remove|cornerRadius|layoutMode|itemSpacing|padding\w*|effects|setReactionsAsync)\b", code):
             risky.append("edits a main component (affects every instance)")
-        if re.search(r"\.remove\s*\(\s*\)", code) and "deletes nodes in a loop (bulk delete)" not in risky:
-            risky.append("deletes nodes")
+        if n_remove and "deletes nodes in a loop (bulk delete)" not in risky:
+            risky.append(f"deletes {n_remove} node(s)")
         if re.search(r"setSharedPluginData|setPluginData|clientStorage", code):
             risky.append("writes plugin data or storage")
         if re.search(r"figma\.root\.name\s*=", code):
@@ -152,7 +175,8 @@ def main():
             out("ask", "this script " + ", ".join(risky) + ". Confirm it's in scope.")
 
     log({"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "tool": short, "fileKey": key, "agent": who,
-         "description": (inp.get("description") or "")[:200], "nodes": node_ids(code), "decision": "allow"})
+         "description": (inp.get("description") or "")[:200], "nodes": node_ids(code),
+         "decision": "allow" if is_write(short, code) else "read"})
     sys.exit(0)
 
 

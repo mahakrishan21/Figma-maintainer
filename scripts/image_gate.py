@@ -8,6 +8,9 @@ try:
     prompt = json.load(sys.stdin).get("prompt", "") or ""
 except Exception:
     sys.exit(0)
+# Messages relayed from agents (hand-backs) aren't user prompts: stay silent
+if re.match(r"\s*(another claude session sent a message|<agent-message|\[subagent hand-back\])", prompt, re.I) or "<agent-message" in prompt[:400]:
+    sys.exit(0)
 p = prompt.lower()
 
 # ---- client SOP lookup: agency/project name or Figma file key -> clients/<agency>/client.md (+ project.md)

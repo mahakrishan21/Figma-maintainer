@@ -62,3 +62,8 @@ Newest last. Max ~6 lines per entry.
 - File `lQHhvuMvDB1t4C4k3Fl5VF`, frame `1:2` "Frame 1", edited in place: heading `1:3` -> "Test passed"; button frame `1:5` (+ label `1:8`) deleted (user-authorized).
 - Snapshot compare: 0 changes outside 1:2. Missing fonts: 0. Frame hug height 403 -> 301.
 - `saveVersionHistoryAsync` not supported in use_figma ("not a supported API"); no checkpoint. Guard hook showed no ask on `.remove()` and audit log stayed empty (0 lines).
+
+## 2026-10-14 — Plugin hook test (no client) — figma-maintainer-test
+- File `lQHhvuMvDB1t4C4k3Fl5VF`, frame `6:5` "Frame 3": heading `6:6` -> "Hook test" (layer name "Test passed" kept via autoRename=false); button frame `6:10` (+ label `6:9`) deleted (user-authorized), in a separate call.
+- The button appeared after the first inspection/snapshot (added mid-job), so a second pre-delete snapshot was taken. Both compares: 0 changes outside 6:5. Missing fonts: 0.
+- Guard: text call allowed silently; delete call logged "ask" (reason "deletes nodes in a loop (bulk delete)", a false positive from the scope-check for-loop), then ran after approval. Audit log now records calls (5 lines in the job, read-only calls included).

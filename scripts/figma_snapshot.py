@@ -54,7 +54,11 @@ def snapshot(key, page, tok):
             walk(c, anc + [n["id"]])
     walk(doc, [])
     top = [c["id"] for c in doc.get("children", [])]
-    return {"file": key, "page": page, "page_name": doc.get("name"), "top": top, "nodes": nodes}
+    try:
+        fname = get(f"/files/{key}?depth=1", tok).get("name")
+    except SystemExit:
+        fname = None
+    return {"file": key, "file_name": fname, "page": page, "page_name": doc.get("name"), "top": top, "nodes": nodes}
 
 
 def compare(before, after, targets, allow_new):
@@ -94,7 +98,7 @@ def main():
     a = ap.parse_args()
     snap = snapshot(a.file, a.page, token())
     Path(a.out).write_text(json.dumps(snap))
-    print(f"Snapshot: {snap['page_name']} ({a.page}), {len(snap['nodes'])} nodes, {len(snap['top'])} top-level → {a.out}")
+    print(f"Snapshot: file '{snap.get('file_name')}' · page {snap['page_name']} ({a.page}), {len(snap['nodes'])} nodes, {len(snap['top'])} top-level → {a.out}")
     if not a.compare:
         return
     before = json.loads(Path(a.compare).read_text())
