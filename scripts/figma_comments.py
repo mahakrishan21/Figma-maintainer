@@ -28,6 +28,14 @@ def token():
     t = os.environ.get("FIGMA_TOKEN", "").strip()
     if t:
         return t
+    try:  # macOS Keychain (preferred over plain-text files): security add-generic-password -s figma-maintainer -a FIGMA_TOKEN -w
+        import subprocess
+        r = subprocess.run(["security", "find-generic-password", "-s", "figma-maintainer", "-a", "FIGMA_TOKEN", "-w"],
+                           capture_output=True, text=True, timeout=10)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
+    except Exception:
+        pass
     home = Path.home()
     f = home / ".claude/figma-maintainer/figma-token"
     if f.is_file():

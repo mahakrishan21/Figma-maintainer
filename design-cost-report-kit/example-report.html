@@ -1,0 +1,70 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI usage report – Boutique Hotel Landing Page</title><style>
+:root{--bg:#f6f5f1;--card:#ffffff;--ink:#1d1d1b;--muted:#6b6a64;--line:#e4e2da;
+--accent:#c2552d;--a2:#2f6f62;--a3:#d9a441;--a4:#6a5acd;--a5:#8a8a80;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161614;--card:#1f1f1c;--ink:#f0eee8;
+--muted:#a3a198;--line:#33322d;--accent:#e57a50;--a2:#5fb3a1;--a3:#e6bd62;--a4:#9d8ff0;--a5:#77776f;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+font:15px/1.55 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:40px 24px 64px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;
+border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:28px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font:600 32px/1.15 Georgia,"Times New Roman",serif;margin:6px 0 0}
+.meta{text-align:right;color:var(--muted);font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:28px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.kpi .v{font:600 26px/1.2 Georgia,serif;margin-top:4px}.kpi.hero{border-color:var(--accent)}
+.kpi.hero .v{color:var(--accent)}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin-bottom:18px}
+h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;font-weight:600}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}th{font-weight:600;color:var(--muted);font-size:12px}
+tfoot td{font-weight:700;border-bottom:none;border-top:2px solid var(--ink)}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin:6px 0 12px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+ul.files{margin:0;padding-left:18px}ul.files li{margin:3px 0;word-break:break-all}
+.tag{font-size:11px;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted);margin-left:6px}
+.note{font-size:12px;color:var(--muted);margin-top:22px;line-height:1.6}
+.warn{color:var(--accent)}
+@media print{body{background:#fff}.wrap{padding:0}section,.kpi{break-inside:avoid}}
+</style></head><body><div class="wrap">
+<header><div><div class="eyebrow">AI usage &amp; cost report · Pixel Studio</div>
+<h1>Boutique Hotel Landing Page</h1></div>
+<div class="meta">Client: <b>Saffron Stays</b><br>
+14 Oct 2026<br>Generated 14 Oct 2026, 06:08</div></header>
+
+<div class="kpis">
+<div class="kpi hero"><div class="eyebrow">AI cost (API rates)</div><div class="v">₹47.32</div></div>
+
+<div class="kpi"><div class="eyebrow">Total tokens</div><div class="v">132,395</div></div>
+<div class="kpi"><div class="eyebrow">Models used</div><div class="v">3</div></div>
+<div class="kpi"><div class="eyebrow">Sub-agent runs</div><div class="v">1</div></div>
+<div class="kpi"><div class="eyebrow">Active time · prompts</div><div class="v">21m · 2</div></div>
+</div>
+
+<section><h2>Cost by model</h2><div class="scroll"><table>
+<thead><tr><th>Model</th><th>API calls</th><th>Input</th><th>Output</th><th>Cache write</th><th>Cache read</th><th>Cost</th><th>Share</th></tr></thead>
+<tbody><tr><td>Claude Opus 5.5<span class='tag'>claude-opus-5-5</span></td><td>4</td><td>55</td><td>13,500</td><td>26,500</td><td>65,000</td><td>₹39.46</td><td>83%</td></tr><tr><td>Claude Sonnet 5.5<span class='tag'>claude-sonnet-5-5</span></td><td>2</td><td>2,500</td><td>4,500</td><td>9,000</td><td>11,000</td><td>₹7.86</td><td>17%</td></tr><tr><td>Claude Haiku 5.5<span class='tag'>claude-haiku-5-5</span></td><td>1</td><td>300</td><td>40</td><td>0</td><td>0</td><td>₹0.0042</td><td>0%</td></tr></tbody>
+<tfoot><tr><td>Total</td><td>7</td><td>2,855</td>
+<td>18,040</td><td>35,500</td><td>76,000</td>
+<td>₹47.32</td><td>100%</td></tr></tfoot></table></div></section>
+
+<section><h2>Where the tokens went</h2><div class="bar"><span style='width:2.16%;background:var(--accent)'></span><span style='width:13.63%;background:var(--a2)'></span><span style='width:26.81%;background:var(--a3)'></span><span style='width:57.40%;background:var(--a4)'></span></div><div class="legend"><span><i class='dot' style='background:var(--accent)'></i>Input: 2,855</span><span><i class='dot' style='background:var(--a2)'></i>Output: 18,040</span><span><i class='dot' style='background:var(--a3)'></i>Cache write: 35,500</span><span><i class='dot' style='background:var(--a4)'></i>Cache read: 76,000</span></div>
+<h2 style="margin-top:22px">Main agent vs sub-agents</h2><div class='bar'><span style='width:83.39%;background:var(--accent)'></span><span style='width:16.61%;background:var(--a2)'></span></div><div class='legend'><span><i class='dot' style='background:var(--accent)'></i>Main agent: ₹39.46</span><span><i class='dot' style='background:var(--a2)'></i>Sub-agents (1 run): ₹7.86</span></div>
+<p class="note" style="margin-top:10px">Sub-agents used: ui-researcher × 1</p></section>
+
+<section><h2>Sessions (1)</h2><div class="scroll"><table>
+<thead><tr><th>Session</th><th>Started</th><th>Duration</th><th>Prompts</th><th>Tokens</th><th>Cost</th></tr></thead>
+<tbody><tr><td>Hotel landing page redesign</td><td>14 Oct 2026, 05:00</td><td>21m</td><td>2</td><td>132,395</td><td>₹47.32</td></tr></tbody></table></div></section>
+
+<section><h2>Design files produced</h2><ul class="files"><li>index.html<span class='tag'>created</span></li><li>styles.css<span class='tag'>edited</span></li></ul></section>
+
+<p class="note">Costs are calculated from the token counts Claude Code records for each API call, priced at Anthropic's
+published per-token API rates (pricing table updated 2026-10-14). If the work ran on a Claude
+subscription plan rather than an API key, this is the API-equivalent value, not an amount charged. Converted from USD at 1 USD = 84 INR.
+Cache writes are billed at 1.25× (5-min) or 2× (1-hour) the input rate; cache reads at a small fraction of it.</p>
+</div></body></html>

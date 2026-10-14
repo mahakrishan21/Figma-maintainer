@@ -1,0 +1,27 @@
+- generic [ref=f4e4]:
+  - generic [ref=f4e8]:
+    - heading "Let's Go!" [level=1] [ref=f4e9]
+    - generic [ref=f4e10]:
+      - generic [ref=f4e12]:
+        - generic "Enter your email" [ref=f4e14]: "* Enter your email"
+        - generic [ref=f4e18]:
+          - generic [ref=f4e19]: 
+          - textbox "* Enter your email" [ref=f4e21]:
+            - /placeholder: Email
+      - generic [ref=f4e23]:
+        - generic "Enter password" [ref=f4e25]: "* Enter password"
+        - generic [ref=f4e29]:
+          - generic [ref=f4e30]: 
+          - textbox "* Enter password" [ref=f4e32]:
+            - /placeholder: Password
+          - img "eye-invisible" [ref=f4e34] [cursor=pointer]
+      - generic [ref=f4e43]:
+        - switch [ref=f4e44] [cursor=pointer]
+        - generic [ref=f4e47]: Remember me
+      - button "Login" [ref=f4e53] [cursor=pointer]
+    - link "Forgot Password?" [ref=f4e56] [cursor=pointer]:
+      - /url: /forgot
+    - link "Login with security code?" [ref=f4e58] [cursor=pointer]:
+      - /url: /security-code
+  - link "Don't have an account? Sign Up" [ref=f4e61] [cursor=pointer]:
+    - /url: /sign-up

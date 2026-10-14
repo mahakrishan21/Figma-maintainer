@@ -1,0 +1,153 @@
+- generic [ref=f16e4]:
+  - generic [ref=f16e5]:
+    - generic [ref=f16e6]:
+      - img "brand-logo" [ref=f16e8]
+      - generic [ref=f16e9] [cursor=pointer]: 
+    - generic [ref=f16e11]:
+      - heading "projects" [level=1] [ref=f16e15]
+      - generic [ref=f16e16]:
+        - generic [ref=f16e23] [cursor=pointer]:
+          - combobox "Search here..." [ref=f16e24]
+          - button [ref=f16e26]:
+            - img "search" [ref=f16e28]
+        - switch "Available Occupied" [ref=f16e34] [cursor=pointer]:
+          - generic [ref=f16e36]:
+            - generic: Available
+            - generic: Occupied
+        - generic [ref=f16e37]: 
+        - generic [ref=f16e42] [cursor=pointer]
+  - generic [ref=f16e45]:
+    - generic [ref=f16e46]:
+      - menu [ref=f16e48]:
+        - menuitem " Create a Project" [ref=f16e49] [cursor=pointer]:
+          - link:
+            - /url: /project/new
+          - generic [ref=f16e50]: 
+          - generic [ref=f16e52]: Create a Project
+        - menuitem " Create a Task" [ref=f16e53] [cursor=pointer]:
+          - link:
+            - /url: /task/new
+          - generic [ref=f16e54]: 
+          - generic [ref=f16e56]: Create a Task
+      - menu [ref=f16e58]:
+        - menuitem " dashboard" [ref=f16e59] [cursor=pointer]:
+          - link:
+            - /url: /dashboard
+          - generic [ref=f16e60]: 
+          - generic [ref=f16e62]: dashboard
+        - menuitem " roles" [ref=f16e63] [cursor=pointer]:
+          - link:
+            - /url: /roles
+          - generic [ref=f16e64]: 
+          - generic [ref=f16e66]: roles
+        - menuitem " clients" [ref=f16e67] [cursor=pointer]:
+          - link:
+            - /url: /client
+          - generic [ref=f16e68]: 
+          - generic [ref=f16e70]: clients
+        - menuitem " projects" [ref=f16e71] [cursor=pointer]:
+          - link:
+            - /url: /project
+          - generic [ref=f16e72]: 
+          - generic [ref=f16e74]: projects
+        - menuitem " tasks" [ref=f16e75] [cursor=pointer]:
+          - link:
+            - /url: /task
+          - generic [ref=f16e76]: 
+          - generic [ref=f16e78]: tasks
+        - menuitem " report" [ref=f16e79] [cursor=pointer]:
+          - link:
+            - /url: /report
+          - generic [ref=f16e80]: 
+          - generic [ref=f16e82]: report
+        - menuitem " billing" [ref=f16e83] [cursor=pointer]:
+          - link:
+            - /url: /billing
+          - generic [ref=f16e84]: 
+          - generic [ref=f16e86]: billing
+        - menuitem " members availability" [ref=f16e87] [cursor=pointer]:
+          - link:
+            - /url: /availability
+          - generic [ref=f16e88]: 
+          - generic [ref=f16e90]: members availability
+        - menuitem " settings" [ref=f16e91] [cursor=pointer]:
+          - link:
+            - /url: /setting
+          - generic [ref=f16e92]: 
+          - generic [ref=f16e94]: settings
+        - menuitem " notification settings" [ref=f16e95] [cursor=pointer]:
+          - link:
+            - /url: /notification-settings
+          - generic [ref=f16e96]: 
+          - generic [ref=f16e98]: notification settings
+        - menuitem " notifications" [ref=f16e99] [cursor=pointer]:
+          - link:
+            - /url: /notification
+          - generic [ref=f16e100]: 
+          - generic [ref=f16e102]: notifications
+        - menuitem " feedback" [ref=f16e103] [cursor=pointer]:
+          - link:
+            - /url: /feedback
+          - generic [ref=f16e104]: 
+          - generic [ref=f16e106]: feedback
+        - menuitem " bug tracker" [ref=f16e107] [cursor=pointer]:
+          - link:
+            - /url: /bug-tracker
+          - generic [ref=f16e108]: 
+          - generic [ref=f16e110]: bug tracker
+        - menuitem " help" [ref=f16e111] [cursor=pointer]:
+          - link:
+            - /url: /help-desks
+          - generic [ref=f16e112]: 
+          - generic [ref=f16e114]: help
+      - generic "View Release Notes" [ref=f16e115] [cursor=pointer]: v2.4.10
+    - generic [ref=f16e121]:
+      - generic [ref=f16e123]:
+        - generic [ref=f16e125]:
+          - button " New Project" [ref=f16e126] [cursor=pointer]:
+            - generic [ref=f16e127]: 
+            - generic [ref=f16e129]: New Project
+          - generic [ref=f16e131]:
+            - textbox "Search" [ref=f16e132]
+            - img "search" [ref=f16e134]
+        - generic [ref=f16e139]:
+          - button "Filter " [ref=f16e141] [cursor=pointer]:
+            - generic [ref=f16e142]: Filter
+            - text: 
+          - button "Group By " [ref=f16e144] [cursor=pointer]:
+            - generic [ref=f16e145]: Group By
+            - text: 
+          - generic [ref=f16e148] [cursor=pointer]:
+            - text: 
+            - generic [ref=f16e149]: Assigned to me
+          - generic [ref=f16e152] [cursor=pointer]:
+            - checkbox "In-house" [ref=f16e154]
+            - generic [ref=f16e156]: In-house
+          - button "Project Manager " [ref=f16e158] [cursor=pointer]:
+            - generic [ref=f16e159]: Project Manager
+            - text: 
+          - button "By Assignee " [ref=f16e161] [cursor=pointer]:
+            - generic [ref=f16e162]: By Assignee
+            - text: 
+      - generic [ref=f16e164]:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - table:
+                  - rowgroup:
+                    - row "Projects Project Manager Start Date Due Date Estimated hours Priority Status Created Date Action":
+                      - cell
+                      - columnheader "Projects"
+                      - columnheader "Project Manager"
+                      - columnheader "Start Date"
+                      - columnheader "Due Date"
+                      - columnheader "Estimated hours"
+                      - columnheader "Priority"
+                      - columnheader "Status"
+                      - columnheader "Created Date"
+                      - columnheader "Action"
+                  - rowgroup:
+                    - button "No data" [pressed]:
+                      - cell "No data"
+      - status [ref=f16e171]

@@ -1,0 +1,5 @@
+{
+  "_note": "Currencies shown in usage lines. fx = units of that currency per 1 USD. Set the rate you want to use; it is never guessed.",
+  "currencies": ["USD", "INR"],
+  "fx": {"INR": null}
+}

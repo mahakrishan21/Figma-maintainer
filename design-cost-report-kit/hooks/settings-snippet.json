@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/skills/design-cost-report/scripts/generate_report.py --hook"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "_source": "https://platform.claude.com/docs/en/about-claude/pricing",
+  "_updated": "2026-10-14",
+  "_note": "USD per million tokens. Keys are model-id prefixes; the longest matching prefix wins. Edit this file when prices change.",
+  "web_search_per_1000": 10.0,
+  "models": {
+    "claude-fable-5-1":  {"label": "Claude Fable 5.1",  "input": 10,   "output": 50,   "cache_write_5m": 12.5,  "cache_write_1h": 20,   "cache_read": 0.25},
+    "claude-mythos-5-1": {"label": "Claude Mythos 5.1", "input": 10,   "output": 50,   "cache_write_5m": 12.5,  "cache_write_1h": 20,   "cache_read": 0.25},
+    "claude-fable-5":    {"label": "Claude Fable 5",    "input": 10,   "output": 50,   "cache_write_5m": 12.5,  "cache_write_1h": 20,   "cache_read": 1.0},
+    "claude-mythos-5":   {"label": "Claude Mythos 5",   "input": 10,   "output": 50,   "cache_write_5m": 12.5,  "cache_write_1h": 20,   "cache_read": 1.0},
+
+    "claude-opus-5-5":   {"label": "Claude Opus 5.5",   "input": 4,    "output": 20,   "cache_write_5m": 5,     "cache_write_1h": 8,    "cache_read": 0.20},
+    "claude-opus-5":     {"label": "Claude Opus 5",     "input": 5,    "output": 25,   "cache_write_5m": 6.25,  "cache_write_1h": 10,   "cache_read": 0.50},
+    "claude-opus-4-8":   {"label": "Claude Opus 4.8",   "input": 5,    "output": 25,   "cache_write_5m": 6.25,  "cache_write_1h": 10,   "cache_read": 0.50},
+    "claude-opus-4-7":   {"label": "Claude Opus 4.7",   "input": 5,    "output": 25,   "cache_write_5m": 6.25,  "cache_write_1h": 10,   "cache_read": 0.50},
+    "claude-opus-4-6":   {"label": "Claude Opus 4.6",   "input": 5,    "output": 25,   "cache_write_5m": 6.25,  "cache_write_1h": 10,   "cache_read": 0.50},
+    "claude-opus-4-5":   {"label": "Claude Opus 4.5",   "input": 5,    "output": 25,   "cache_write_5m": 6.25,  "cache_write_1h": 10,   "cache_read": 0.50},
+    "claude-opus-4-1":   {"label": "Claude Opus 4.1",   "input": 15,   "output": 75,   "cache_write_5m": 18.75, "cache_write_1h": 30,   "cache_read": 1.50},
+    "claude-opus-4":     {"label": "Claude Opus 4",     "input": 15,   "output": 75,   "cache_write_5m": 18.75, "cache_write_1h": 30,   "cache_read": 1.50},
+
+    "claude-sonnet-5-5": {"label": "Claude Sonnet 5.5", "input": 2,    "output": 10,   "cache_write_5m": 2.5,   "cache_write_1h": 4,    "cache_read": 0.10},
+    "claude-sonnet-5":   {"label": "Claude Sonnet 5",   "input": 2,    "output": 10,   "cache_write_5m": 2.5,   "cache_write_1h": 4,    "cache_read": 0.20},
+    "claude-sonnet-4-6": {"label": "Claude Sonnet 4.6", "input": 3,    "output": 15,   "cache_write_5m": 3.75,  "cache_write_1h": 6,    "cache_read": 0.30},
+    "claude-sonnet-4-5": {"label": "Claude Sonnet 4.5", "input": 3,    "output": 15,   "cache_write_5m": 3.75,  "cache_write_1h": 6,    "cache_read": 0.30},
+    "claude-sonnet-4":   {"label": "Claude Sonnet 4",   "input": 3,    "output": 15,   "cache_write_5m": 3.75,  "cache_write_1h": 6,    "cache_read": 0.30},
+
+    "claude-haiku-5-5":  {"label": "Claude Haiku 5.5",  "input": 0.10, "output": 0.50, "cache_write_5m": 0.125, "cache_write_1h": 0.20, "cache_read": 0.01,
+                          "long_context": {"threshold": 100000, "input": 0.50, "output": 2.50, "cache_write_5m": 0.625, "cache_write_1h": 1.0, "cache_read": 0.05}},
+    "claude-haiku-4-5":  {"label": "Claude Haiku 4.5",  "input": 1,    "output": 5,    "cache_write_5m": 1.25,  "cache_write_1h": 2,    "cache_read": 0.10},
+    "claude-3-5-haiku":  {"label": "Claude Haiku 3.5",  "input": 0.80, "output": 4,    "cache_write_5m": 1.0,   "cache_write_1h": 1.6,  "cache_read": 0.08}
+  }
+}

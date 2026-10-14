@@ -1,0 +1,157 @@
+# Agency index (from teaming.rocks/project, read-only snapshot 2026-10-14)
+Agency = our client. Each teaming project = the agency's client. Folder = clients/<agency-slug>/.
+
+- **4M Building Solutions - Marketing** → `4m-building-solutions-marketing/` (SEO): 4M Building Solutions
+- **4th Line Marketing LLC** → `4th-line-marketing-llc/` (Web): Floor Coverings International; Pure Gutter Solutions; Sewer Surgeons
+- **A2Z Enhanced Digital Solutions (Barry)** → `a2z-enhanced-digital-solutions-barry/` (Web): Asia Direct; Barry - Misc Tasks; Sprit and Speed
+- **Acuity Advantage Inc.** → `acuity-advantage-inc/` (Web): New Site  - Mockup & Development
+- **Adella Digital (Unified Districts)** → `adella-digital-unified-districts/` (Web): Adella Digital - DEV
+- **AgoraEversole** → `agoraeversole/` (Web): Agora Eversole; AgoraEversole Tasks; Citizens Progressive Bank; MACM; Outside In; Peoples Bank Ripley; Template Design; Website - DHL(Dianne Holbert Limited)
+- **Algorithm Digital Marketing** → `algorithm-digital-marketing/` (SEO): ADM Website; Enprotech; Envalo
+- **Alkali** → `alkali/` (Web): Mizuho America
+- **Alpha Key Digital (Moved to SEO)** → `alpha-key-digital-moved-to-seo/` (SEO): A-ROC Construction and Development LLC; Alpha Key Digital - Task List; Alpha Key Website Redevelopment; Lake County Recorders Office; Streb Electric - Redesign & Redevelop
+- **AMBA (Oozle Media)** → `amba-oozle-media/` (Web): Maintenance Tasks - Oozle Media
+- **AMBA Maintenance** → `amba-maintenance/` (Web): AMBA Multisite  - Maintenance Task List
+- **AMERICAN MATERIAL - SITE MAX** → `american-material-site-max/` (Web): American Material Processing
+- **Anchor Corps** → `anchor-corps/` (SEO): Green Acres
+- **AnotherWay Digital** → `anotherway-digital/` (Web): Trimad - Fleetsign
+- **Authentic WEB** → `authentic-web/` (Web): 212 & JLD Tax & Accounting
+- **Avenue 25** → `avenue-25/` (PPC): Avenue - PPC
+- **Axia Public Relations** → `axia-public-relations/` (Web): Axia PR Web Task List; ELEV8 Demolitions
+- **AyoKay** → `ayokay/` (Web): Alianza of New Mexico; Annapolis Pride; Appventures.us; Ayokay; AYOKAY - PPC; Ayokay Support Desk - General tasks; Ayokay | Marketing; Best Choice Roofing | Support; Branding - Spotlight Indy; CancerEDGE; Cardinal Ethanol | Web Design; Destination Indy Website; Engineering Innovation; Family Leisure; GameDayShop.com | Website; Get Klarity; Hoosier Cheer Coaches Association - HCCA; HypeSmith / GiftHealth; Indiana AIDS Walk Rebrand; Inspiring Young Generations (IYG); Institution for Knowledge Translation; Market Square Popcorn Website; NEISC Website; Three Palms Casual; Tindley Video Project; Trinity Haven / Email and Social
+- **Back40 Design** → `back40-design/` (Web): Back40 Quote; Collins & Steel (Collins Structural Design); KR Automation WordPress; Love without Boundaries (LWB); Ogletree Law; Oklahoma Roofing; Santa Fe Place; Zero Rust
+- **Barrel O Monkeyz** → `barrel-o-monkeyz/` (Web): Barrel O Monkeyz - New Website Development
+- **Beyond Blue Media** → `beyond-blue-media/` (Web): Auto Glow; Beyond Blue Media; Brooks; Clean Bees; Elevate Med Spa; ELK Law; GA Family Services; Greeley Family Ortho; Harris Timberworks; Impact Payments Website Design; Medcom Group; MGI Mechanical Services Custom Build; Neighbors Homes; Pipe + Barrel; Seager Orthodontics; Timberline; Timberline Church; WCDA
+- **BeyondInfluence** → `beyondinfluence/` (SEO): BeyondInfluence
+- **Birr Agency LTD** → `birr-agency-ltd/` (Web): ABLawg.ca; All Smiles Dental Group; Birr Agency Task List; Fernie Fox; Quest Braces
+- **BlackFin** → `blackfin/` (Web): Federal Lawyer; FortressGrowth
+- **Blue Portal consulting (Peak Digital Marketing Solutions LLC)** → `blue-portal-consulting-peak-digital-marketing-solutions-llc/` (Web): Gig Harbor Sportsman's Club
+- **Bomb and Deanos** → `bomb-and-deanos/` (PPC): Bomb and Deanos - PPC
+- **Brainscience Works** → `brainscience-works/` (Web): BrainScience Works
+- **BryteBridge Nonprofit Solutions** → `brytebridge-nonprofit-solutions/` (Web): BryteBridge Nonprofit Solutions - Design Tasks; US Filing Services
+- **C3 Team** → `c3-team/` (Web): BitRip Website; Flotilla Water; Linchpin Task Lists
+- **Calido Media** → `calido-media/` (Web): CW Import
+- **Cardinal and Co Agency LLC** → `cardinal-and-co-agency-llc/` (eCommerce): Cardinal and Co Agency LLC Task List
+- **Caroline Sumners** → `caroline-sumners/` (Web): Adari; ERISA Website- SEO
+- **CauseLabs  PBC** → `causelabs-pbc/` (Web): WFSO.org
+- **Centex Reliance LLC** → `centex-reliance-llc/` (Web): DEJA CREW; The Day Tripper
+- **Channel 13 Advertising and Design Inc** → `channel-13-advertising-and-design-inc/` (Web): Graphic design; Graywood - Claystone
+- **Chilli Pepper Design** → `chilli-pepper-design/` (Web): [Waterside Pools]; Mothers of Boys; TechPerm
+- **Clapping dog media** → `clapping-dog-media/` (SEO): Renova One
+- **ClearEdge** → `clearedge/` (Web): Odom Hotelz
+- **Compass Digital** → `compass-digital/` (Web): East Coast Custom Pools
+- **Continuant** → `continuant/` (Web): CHS
+- **Contractor Dynamics** → `contractor-dynamics/` (Web): Ace Roofing; Aesthetic Elements - DFY Website; Contractor Dynamics; Contractor Dynamics tasks; Higher Dimensions Roofing; Holden Roofing; HTX; J&L Roofing; JPA Roofing; MVP Home Pros; Patriot Roofing; Proven Contracting; Shearman Roofing; SJ Roofing; Texas Advantage Roofing
+- **Corberry** → `corberry/` (SEO): Quality Heating
+- **Corberry Digital Marketing Agency** → `corberry-digital-marketing-agency/` (eCommerce): Corberry Digital Marketing Task List
+- **Creative Feed** → `creative-feed/` (SEO): savsystems.com.au
+- **Datos Health** → `datos-health/` (Web): Datos Daily Task List
+- **DB Marcom Inc.** → `db-marcom-inc/` (Web): Accounting Firm
+- **Digital Attic** → `digital-attic/` (Web): Benecard PBF - Portal User Guide Benecard PBF; Cardiovascular Consultants - WordPress Conversion; Digital Attic - Main Site 2024; Douglas S. Stanley, MD; Gillum Family Farms Website; growyourmarriage.com; GW Innovations; GWI  Global; IAC - Exhibitors; JTI Web Design; Kingsburg Orchards: Web Plan; Sequoia Construction; Signet-Care | Web Design & Development; Squaw Valley Realty; The Garlic Company; The Garlic Company: Web Plan; The Glacier Ice Factory - Web Design & Development; Yosemite West - WordPress/Astra
+- **Digital Envy** → `digital-envy/` (Web): Action Carpet Cleaning
+- **Digital Guppy** → `digital-guppy/` (Web): Signpro Australia; View Co
+- **Dragon Internet Marketing** → `dragon-internet-marketing/` (Web): For Your Gander; http://www.creativedental.net - Redesign; Matt Mulvihill Project - Landing page; Morning Noon and Night; NEW project @ https://www.brettgalvanlaw.com/.; New Project @ www.yuritzy4klandscaping.com
+- **Drop Shadow Agency** → `drop-shadow-agency/` (Web): Drop Shadow
+- **DvA Digital Agency** → `dva-digital-agency/` (Web): Eduvesica
+- **DVM Elite** → `dvm-elite/` (Web): VetNova
+- **E2M - AI** → `e2m-ai/` (-): Fractional AI Consultant
+- **E2M Solutions** → `e2m-solutions/` (-): E2M Website; Marcos & Motion Studio; Quotes; Razorcopy Website; Teaming.rocks (Mern)
+- **Ed2Market** → `ed2market/` (Web): AppCentri; Crossover Literacy; Navigate360; TeachUnited; Tosa Certification - Design
+- **Edgerton Strategies** → `edgerton-strategies/` (Web): Dallas Express - dallasexpress.com; David Mansdoerfer; Edgerton Tasks; IMA Action; Longleaf Consulting Website; Star Parker Website
+- **Elevation Marketing** → `elevation-marketing/` (Web): Elite Roofing & Solar; My Florida Roofing Contractor
+- **ENX2 Marketing** → `enx2-marketing/` (Web): Alvelo Immigration Legal Solutions, PLLC; Ameristrong; Berkshire Centerpoint; Builderz Warehouse; Cleaning Tech Inc; Coffee Inclusive [Shopify]; Eastern Auto Leasing; EC Law Counsel; Ford-o-brien; Gladiator Therapeutics; KB Law Firm; Keystone Conference; Lifeline.ca (Canada); Lifeline.com; Medical Alert - https://www.medicalalert.com/; Northeast Eagle; United One - https://unitedone.com; WBS Penguins
+- **Fox and Owl Marketing** → `fox-and-owl-marketing/` (SEO): Madison County House Buyers
+- **Fully Charged Media** → `fully-charged-media/` (Web): Private Discovery Tours; Property QT
+- **Get Hyped Media** → `get-hyped-media/` (SEO): M.A.D Skincare
+- **GetUWired.com** → `getuwired-com/` (Web): Accelerated Medical Practices (AMP) - Membership Build; Forsey's; Getuwired.com; MH Collaboration Hub (MHH); Molly Fletcher; Retainer | Budgetnista - Main Project; SERP Institute - Download Center Rebuild; Seven Point Energy - KPA Migration and Reporting; Southeastern Dock Supply (SEDS) - eCommerce Site Rebuild
+- **GHM Consultancy** → `ghm-consultancy/` (SEO, eCommerce): GHM Consultancy; Gravity Calisthenics
+- **GoStrengths Inc** → `gostrengths-inc/` (Web): ADHDReady.com; Go Zen
+- **Green Bumstiers** → `green-bumstiers/` (Web): Carbon Guard website; Crack Stitch; Worthington
+- **Growth Squad** → `growth-squad/` (Web): certifiedpayrolladvisors.com; Feel First, Live Free Ltd.; The Feldman Companies; www.compassindinc.com - Compass Industrial Sales
+- **Hawthorn Creative** → `hawthorn-creative/` (Web): NYIT de Seversky Mansion
+- **HeroLanders** → `herolanders/` (-): Abundance Property; AI Real Estate; Dotaire; Down to Earth Pilates; Every Solar 2.0; Frme Fest; George Yang; Golfers Paradise; Gomani Projects; Mclaws Property; Opal Dental; Skin Wellness Hub; Sunnycare
+- **Hey Mr Media** → `hey-mr-media/` (Web): Alan Bradley Windows & Doors; Comfort Zone Web Tasks E2M; Denver ETA; LaundroLab; OIS; S&S Roofing; SCM Architects
+- **Inbound Studios** → `inbound-studios/` (Web): Anderson Race Management; Art Partners Group; Calliope Technology LLC; David Gregory Books - WordPress Redesign; Generate 360 Consulting; GleasonDale - Zoho Recruit; Gunstop.com BigCommerce Website Development; His workmanship; Inbound Task List; Innovize Website Redesign; LCHS - Website Updates; Plush Perfect Events; The Pause Gals; ToneWorks MN – Core Website Redesign; Trident Service Group - Website & Marketing
+- **Inspire media** → `inspire-media/` (SEO): Inspire Media Web Tasks
+- **Interhyve - Cote Magazine** → `interhyve-cote-magazine/` (Web): Five Diamonds Arbitration Chambers
+- **Jake - Agence Web Inc.** → `jake-agence-web-inc/` (eCommerce): Maintenance Projects
+- **Jely Marketing** → `jely-marketing/` (Web): Rssllc Construction; Shopify tasks; WordPress tasks
+- **Jmax Media Soultions LLC** → `jmax-media-soultions-llc/` (SEO): KBD.Law
+- **Jules Webb** → `jules-webb/` (Web): Divi 5 Conversion - https://tdbwe2mdev.wpenginepowered.com/; Tijeras Hair Co
+- **Krekura Design** → `krekura-design/` (Web): 2AMM (Green Beret Foundation); 9.11 Legacy Foundation; Anthology Comms; Coradi; From Tragedy to Triumph; Green Beret Foundation; Manufacturing Momentum; Project Life Saver; Rent757; Taskforce Tatanka
+- **KSA Marketing** → `ksa-marketing/` (eCommerce): Team KSA in House
+- **Lasso up** → `lasso-up/` (SEO, Web): Awesome Residential Technologies; Bass Sox Mercer; Carlson Harris; Cool Zone; Dr Diane B; Elder Law of Nashville; Gross & Son; Hopkins & Porter; Island Tower D; Lasso Up; Lasso Up - Daily Task List; Lasso Up - Design Task; Meeks Electrical; Murphy's Custom Homes; Naples Plastic Surgery; NeoMatrix; PACT - Physicians Alliance of Connecticut; Teddy's Limo; Torgerson Design Partners; TRC Global Mobility; Tru Glo Medspa; Unger USA
+- **Launch Digital** → `launch-digital/` (SEO): Nexus Tab Hub
+- **Leadlly Digital** → `leadlly-digital/` (SEO): MMEx Website Rebuild
+- **Lions Share Digital** → `lions-share-digital/` (Web): Lion's Share
+- **Little Dog Agency** → `little-dog-agency/` (Web): Visit Folly Beach
+- **Lone Star Templates** → `lone-star-templates/` (eCommerce): LoneStar Task List
+- **Madison Miles Media** → `madison-miles-media/` (Web): House Within - GRA; SWL
+- **Master key marketing** → `master-key-marketing/` (Web): Demand Pros
+- **MAYO Designs Inc.** → `mayo-designs-inc/` (Web): Agilix Solutions; Design Task - Mayo; Mayo Design Task List; Mayo Website Redesign; Meadowhawk Biolabs; NECS; Seabrook
+- **Mekhala Living** → `mekhala-living/` (SEO): Mekhala Living
+- **MGO Studios** → `mgo-studios/` (Web): Immunegroup
+- **Midwest Injury Lawyers** → `midwest-injury-lawyers/` (SEO): Midwest Injury Law - SEO; Midwest Injury Lawyers - Content
+- **Mission Created** → `mission-created/` (Web): Auto Diagnostic; Family Auto Care  (Bellante Auto Shops); Mission Created Task Lists
+- **Mixtape Digital** → `mixtape-digital/` (Web): Mixtape Digital
+- **Moore Services** → `moore-services/` (Web): Moore Services
+- **Mophead Media** → `mophead-media/` (SEO): Jeremy At Wood Law
+- **Neowolf Digital LLC** → `neowolf-digital-llc/` (Web): General Sealants; SMRT Lighting Controls
+- **Next Level Marketing** → `next-level-marketing/` (Web): Bloom and Bath; NLM Design Tasks; NLM Tasks; OneStop AV; Polyglass; Shopify Tasks
+- **Nexus Health Systems** → `nexus-health-systems/` (Web): JWC / APEX Website
+- **Nine Planets** → `nine-planets/` (Web): 9planetshosting; Broad View Dental; ODI; Plums Cafe
+- **North Designs** → `north-designs/` (Web): Balloon Nevada Website - North Designs; BoldWealth Webflow Site; North Designs Marketing Website 2024
+- **One With Digital** → `one-with-digital/` (Web): Design Team - Task List; Hardy Electric - Website Design; LarryWetherby.com; movefactorx.com; One With Digital Website; Political Local Candidate Website
+- **One18Media** → `one18media/` (Web): Donnelly Mechanical; LGI Healthcare Solutions; Nooks & Socials
+- **Pareto PPC** → `pareto-ppc/` (Web): Crabtree Law Firm; Pareto PPC Tasks
+- **Persaud Creative** → `persaud-creative/` (Web): MCCF
+- **Pinnacle Holding Co** → `pinnacle-holding-co/` (Web): Pinnacle Confidential Planning
+- **Plain Speaking Health** → `plain-speaking-health/` (eCommerce): Dr Amanda Nikolic - Colorectal Surgeon
+- **Proof Digital** → `proof-digital/` (Web): Autogeek; Proof Digital Tasks; Smartbaits
+- **Propaganda3** → `propaganda3/` (SEO): Farm-to-Power
+- **Ramblin Jackson** → `ramblin-jackson/` (Web): City Floral Garden Center & Landscaping; Environmental Landworks Company; Greenleaf Lawn & Landscape; Landry's Landscape; Stone & Flower Gardens & Landscape Design
+- **Ramblin Jackson - GoHighLevel** → `ramblin-jackson-gohighlevel/` (Web): General GHL Tasks
+- **Ready Artwork** → `ready-artwork/` (Web): Vaisense
+- **Red Shark Digital** → `red-shark-digital/` (Web): Speecheasy
+- **Roof Top Twenty Two** → `roof-top-twenty-two/` (Web): Kinore; System Plus
+- **Rooted Design** → `rooted-design/` (Web): Lamon Luther; SaftTPlus
+- **Rose Carter  Co.** → `rose-carter-co/` (Web): [BAC] - BattletownAnimalClinic.com/
+- **Search Engine People** → `search-engine-people/` (Web): SEP Website
+- **SGD** → `sgd/` (PPC): SGD - Dedicated PPC
+- **Shopify Theme Development - E2M** → `shopify-theme-development-e2m/` (Web): Shopify Theme Designing
+- **Six15 Solutions Refine Web** → `six15-solutions-refine-web/` (Web): Steinberg Behavior Solutions - SBSABA
+- **Skyhawk Digital Marketing** → `skyhawk-digital-marketing/` (Web): BA Electric; Popular Plumbing
+- **SMASH** → `smash/` (Web): Renfrow Industrial
+- **Smash Creative** → `smash-creative/` (Web): AK Lawncare; Capek's Landscape; DSC Dahsheng; Forefront Capital; LSIA; Michigan Land Care; NC Cement; Probuilt Woodworking Co.; Smash Creative - Task List; Vitale Companies
+- **Spijker en Co** → `spijker-en-co/` (Web): Businesscirkel Zorg; LCT-Textilligence
+- **Splitbase** → `splitbase/` (eCommerce): Mosh
+- **Sports Facilities Company** → `sports-facilities-company/` (Web): East Texas A&M
+- **Spot Color Marketing** → `spot-color-marketing/` (Web): Accelerated
+- **Tapp Network** → `tapp-network/` (Web): California Operation Lifesaver; Tapp Network - Community Health Worker Association of Delaware; Upper White River Basin Foundation
+- **Tara** → `tara/` (Web): Regall Realty
+- **Tech Pro Marketing** → `tech-pro-marketing/` (Web): All in IT - GHL Website; Blue Equinox; Blue Equinox - UPTIME IT; CCS Technology; CDN Technologies; Creative IT Websites; Fuse Technology Group; GenCare Website; ICS; IT Matters; Marley Computers - GHL; Morgan Birgé; MSPsites - GHL; Netlogix; Omega Tecks - GHL; Sequentur; Setton Consulting; Skyview Technology; SRS; Techsperts; TLC Tech; Total Business Systems; TPM - Design Tasks; Turner Techtronic; ViaTek; West Michigan Technology - GHL
+- **Temerity Digital** → `temerity-digital/` (SEO): ShapeScaper
+- **The Dental House** → `the-dental-house/` (Web): The Dental House - Website changes
+- **The Nerdy Group** → `the-nerdy-group/` (Web): Allendale Christian School; Alpha USA; Darkroom Faith; Entry Systems; LCAM; Ministry Leadership Center; Wela Financial; West Church; Wheaton College Billy Graham Center
+- **Thrive POP** → `thrive-pop/` (Web): Liberty Floor; Pioneer Resources
+- **Tims Digital** → `tims-digital/` (Web): node-it.com; TB Graphics; Tims Digital WP Dev Tasks List
+- **Tiny Blue Sky** → `tiny-blue-sky/` (Web): BHI Foundation
+- **Torapath Technologies** → `torapath-technologies/` (Web): Pensmore Building Solutions
+- **Trust and proof** → `trust-and-proof/` (SEO): Degree Heating and Cooling Wireframes; Fahy Kitchens
+- **TurnKey Product Management** → `turnkey-product-management/` (Web): Oral Essence
+- **TX Digital Marketing** → `tx-digital-marketing/` (Web): Regency Parc
+- **Vessel** → `vessel/` (SEO): Congdon Foundation; Westwoodcabins.com
+- **Vima Marketing** → `vima-marketing/` (SEO, Web): California Divorce Mediation; Design Tasks -Vima Marketing; gallagherkennedyinjury.com; Quindlen Law; Task List - Vima Marketing
+- **VividFront LLC** → `vividfront-llc/` (Web): Design tasks; Fleet Fast; Flite Test; Glasswave/GW (Shopify); Greek Cultural Garden; Greystone Rentals; Meatingplace; Perfect Practice; Shopify Tasks; Stopain Clinical:STO (Shopify); Team Wendy; TRGT; VividFront tasks
+- **Void Applications** → `void-applications/` (PPC): Void Applications - PPC
+- **VOiD Applications Ltd** → `void-applications-ltd/` (Web): Bilston Town
+- **Webny Digital Limited** → `webny-digital-limited/` (Web): All Quotes & Estimates  - Webny Digital Limited
+- **Webrunner Media Group** → `webrunner-media-group/` (Web): Webrunner Duda Project
+- **WEDO Inc** → `wedo-inc/` (Web): Biltmore Hearth and Home; J. Cleo Thompson
+- **Wellness Collection** → `wellness-collection/` (Web): thewellnesscollections.com - Task List
+- **Wildish Agency** → `wildish-agency/` (SEO): I-80 Gold
+- **WildMan Web Solutions** → `wildman-web-solutions/` (Web): Foundations Accounting
+- **WOW Digital** → `wow-digital/` (Web): PAC - Community Challenge Portal 2024-2025; ParticipACTION; SASSK
+- **Yellow comma** → `yellow-comma/` (Web): troyclarkinsight.com
+- **Your Salon Support** → `your-salon-support/` (eCommerce): Your Support Salon Task List
+- **Zozimus** → `zozimus/` (Web): Shortlist HR

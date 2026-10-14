@@ -7,10 +7,15 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Large `get_metadata` results get saved to a file. Pull out what you need with `jq`; don't read the whole thing.
 - Frame names lie ("Updated", "Final", "Thank you" ×2). Tell versions apart by diffing text content and image hashes between the candidate and the original.
 - A link to the originals doesn't mean edit them: check for later revision rounds first and build on the latest one (they may already hold part of the feedback).
+- Check every task-supplied node ID with `getNodeByIdAsync` first; frames can be deleted between rounds. Report missing ones instead of rebuilding them unasked.
 - A quick version diff: gather `{kind, visible, characters | imageHash}` for every node in both frames and compare them as sets. That shows exactly what the designer changed.
 - `node.screenshot()` across several nodes in one script may return only some images. Use `get_screenshot` for each node you need to see.
+- Tall full-page frames (~5000px) can time out in `get_screenshot`; screenshot section by section instead.
 
 ## Editing
+- Scope = the frame or section in the link's node-id, never the page it sits on. Other frames on the same page are read-only. If there's no node-id, ask. (correction, 2026-10-14)
+- A client's task configuration (`task-<name>.md`) applies only to that client. Reuse the task type, not another client's rules. (rule, 2026-10-14)
+- Design desktop only unless the prompt explicitly asks for tablet/mobile frames; "should be responsive" isn't a request. Offer them at the end. (correction, 2026-10-14)
 - Before setting `characters`, load every font the text currently uses (`getStyledTextSegments(['fontName'])`), including text inside instances.
 - Change instance text as an override. Don't detach the instance.
 - Reorder Auto Layout children with `parent.insertChild(index, node)`. Fields keep their component link.
@@ -19,12 +24,31 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Text with line separators: a regex literal containing U+2028 breaks the script (use `String.fromCharCode(0x2028)`), and deleting a paragraph can leave a leading `\n`. Check char codes after the edit.
 - Annotations (`node.annotations = [{label}]`) work on instances. Use them for specs the canvas can't show, such as dropdown options and states.
 
+- `figma.saveVersionHistoryAsync` throws "not a supported API" in the use_figma runtime: no in-script checkpoint. Report it; duplicate first only if the change is substantial and approved. (2026-10-14)
+- Text layers whose name equals their content auto-rename on a `characters` change ("Heading" became "Test passed"). Set `autoRename=false` first if the layer name must stay. (2026-10-14)
+
 ## Images
-- Stock images are watermarked iStock comps (Basic plan/Essentials, Editorial first) used as approval placeholders. Fetch them with `scripts/istock_fetch.py`, name the layer `iStock <id> – placeholder`, log the IDs to buy, and swap in the purchased files after approval. (rule, 2026-10-12)
+- Image and video sources differ by client (iStock, Adobe Stock, AI, client-provided, existing assets). Always ask which one per slot before placing media; the client's preferred source is only the recommended option. (rule, 2026-10-13)
 
 ## Quality checks
-- Image boxes often hide stacked image fills under the visible one (the last fill is on top). Keep one fill per box.
+- Image boxes often hide stacked image fills under the visible one (the last fill is on top). Report them; remove them only with approval. (rule, 2026-10-14)
+- Never substitute a missing font (for example Libre Baskerville for Baskerville Display PT). Leave the text, and report the font and the layers. (correction, 2026-10-14)
 - Dropdowns are drawn closed, so their option lists don't exist in the design. Annotate the options on the instance.
 - Form rows: field heights, column gaps and label styles should match across rows. Dropdown variants are often 44px against 48px for text inputs. Compare `itemSpacing` of every row frame, including ones named "Frame 13xx".
 - After a copy change, check whether the text now wraps to an extra line. Mention it if it changes the layout.
 - When a workflow changes (for example "we'll call" becomes "we'll reach out"), search every placeholder, helper text and confirmation page for the old promise.
+
+## Plugin API gotchas (2026-10-13)
+- `figma.createAutoLayout()` frames get a default white fill. Set `fills=[]` on wrappers placed over coloured backgrounds.
+- A child cloned from a horizontal row keeps `layoutSizingVertical='FILL'`. In a hugging vertical parent it collapses to ~1px, so set it to HUG after moving it. Switching a row to vertical needs `layoutSizingVertical='HUG'` too, or the second child gets clipped.
+- Fonts missing from the plugin runtime (local-only families): text can be cloned, moved, `rescale()`d and `resize()`d, but its characters, fontSize and textAutoResize can't be changed. A resized text box doesn't reflow (height stays). Check `hasMissingFont` counts before any responsive job; if most text is affected, get a font decision first.
+- Reaction actions take `resetScrollPosition`, not `preserveScrollPosition`. Use `SCROLL_ANIMATE` for SCROLL_TO.
+- `getRangeFontName(0,1)` can return mixed on variable fonts. Read fonts from `getStyledTextSegments(['fontName'])`.
+- Size and visibility counts from `findAll` change with `figma.skipInvisibleInstanceChildren`. Compare guard signatures inside the same run, or set the flag explicitly.
+- Nested instances (a Logo inside a nav instance) can't be resized or rescaled. Build a breakpoint bar from fresh top-level instances instead.
+
+## Responsive builds (2026-10-14)
+- `node.clone()` of a frame inside a SECTION lands on the page, not the section: `section.appendChild(clone)` and set x/y relative to the section afterwards.
+- When adapting by script, base every layout decision on the desktop widths/heights captured before any resize (FILL children shrink as soon as the parent does).
+- Before resizing, pin absolute children with constraints: card/panel backgrounds STRETCH (or SCALE when margins are large), small icons MIN/MAX by their third. Otherwise backgrounds and icons are left behind or overflow.
+- Run an overflow check (absoluteBoundingBox vs frame width, skipping clipped parents) on every new breakpoint frame before reporting.
