@@ -63,7 +63,7 @@
 - Usage/cost reporting: internal only  (team default)
 
 ## 9. Hard rules (always / never)
-- **Recurring task: "Create Tablet and Mobile Designs from Desktop Designs":** follow **`task-responsive-designs.md`** in this folder for every project. Summary:
+- **Recurring task: "Create Tablet Landscape, Tablet and Mobile Designs from Desktop Designs":** follow **`task-responsive-designs.md`** in this folder for every project. Summary:
   - Tablet Landscape 1024 / Tablet 768 / Mobile 368, done by switching the variable modes;
   - only inside the frame or section the user links (node-id), never the whole page;
   - never change the UI kit, variables, styles or components;
@@ -74,6 +74,7 @@
 - `task-responsive-designs.md`: Digital Drive's configuration of the reusable task type **"Create Tablet and Mobile Designs from Desktop Designs"**. These requirements are Digital Drive's own; never apply them to other clients.
 
 ## 10. Rule log
+- 2026-10-15 — Hard rules for the responsive task (all 3 breakpoints always; frame and section settings; modes on every section; width bindings; Tablet Landscape keeps the desktop arrangement; placement; right-panel QA) — the user, from the Home review. See task-responsive-designs.md §2a.
 - 2026-10-14 — Agency added; recurring task "Create Tablet and Mobile Designs from Desktop Designs" with the rules in §9 — the user
 - 2026-10-14 — The UI kit, design system and variables must not change; the designer may adjust for responsive — client teaming comment (St Fanchea's College). The client named the page "UX Design - Responsive".
 - 2026-10-14 — **Scope is the linked frame or section (node-id), not the page name** — the user (correction)

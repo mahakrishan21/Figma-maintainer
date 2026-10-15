@@ -67,3 +67,22 @@ Newest last. Max ~6 lines per entry.
 - File `lQHhvuMvDB1t4C4k3Fl5VF`, frame `6:5` "Frame 3": heading `6:6` -> "Hook test" (layer name "Test passed" kept via autoRename=false); button frame `6:10` (+ label `6:9`) deleted (user-authorized), in a separate call.
 - The button appeared after the first inspection/snapshot (added mid-job), so a second pre-delete snapshot was taken. Both compares: 0 changes outside 6:5. Missing fonts: 0.
 - Guard: text call allowed silently; delete call logged "ask" (reason "deletes nodes in a loop (bulk delete)", a false positive from the scope-check for-loop), then ran after approval. Audit log now records calls (5 lines in the job, read-only calls included).
+
+## 2026-10-15 — Digital Drive › St Fanchea's College — Home Tablet + Mobile (build mode A)
+- File `o1oqyFAFAbgTiVkL2PD3hW`, section `9123:2690`: created Home - Tablet `9129:2463` (768) and Home - Mobile `9129:2766` (368, bound to grid/screen-size) from Home `9098:351`. Modes 3:2/12:2 and 3:1/12:1. Inner sections renamed to the breakpoint. Section height 11492 → 22218.
+- Snapshot compare: the only change outside the new frames is the section resize. Missing fonts: 0. No styles, variables or components created. Boilerplate icon instances cloned (call/mail/menu).
+- Open: 390 vs 368 mobile width, mobile menu frames, CTA text contrast over the photo on tablet, mobile header icons at 24px (tap area).
+
+## 2026-10-15 — Digital Drive › St Fanchea's College — Home frame-settings comparison (plan only, read-only)
+- Compared ours `9129:2463`/`9129:2766` with reference TL `9139:1623`, T `9139:1845`, M `9139:2071`. Page-frame settings match at 768/368. Gaps: no 1024 Tablet Landscape frame; the sections have no explicit modes (the reference sets them on every section); FILL replaced the `grid/screen-size` width binding on 11 sections; mobile hero bottom padding is unbound (the reference binds `padding/component-vertical/2xl`).
+- No Figma changes. Waiting for the user's decisions.
+
+## 2026-10-15 — Digital Drive › St Fanchea's College — Home round 2 (Tablet Landscape + frame settings)
+- Added Home - Tablet Landscape `9138:2589` (1024, TL modes); Tablet `9129:2463` and Mobile `9129:2766` moved right. All 3 frames: explicit section modes, 11 section widths bound to grid/screen-size, hero bottom padding (TL/T 240, M bound to 2xl). TL nav `9138:2614` deleted (approved plan).
+- Snapshot compare: the only change outside the 3 frames is the section height (22218 → 22261). Desktop unchanged. Missing fonts: 0. No overflow.
+- Correction saved as a rule: sections carry explicit modes and keep their width bindings (task SOP §4).
+
+## 2026-10-15 — Digital Drive › St Fanchea's College — inner pages TL/T/M (7 pages, 21 frames)
+- New section `9144:2655` under `9123:2690` (user placement override), with label bars and one row per page. All 21 frames pass the §2a frame/section checks (modes, width bindings, FILL list), with no overflow and 0 missing fonts.
+- Snapshot vs end of round 2: nothing changed outside the new section except `9123:2690` and the Home frames, which the user moved/resized before this round. Desktop frames unchanged.
+- Open: Hero Centre FILL (SOP) vs the reference's fixed width; typed values (ILR text padding 0 on mobile, overlay top padding, Dev Vision card position); content placeholders on the desktop pages.

@@ -53,3 +53,7 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - When adapting by script, base every layout decision on the desktop widths/heights captured before any resize (FILL children shrink as soon as the parent does).
 - Before resizing, pin absolute children with constraints: card/panel backgrounds STRETCH (or SCALE when margins are large), small icons MIN/MAX by their third. Otherwise backgrounds and icons are left behind or overflow.
 - Run an overflow check (absoluteBoundingBox vs frame width, skipping clipped parents) on every new breakpoint frame before reporting.
+- Sections copied from a boilerplate can carry their own explicit variable modes (e.g. Desktop). On responsive clones, clear them (`clearExplicitVariableModeForCollection`) or those sections ignore the page frame's mode. (2026-10-15)
+- Switching a frame's layoutMode (H to V) can turn it or its children from FILL to HUG/FIXED width. Re-assert FILL afterwards and run a "narrower than parent" check. (2026-10-15)
+- Assigning a value to a variable-bound property (itemSpacing, padding) silently unbinds it. Rebind with `setBoundVariable`, or unbind on purpose and report it. (2026-10-15)
+- Position absolute overlays (cards, dropdowns, search panels) only after the final section sizing (FILL or bound width). If the parent resizes later, MAX/STRETCH constraints push them off-frame. (2026-10-15)
