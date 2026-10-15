@@ -1,4 +1,4 @@
-# Task SOP: Create Tablet and Mobile Designs from Desktop Designs (Digital Drive configuration)
+# Task SOP: Create Tablet Landscape, Tablet and Mobile Designs from Desktop Designs (Digital Drive configuration)
 Agency: Digital Drive - SEO (see client.md) · Recurring task · Applies to **every Digital Drive project** with this request, and **only to Digital Drive**.
 
 > **Scope of this file:** this is Digital Drive's configuration of the plugin's reusable task type "Create Tablet and Mobile Designs from Desktop Designs" (`responsive-from-desktop`). Its requirements (1024/768/368, variable modes, boilerplate, the hard rules) are Digital Drive's own. For any other client, use the generic task type with that client's SOP, design system and project requirements. Never copy these rules.
@@ -17,11 +17,45 @@ Agency: Digital Drive - SEO (see client.md) · Recurring task · Applies to **ev
 - Breakpoints: **Tablet Landscape 1024 · Tablet 768 · Mobile 368** (desktop 1440). If a project's boilerplate shows other widths, use the boilerplate's widths and report the difference.
 - Images: reuse the desktop images (no image question).
 
+### 2a. Digital Drive hard rules (user rules, 2026-10-15, from the St Fanchea's College Home review)
+These are Digital Drive's own requirements, not the generic responsive method. Apply them on **every Digital Drive responsive job**, and never to other clients. Where anything else in this file differs, **this section wins**.
+
+1. **Breakpoints:** ALWAYS build all three per page:
+   - Tablet Landscape 1024
+   - Tablet 768
+   - Mobile 368 (bound to `grid/screen-size`; never 390 unless the user explicitly overrides)
+
+   A request saying only "tablet and mobile" still means all three.
+2. **Frame naming:** "<Page> - <Breakpoint>". Example for Home:
+   - Home - Tablet Landscape
+   - Home - Tablet
+   - Home - Mobile
+
+   Inner sections follow the user's choice per job: keep "<Block> - Desktop", or rename to "<Block> - Tablet Landscape" / "<Block> - Tablet" / "<Block> - Mobile".
+3. **Page frame settings** (every responsive frame must match exactly):
+   - Auto Layout: vertical, gap 0, padding 0, align top-left
+   - Width: fixed, bound to `grid/screen-size` · Height: Hug
+   - Clip content: off · Fill: none · Opacity 100% · Radius 0
+   - Variable modes: **Typography AND Spacing & Radius** both set to the breakpoint mode (Tablet Landscape / Tablet / Mobile)
+4. **Section settings** (every inner section, every breakpoint):
+   - Set Typography AND Spacing & Radius **explicitly** to the breakpoint mode. Don't rely on inheritance from the page frame.
+   - First clear any Desktop modes carried over from the boilerplate (Top Bar, Header, Hero Centre, Featured Content + 3 Images).
+   - Width: fixed and bound to `grid/screen-size`. **Only** Top Bar, Header, Hero Centre and Contained Image Content Left Right use FILL.
+   - Never let FILL replace a width binding. After switching any layout direction, re-check and rebind the width.
+5. **Keep values bound.** Never type a value into a variable-bound property; it silently unbinds. Hero bottom padding:
+   - Mobile: bound to `padding/component-vertical/2xl`
+   - Tablet Landscape and Tablet: 240
+6. **Tablet Landscape 1024 keeps the desktop arrangement:** side-by-side blocks, USP 4 across, footer columns in a row. Only the header switches, to logo + Contact us + menu icon. Ribbons and decorative images scale to the width.
+7. **Placement:** one row, left to right, below the desktop frames, inside the linked section:
+   `Home - Tablet Landscape | Home - Tablet | Home - Mobile`
+
+**QA addition (Digital Drive):**
+- Before reporting, compare the right-panel settings against the reference frame for the same breakpoint: the frame **and** each section (width and sizing, Auto Layout, clip, modes per collection, width binding). List any mismatch. A visual match alone is not enough.
+- If the user asks to "plan first", read and compare only. No file changes until approved.
+
 ## 3. Read first (read-only)
 1. Open the **linked node** (the scope). The desktop frames to adapt (1440 wide) are its children. Also list the pages (read-only) to locate "UI Kit & Design System" and "Boilerplate Templates" for reference.
-2. **Variable collections and modes:** in a read-only `use_figma` script, call `figma.variables.getLocalVariableCollectionsAsync()` and list each collection with its modes. Expect two responsive collections:
-   - **type/spacing/padding** (font sizes, line heights, `padding/component-vertical/*`, `spacing/*`);
-   - **grid** (`grid/screen-size`, `columns`, `gutter`, `margin`).
+2. **Variable collections and modes:** in a read-only `use_figma` script, call `figma.variables.getLocalVariableCollectionsAsync()` and list each collection with its modes. Expect the responsive collections **Typography** (font sizes, line heights) and **Spacing & Radius** (`padding/component-vertical/*`, `spacing/*`, radius), plus the grid variables (`grid/screen-size`, `columns`, `gutter`, `margin`). Check which collection holds the grid variables.
 
    Each has modes Desktop / Tablet Landscape / Tablet / Mobile. Record their IDs under "Jobs".
 3. **Boilerplate:** map each desktop section ("<Block> - Desktop") to its boilerplate versions ("<Block> - Tablet Landscape / Tablet / Mobile"). List the blocks that have no boilerplate version; those are custom and adapted by hand.
@@ -30,7 +64,8 @@ Agency: Digital Drive - SEO (see client.md) · Recurring task · Applies to **ev
 
 ## 4. Build method (per desktop page × breakpoint)
 1. **Copy the desktop page frame** inside the linked section or frame (the scope). Resize it to the breakpoint width and keep vertical Auto Layout, with height hugging the content.
-2. **Set the explicit variable modes on the frame** for both responsive collections (type/spacing and grid) to the breakpoint's mode. Bound type, padding, spacing, radius and layout grids then adapt automatically. Don't override bound values by hand.
+2. **Set the explicit variable modes on the frame**, Typography AND Spacing & Radius, to the breakpoint's mode (see §2a.3). Bound type, padding, spacing, radius and layout grids then adapt automatically. Don't override bound values by hand.
+   - **Also set both modes explicitly on every inner section** to the breakpoint's mode, as the reference does. Section widths stay **fixed and bound to `grid/screen-size`**, except Top Bar, Header, Hero Centre and Contained Image Content Left Right, which are FILL. Never let FILL replace a width binding. (rule from the user, 2026-10-15, after reviewing Home - Tablet)
 3. **Layout adaptations** (the reference's pattern):
    - Sections that are horizontal on desktop (Image Left Right, Image Left Right Contained, USP Horizontal, Page Cards Horizontal, and similar side-by-side blocks) become **vertical on mobile**. On tablet, keep or stack according to the boilerplate's Tablet version.
    - Card rows: wrap, or stack to the grid's column count.
@@ -39,12 +74,13 @@ Agency: Digital Drive - SEO (see client.md) · Recurring task · Applies to **ev
    - Component Header, Featured Content + 3 Images, Facebook-feed and similar blocks: follow the boilerplate version, or keep horizontal if it fits.
    - Custom blocks with no boilerplate version: adapt them with the same patterns (stack, wrap, grid columns from the variables) and list each one in the report.
 4. Use existing components and variants only. Never detach or flatten. Text stays on its text style.
-5. **Naming:** "<Page> - Tablet Landscape" / "<Page> - Tablet" / "<Page> - Mobile". Inner section names follow the user's choice (keep "– Desktop" as the reference did, or rename to the breakpoint).
-6. **Placement:** follow the file's existing pattern. In the reference, each page has a label bar (2560×100) with Tablet Landscape, Tablet and Mobile in a row underneath. Otherwise, place them below the desktop frames.
+5. **Naming:** see §2a.2.
+6. **Placement:** see §2a.7 (one row below the desktop frames, inside the linked section). The reference file's label-bar layout isn't required.
 
 ## 5. QA before reporting
 - For every frame: no horizontal overflow, nothing overlapping, sensible text wrapping (flag headings of 4+ lines), tap targets of at least 44px on mobile, images not distorted.
-- **Variable modes are set** on every responsive frame, for both collections.
+- **Variable modes are set** on every responsive frame **and every inner section**, Typography AND Spacing & Radius (§2a.3–4), and widths are bound to `grid/screen-size` except the 4 FILL sections.
+- **Right-panel comparison with the reference** for each breakpoint (§2a QA addition).
 - No new styles, variables or components. **Nothing changed outside the linked section or frame**: run a snapshot compare of its page with `--targets <linked node-id>`, plus a snapshot of the Boilerplate page.
 - If a reference exists: a structural comparison per section and breakpoint (layout direction, wrap, modes, section order), with the differences listed.
 
@@ -72,7 +108,7 @@ Agency: Digital Drive - SEO (see client.md) · Recurring task · Applies to **ev
 
 #### 1. Project
 - Brand / business: St Fanchea's College (school website)
-- Status / current phase: **Responsive designs (Tablet Landscape / Tablet / Mobile) for 8 desktop pages. Plan approved for saving; build not started.** Next step: run the build in a fresh session (see §8 for the open decisions).
+- Status / current phase: **Home built at all 3 breakpoints (Tablet Landscape 1024, Tablet 768, Mobile 368) on 2026-10-15, awaiting the user's review.** Other pages not started.
 
 #### 2. Files and page map
 - **Reference (finished human work, READ-ONLY):** "St Fanchea's College", fileKey `UOX5VAS8ibgMhAGWGM08Yf`
@@ -114,7 +150,8 @@ Agency: Digital Drive - SEO (see client.md) · Recurring task · Applies to **ev
   | `VariableCollectionId:3:8` (type, spacing, padding) | `4012:3` | `3:2` | `3:1` |
   | `VariableCollectionId:12:218` (grid) | `4012:2` | `12:2` | `12:1` |
 
-  Desktop is the default mode. **Verify that the same collection and mode IDs exist in the Agentic file before building** (they should, since it's a copy).
+  Desktop is the default mode. Verified in the Agentic file 2026-10-15: same IDs; collection names are `Typography` (3:8) and `Spacing & Radius` (12:218). Page and section widths are bound to `grid/screen-size` (VariableID:12:245), so the Mobile mode gives 368 automatically.
+- Inner sections Top Bar, Header, Hero Centre and Featured Content + 3 Images carry their own explicit **Desktop** modes (copied from the boilerplate). Clear them on every responsive copy.
 - Mobile values, as an example:
   - grid: `grid/screen-size` 368, `grid/columns` 2, `grid/gutter` 20, `grid/margin` 16
   - `padding/component-vertical/2xl` 120 (desktop) → 48 on mobile (`/lg` 48, `/sm` 32)
@@ -140,7 +177,10 @@ Agency: Digital Drive - SEO (see client.md) · Recurring task · Applies to **ev
 - Lexend, Atkinson Hyperlegible Next. Check for missing fonts before editing; **never substitute**.
 
 #### 8. Open decisions / client questions
-- 2026-10-14 — **Build mode (the user decides when starting):**
+- 2026-10-15 — **User's choices:** build mode **A**; School Development built **once**; inner section names **renamed to the breakpoint** ("<Block> - Tablet" / "<Block> - Mobile"). Image source: existing assets.
+- 2026-10-15 — Open: the caller's brief said "mobile 390", but the SOP, boilerplate and `grid/screen-size` say 368. Built at 368 (bound). Confirm.
+- 2026-10-15 — Open: Mobile Menu / Mobile Menu - Dropdowns frames for St Fanchea's were not built (the reference didn't build them either). Confirm whether they're wanted.
+- 2026-10-14 — (resolved 2026-10-15, see above) **Build mode (the user decides when starting):**
   - **A** (recommended): build independently from the desktop pages, the boilerplate and the variables, then compare structurally with the reference frames and report the differences.
   - **B**: copy the reference's decisions per section.
 - 2026-10-14 — School Development is duplicated (`9098:586` and `9121:2424`): build responsive versions once or twice?
@@ -149,3 +189,7 @@ Agency: Digital Drive - SEO (see client.md) · Recurring task · Applies to **ev
 
 #### 9. Change log
 - 2026-10-14 — Read-only analysis of both files and the plan saved. No Figma changes.
+- 2026-10-15 — Home built: **Home - Tablet `9129:2463`**, **Home - Mobile `9129:2766`**, both in section `9123:2690`, below the desktop row (y 10551; x 891 and 1779). Section height 11492 → 22218 to fit them. Desktop frames unchanged (snapshot compare).
+  - Layout from the build: Header: nav removed, logo scaled, menu icon on tablet; boilerplate call/mail/menu icons on mobile; Top Bar removed on mobile. Vision block: card moved into the flow below a 320/200 image band. USP: 2×2 wrap on tablet, 1 column on mobile. Page Cards: image on top, 16:9. School Development: side by side on tablet (bottom padding 112), stacked on mobile. Featured + 3 Images: text, then 2 images in a row (tablet) or stacked (mobile). Facebook feed: 3 columns on tablet, stacked on mobile. Footer: brand column, then a row of link columns.
+  - Compared with the reference (`9139:1845` / `9139:2071`): heights 7121 vs 7459 (tablet) and 11067 vs 11217 (mobile). The reference stacks the "Join Us" component header on tablet; ours keeps it side by side.
+- Note: `9098:419` (Vision background) has two stacked image fills (FILL + CROP). Reported, not changed.
