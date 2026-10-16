@@ -1,21 +1,21 @@
 """Is this figma-maintainer work? Shared by the plugin's hooks so they stay silent in every other session
 (website builds, other plugins, general chat).
 
-Active when:
+Active ONLY when:
   - the prompt names the plugin ("figma-maintainer", "figma maintainer", "/figma-maintainer:..."), or
-  - this session has already used a figma-maintainer agent or command, or
-  - the call comes from a figma-maintainer agent, or
-  - the prompt asks for a Consistency/Content/Accessibility Audit AND includes a Figma link.
-A Figma link alone is NOT enough: other plugins (e.g. the website generator's Figma import) use them too.
+  - this session has already run a figma-maintainer agent or command (follow-ups), or
+  - the call comes from a figma-maintainer agent.
+Being installed is not enough. A Figma link or an "audit" request on its own is NOT enough: other plugins
+(e.g. the website generator's Figma import) use them too.
 """
 import re
 from pathlib import Path
 
 EXPLICIT = re.compile(r"figma[\s_-]*maintainer|/figma-maintainer:", re.I)
-AUDIT_WITH_LINK = re.compile(r"(consisten\w*|content|accessib\w*)\s+audit", re.I)
-FIGMA_LINK = re.compile(r"figma\.com/(design|file)/", re.I)
+# Traces only real use leaves in the transcript (agent launches, slash commands, this plugin's hook output).
+# No plain-text phrases: a README or pasted doc that mentions the plugin must not switch it on.
 SESSION_MARKERS = ('"subagent_type":"figma-maintainer:', '"subagent_type": "figma-maintainer:',
-                   '<command-name>/figma-maintainer:', 'figma-maintainer image gate:', 'Use figma-maintainer')
+                   '<command-name>/figma-maintainer:', 'figma-maintainer image gate:')
 
 
 def session_used_plugin(transcript_path):
@@ -39,7 +39,5 @@ def is_fm_agent(agent_type):
 
 def prompt_is_fm(prompt, transcript_path):
     if EXPLICIT.search(prompt or ""):
-        return True
-    if AUDIT_WITH_LINK.search(prompt or "") and FIGMA_LINK.search(prompt or ""):
         return True
     return session_used_plugin(transcript_path)
