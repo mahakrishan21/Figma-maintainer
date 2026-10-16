@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
-# Seeds ~/.claude/figma-maintainer/ (playbook, client notes, job log) on first run and
-# keeps its scripts current. Never overwrites existing notes. Silent on success.
+# Seeds and syncs ~/.claude/figma-maintainer/ (team notes from the plugin, see sync_notes.py)
+# and keeps its scripts and guides current. Never overwrites local edits. Silent on success.
 set -u
 root="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 dest="$HOME/.claude/figma-maintainer"
 
 mkdir -p "$dest/clients" "$dest/scripts" || exit 0
-for f in playbook.md job-log.md pricing.json cost-config.json; do
-  [ -e "$dest/$f" ] || cp "$root/seed/$f" "$dest/$f"
-done
 # Migrate the old flat layout (clients/<project>.md) into client folders, once. Never overwrites.
 for f in "$dest"/clients/*.md; do
   [ -f "$f" ] || continue
@@ -31,11 +28,14 @@ for pair in "comfort-zone.md:hey-mr-media" "sj-roofing.md:contractor-dynamics"; 
   if [ -f "$f" ] && [ ! -e "$t" ]; then mkdir -p "$(dirname "$t")"; mv "$f" "$t"; fi
 done
 rm -f "$dest/clients/_unassigned/README.md"; rmdir "$dest/clients/_unassigned" 2>/dev/null || true
-# Seed starter clients/projects (recursive, never overwrite)
-( cd "$root/seed/clients" && find . -type f -name '*.md' ) | while read -r rel; do
-  t="$dest/clients/${rel#./}"
-  [ -e "$t" ] || { mkdir -p "$(dirname "$t")"; cp "$root/seed/clients/${rel#./}" "$t"; }
-done
+# Team notes (client SOPs, playbook, prices): add new, update untouched, never overwrite local edits
+python3 -I "$root/scripts/sync_notes.py" --root "$root" --dest "$dest" || {
+  # fallback if Python fails: copy only what's missing
+  for f in playbook.md job-log.md pricing.json cost-config.json; do [ -e "$dest/$f" ] || cp "$root/seed/$f" "$dest/$f"; done
+  ( cd "$root/seed/clients" && find . -type f -name '*.md' ) | while read -r rel; do
+    t="$dest/clients/${rel#./}"; [ -e "$t" ] || { mkdir -p "$(dirname "$t")"; cp "$root/seed/clients/${rel#./}" "$t"; }
+  done
+}
 # Guides are plugin-owned too: copy each skill's SKILL.md so the agent can read it.
 mkdir -p "$dest/guides"
 for d in "$root"/skills/*/; do

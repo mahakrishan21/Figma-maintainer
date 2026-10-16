@@ -235,16 +235,30 @@ Also covered:
 - It reports what changed (with links), what it checked, what's left and what it learned.
 - **Images and video: asked about first.** Every client sources media differently (iStock, Adobe Stock, AI-generated, client-provided, or existing assets in the file), for video as well as images. If your request doesn't say which to use, Claude asks before starting anything, with the client's usual source marked as recommended, and waits for your answer. To skip the question, say it up front, for example: `… — images: iStock` or `… — copy only, no new images`.
 
-## Sharing client notes with the team
-Each person's notes are local. To keep client SOPs in sync, put `clients/` in a shared or synced folder and symlink it:
+## Sharing with co-workers (the plugin carries all client SOPs)
+The plugin always ships with the team's **full, current notes**: every agency SOP, task SOP, project file, `_index.md`, the playbook, prices and cost settings. Personal logs (usage, Figma audit log) are never included.
 
-```bash
-rm -rf ~/.claude/figma-maintainer/clients
-ln -s <shared-path>/clients ~/.claude/figma-maintainer/clients
+**Master (whoever maintains the SOPs, marked by `.master` in their notes folder):**
 ```
+/figma-maintainer:share
+```
+This copies your notes into the plugin, bumps the version, commits it, and writes `~/ClaudeAI/figma-maintainer-plugin.zip`. Send that zip.
+
+**Co-worker, first time:** unzip, then `/plugin marketplace add <folder>` and `/plugin install figma-maintainer@e2m-figma`, then restart. All notes are installed automatically.
+
+**Co-worker, update:** unzip over the same folder, run `/plugin marketplace update e2m-figma`, and restart. Their notes sync automatically:
+- **new client SOPs** are added;
+- **updated SOPs** replace their copy, if they hadn't edited it;
+- **SOPs they edited themselves** are kept, and the plugin's version is saved beside them as `<file>.from-plugin` and listed in `sync-conflicts.md`. Nothing is ever lost or deleted.
+
+**Co-worker added a new client SOP?** They send their notes folder (or zip) to the master, who runs `/figma-maintainer:import-notes <zip or folder>`:
+- new SOPs are added;
+- different versions are saved as `.incoming` for review.
+
+Then the master runs `/figma-maintainer:share` again, so everyone gets the merged SOPs.
 
 ## Updating
-When you get a new zip, unzip it over the same folder, then run `/plugin marketplace update e2m-figma` and restart Claude Code. Your notes are kept.
+When you get a new zip, unzip it over the same folder, run `/plugin marketplace update e2m-figma`, and restart Claude Code. Your notes sync as described above.
 
 ## Task types (reusable actions) vs client task configurations
 | Task type (works for any client) | Generic action | Client configurations |
