@@ -1,4 +1,4 @@
-# figma-maintainer (Claude Code plugin)
+# Figma maintainer (Claude Code plugin)
 
 A Claude Code subagent that works like a senior UI/UX designer making maintenance changes directly in Figma: copy edits, form and field changes, image and video swaps, inner pages built from existing patterns, client-feedback rounds and design audits. It follows each client's SOP notes and remembers your corrections.
 
@@ -17,11 +17,11 @@ A Claude Code subagent that works like a senior UI/UX designer making maintenanc
 ## Install
 > **Hooks load when a session starts.** After installing or updating, restart Claude Code (or reload the VS Code window). Until you do, the guard, the image question and usage logging aren't active.
 
-1. Unzip `figma-maintainer-plugin.zip` somewhere permanent, for example `~/ClaudeAI/figma-maintainer-plugin`. Claude Code installs from this folder, so don't delete or move it afterwards.
+1. Unzip `Figma-maintainer.zip` somewhere permanent, for example `~/ClaudeAI/Figma-maintainer`. Claude Code installs from this folder, so don't delete or move it afterwards.
 2. In Claude Code, run:
 
 ```
-/plugin marketplace add ~/ClaudeAI/figma-maintainer-plugin
+/plugin marketplace add ~/ClaudeAI/Figma-maintainer
 /plugin install figma-maintainer@e2m-figma
 ```
 
@@ -244,7 +244,7 @@ Files the SOPs don't know yet go to `work/<person>/_unassigned/<file-key>/`. The
 ## SOP manager and co-workers
 **SOP manager** (one person; their session folder has a `.master` file pointing to the plugin source):
 - Adds and updates SOPs directly in the plugin, either by asking the agent or with `/figma-maintainer:sop <client> — <rule>`. Edits land in `knowledge/` in the plugin source.
-- Shares with `/figma-maintainer:share`, which commits, bumps the version, tags it, updates their own install and writes `~/ClaudeAI/figma-maintainer-plugin.zip`.
+- Shares with `/figma-maintainer:share`, which commits, bumps the version, tags it, updates their own install and writes `~/ClaudeAI/Figma-maintainer.zip`.
 - Reviews co-workers' proposals with `/figma-maintainer:review-contributions <zip>`, applies the approved ones, then shares again.
 
 **Co-workers:**

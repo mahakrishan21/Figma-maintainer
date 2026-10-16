@@ -2,7 +2,7 @@
 """SOP manager: package the plugin (with all SOPs in knowledge/) for co-workers.
 
 Requires the .master file. Commits any pending changes (SOPs, scripts, agents), bumps the patch
-version, tags it, updates the local install and writes ~/ClaudeAI/figma-maintainer-plugin.zip.
+version, tags it, updates the local install and writes ~/ClaudeAI/Figma-maintainer.zip.
 Session files (logs, audits, reports, contributions) live outside the plugin and are never shared.
 """
 import json, subprocess, sys
@@ -10,7 +10,7 @@ from pathlib import Path
 
 PLUGIN = Path(__file__).resolve().parent.parent
 FM = Path.home() / ".claude" / "figma-maintainer"
-ZIP = PLUGIN.parent / "figma-maintainer-plugin.zip"
+ZIP = PLUGIN.parent / "Figma-maintainer.zip"
 
 
 def run(*cmd):
