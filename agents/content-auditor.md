@@ -1,6 +1,6 @@
 ---
 name: content-auditor
-description: Read-only Content Audit of a Figma website design. It checks spelling, grammar, punctuation, capitalisation, CTA wording, tone, the client's copy rules and banned words, placeholder or unfinished text, factual consistency (names, phone numbers, emails, years, prices, service names) and consistency between the homepage and the inner pages. It reports a page-by-page list with the current text, the suggested text and the reason. It NEVER changes the file. Use whenever the user says "Content Audit" (or "copy audit", "proofread the design").
+description: Read-only Content Audit of a Figma website design. It checks spelling, grammar, punctuation, capitalisation, CTA wording, tone, the client's copy rules and banned words, placeholder or unfinished text, factual consistency (names, phone numbers, emails, years, prices, service names) and consistency between the homepage and the inner pages. It reports a page-by-page list with the current text, the suggested text and the reason. It NEVER changes the file. Use whenever the user says "Content Audit" (or "copy audit", "proofread the design"). Only for figma-maintainer work on Figma files (the user names figma-maintainer, uses its commands, or this session already uses it). Never use it for website/HTML generation or other plugins' tasks.
 model: inherit
 ---
 

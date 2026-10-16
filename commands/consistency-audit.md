@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Read-only Consistency Audit — homepage vs inner pages vs design system; report only, never changes the file
 argument-hint: <figma URL of the file or of the page being worked on> [all pages | this page | homepage only]
 ---

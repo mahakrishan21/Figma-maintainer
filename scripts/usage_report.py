@@ -214,8 +214,8 @@ def main():
         tasks = tasks_of(sf, pricing)
         aid = hook.get("agent_id") or ""
         cand = [t for t in tasks if aid and t["id"].startswith(aid)] or tasks[-1:]
-        if not cand or cand[0]["agent"] in SKIP_AGENTS:
-            sys.exit(0)
+        if not cand or cand[0]["agent"] in SKIP_AGENTS or not cand[0]["agent"].startswith("figma-maintainer:"):
+            sys.exit(0)  # only figma-maintainer agents are logged
         t = cand[0]
         if log_task(t, sf.stem):
             print(json.dumps({"systemMessage": "Usage: " + task_line(t, cfg, pricing)}))

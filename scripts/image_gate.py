@@ -4,9 +4,17 @@ source is known. If the prompt names it, pass it on; if not, tell Claude to ask 
 and not start until the user answers. Silent for prompts that aren't Figma jobs."""
 import json, re, sys
 
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fm_scope import prompt_is_fm  # noqa: E402
+
 try:
-    prompt = json.load(sys.stdin).get("prompt", "") or ""
+    HOOK = json.load(sys.stdin)
 except Exception:
+    sys.exit(0)
+prompt = HOOK.get("prompt", "") or ""
+# Only figma-maintainer work. Website builds, other plugins and general chat get nothing from this hook.
+if not prompt_is_fm(prompt, HOOK.get("transcript_path", "")):
     sys.exit(0)
 # Messages relayed from agents (hand-backs) aren't user prompts: stay silent
 if re.match(r"\s*(another claude session sent a message|<agent-message|\[subagent hand-back\])", prompt, re.I) or "<agent-message" in prompt[:400]:

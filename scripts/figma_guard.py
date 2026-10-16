@@ -10,7 +10,9 @@ Blocks or escalates Figma MCP writes that break the team's security rules:
           bulk deletes inside loops, plugin data/client storage, renaming the document
 Every Figma write that passes is appended to ~/.claude/figma-maintainer/figma-audit-log.jsonl.
 """
-import json, re, sys
+import json, os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fm_scope import is_fm_agent, session_used_plugin  # noqa: E402
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -111,6 +113,8 @@ def main():
     except Exception:
         sys.exit(0)
     if "--post" in sys.argv:  # PostToolUse: record that the call actually ran (after any approval)
+        if not (is_fm_agent(agent_type(hook)) or session_used_plugin(hook.get("transcript_path", ""))):
+            sys.exit(0)
         inp = hook.get("tool_input") or {}
         resp = json.dumps(hook.get("tool_response", ""))[:400]
         err = bool(re.search(r'"is_error"\s*:\s*true|Error:', resp))
@@ -123,6 +127,9 @@ def main():
     inp = hook.get("tool_input") or {}
     short = tool.split("__")[-1]
     who = agent_type(hook)
+    # Scope: only figma-maintainer agents and sessions that use the plugin. Other plugins' Figma calls are untouched.
+    if not (is_fm_agent(who) or session_used_plugin(hook.get("transcript_path", ""))):
+        sys.exit(0)
     key = inp.get("fileKey") or inp.get("file_key") or ""
 
     if any(who.endswith(a) for a in READ_ONLY_AGENTS):

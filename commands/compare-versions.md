@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Compare two Figma frames (e.g. V2 vs V3) and list every change — read-only
 argument-hint: <figma URL of older frame> <figma URL of newer frame>
 ---

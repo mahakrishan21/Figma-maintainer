@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: components-and-interactions
 description: How to understand and safely change Figma components and their behaviour — component sets and variants, component properties (variant, boolean, text, instance swap, slot), nested instances and overrides, interactive components (hover, pressed, focus, open/closed states driven by prototype reactions), prototype flows and overlays, Smart Animate, and variables/modes. Use whenever a change touches a hover/pressed/active/disabled state, a variant, a component property, a dropdown/accordion/tab/menu behaviour, a prototype interaction, or anything reached through a main component rather than a plain frame, or when running /figma-maintainer:components-and-interactions.
 ---

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Show the figma-maintainer prompt cheat sheet (responsive, audits, comments, images, components, Slack, cost)
 argument-hint: [topic: responsive | audits | brief | comments | images | components | slack | all]
 ---

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Read the Figma comments on a frame and apply them (everything except image editing)
 argument-hint: <figma URL with node-id> [extra instructions]
 ---

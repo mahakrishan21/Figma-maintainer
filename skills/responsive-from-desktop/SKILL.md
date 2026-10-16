@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: responsive-from-desktop
 description: Create or update the mobile (390px) and tablet (768px) versions of an approved desktop Figma frame. Adapts the desktop design (stacking, navigation, type scaling, touch targets, content priority) and reuses its styles, components and assets instead of redesigning. Use only when explicitly asked to create or update mobile or tablet frames, or run /figma-maintainer:responsive-from-desktop.
 ---

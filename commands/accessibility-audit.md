@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Read-only Accessibility Audit of Figma pages — report only, never changes the file
 argument-hint: <figma URL of the file or page> [all pages | this page | homepage only]
 ---

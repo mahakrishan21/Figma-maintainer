@@ -1,6 +1,6 @@
 ---
 name: usage-reporter
-description: Reports how many tokens, which models and how much API cost (USD + INR) figma-maintainer work used, per task, per session, or per client from the usage log, and writes the internal usage block for Slack. Use after a figma-maintainer or audit task completes, whenever the user says "give me slack message", or asks about tokens, usage, cost or the cost report. Zero-token counting by script; read-only.
+description: Reports how many tokens, which models and how much API cost (USD + INR) figma-maintainer work used, per task, per session, or per client from the usage log, and writes the internal usage block for Slack. Use after a figma-maintainer or audit task completes, whenever the user says "give me slack message", or asks about tokens, usage, cost or the cost report. Zero-token counting by script; read-only. Only for figma-maintainer work on Figma files (the user names figma-maintainer, uses its commands, or this session already uses it). Never use it for website/HTML generation or other plugins' tasks.
 tools: Bash, Read
 model: haiku
 ---

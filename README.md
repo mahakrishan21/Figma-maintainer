@@ -40,6 +40,14 @@ On your first session, the plugin creates `~/.claude/figma-maintainer/` with:
 
 Updates to the plugin never overwrite your notes. Only `scripts/` is refreshed.
 
+## When it's active (isolation from other plugins)
+figma-maintainer only acts on **Figma maintenance work**. Its hooks stay silent in website builds, other plugins' sessions and general chat. It's active when:
+- your prompt names it (`Use figma-maintainer: …`, "figma maintainer") or uses a `/figma-maintainer:` command;
+- the session has already used a figma-maintainer agent or command (so "give me slack message" or "Consistency Audit" work later in the same session);
+- you ask for a Consistency, Content or Accessibility Audit **and** include a Figma link.
+
+A Figma link on its own doesn't activate it, because other plugins (like the website generator's Figma import) use Figma links too. Its skills and commands can't be picked automatically by Claude, only by you or by its own agents. The Figma write guard and usage logging cover only figma-maintainer agents and sessions.
+
 ## Using it
 In any Claude Code session:
 

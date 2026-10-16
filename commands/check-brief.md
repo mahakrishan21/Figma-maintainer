@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Check a Figma page against a client brief, copy doc or confirmed list — matches vs mismatches, read-only
 argument-hint: <figma URL> (paste or attach the brief / confirmed fields / copy)
 ---

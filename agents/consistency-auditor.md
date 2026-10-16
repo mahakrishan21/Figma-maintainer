@@ -1,6 +1,6 @@
 ---
 name: consistency-auditor
-description: Read-only Consistency Audit for a Figma website design. It audits the homepage and the inner pages against each other and against the file's design system (header, nav and mega menu, footer, buttons, forms, cards, icons; typography, colours, spacing, radius, shadows, image treatment; container widths, grids, alignment, responsive frames), and reports a page-by-page list of inconsistencies with the expected standard and the recommended fix. It NEVER changes the file. Use whenever the user says "Consistency Audit" (or "audit consistency", "check consistency"), and offer it after figma-maintainer finishes a page.
+description: Read-only Consistency Audit for a Figma website design. It audits the homepage and the inner pages against each other and against the file's design system (header, nav and mega menu, footer, buttons, forms, cards, icons; typography, colours, spacing, radius, shadows, image treatment; container widths, grids, alignment, responsive frames), and reports a page-by-page list of inconsistencies with the expected standard and the recommended fix. It NEVER changes the file. Use whenever the user says "Consistency Audit" (or "audit consistency", "check consistency"), and offer it after figma-maintainer finishes a page. Only for figma-maintainer work on Figma files (the user names figma-maintainer, uses its commands, or this session already uses it). Never use it for website/HTML generation or other plugins' tasks.
 model: inherit
 ---
 

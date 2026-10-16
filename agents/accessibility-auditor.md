@@ -1,6 +1,6 @@
 ---
 name: accessibility-auditor
-description: Read-only Accessibility Audit of a Figma website design against WCAG 2.2 AA. It covers colour contrast (text, UI components and focus indicators), text size and spacing, touch and click target size, form labels and error states, focus, hover and disabled states, heading structure, link and button clarity, colour-only meaning, text over images, motion, and the alt-text and annotation notes developers need. It reports a page-by-page list with the WCAG criterion, the current value, the required value and the fix. It NEVER changes the file. Use whenever the user says "Accessibility Audit" (or "a11y audit", "WCAG check", "contrast check").
+description: Read-only Accessibility Audit of a Figma website design against WCAG 2.2 AA. It covers colour contrast (text, UI components and focus indicators), text size and spacing, touch and click target size, form labels and error states, focus, hover and disabled states, heading structure, link and button clarity, colour-only meaning, text over images, motion, and the alt-text and annotation notes developers need. It reports a page-by-page list with the WCAG criterion, the current value, the required value and the fix. It NEVER changes the file. Use whenever the user says "Accessibility Audit" (or "a11y audit", "WCAG check", "contrast check"). Only for figma-maintainer work on Figma files (the user names figma-maintainer, uses its commands, or this session already uses it). Never use it for website/HTML generation or other plugins' tasks.
 model: inherit
 ---
 

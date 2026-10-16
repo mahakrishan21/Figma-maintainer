@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: List the Figma comments on a frame (read-only), each matched to the layer it points at
 argument-hint: <figma URL with node-id> [--all-frames] [--author "Name"]
 ---

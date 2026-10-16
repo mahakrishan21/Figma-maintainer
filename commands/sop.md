@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: View or fill in an agency's (or project's) SOP — e.g. /figma-maintainer:sop Lasso up, or /figma-maintainer:sop Lasso up — images always Adobe Stock
 argument-hint: <agency or project name> [— rule to add]
 ---

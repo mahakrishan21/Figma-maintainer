@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Create or update the mobile (390) and tablet (768) versions of a desktop Figma frame
 argument-hint: <desktop frame URL> [mobile | tablet | both] [extra instructions]
 ---
