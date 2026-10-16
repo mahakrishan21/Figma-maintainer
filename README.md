@@ -27,18 +27,15 @@ A Claude Code subagent that works like a senior UI/UX designer making maintenanc
 
 3. Restart Claude Code, or open a new session.
 
-On your first session, the plugin creates `~/.claude/figma-maintainer/` with:
+## Where things live
+**The plugin is the single source of truth.** Every client SOP, task SOP, project note, the playbook and the system files ship inside it, in `knowledge/`. One **SOP manager** maintains them in git and shares new plugin versions. Co-workers get every new and updated SOP just by updating the plugin. There's no separate SOP sync.
 
-| File | Holds |
+| Location | Holds |
 |---|---|
-| `playbook.md` | General Figma and design rules for every client |
-| `clients/_index.md` | Every agency (our client) and its projects, from a read-only teaming.rocks snapshot |
-| `clients/<agency>/client.md` | One agency's SOP: contacts, how they work, default image source, Slack preferences, plus its teaming projects |
-| `clients/<agency>/<project>.md` | One project (the agency's client): file keys, page map, versioning, components, copy rules, asset log, open decisions. Comes with 154 agency folders; projects with notes so far: Lion's Share Digital → KHL, LSD website; Contractor Dynamics → SJ Roofing; Hey Mr Media → Comfort Zone |
-| `job-log.md` | One short entry per job |
-| `scripts/istock_fetch.py` | iStock placeholder fetcher |
-
-Updates to the plugin never overwrite your notes. Only `scripts/` is refreshed.
+| `knowledge/clients/` | `_index.md` (every agency and its projects), `<agency>/client.md` (agency SOP), `<agency>/task-*.md` (recurring task SOPs), `<agency>/<project>.md` (project notes), and `_template/` (client, project, task and contribution templates) |
+| `knowledge/playbook.md` · `pricing.json` · `cost-config.json` | Team-wide Figma rules, model prices, currency settings |
+| `agents/` `commands/` `skills/` `scripts/` `hooks/` | The plugin itself |
+| `~/.claude/figma-maintainer/` (per person, never shared) | **Session files:** `job-log.md`, usage and Figma audit logs, `audits/`, `reports/` and `contributions/`, plus **links** (`clients/`, `playbook.md`…) into the plugin's `knowledge/`, created at each session start |
 
 ## When it's active (isolation from other plugins)
 figma-maintainer only acts on **Figma maintenance work**. Its hooks stay silent in website builds, other plugins' sessions and general chat. It's active when:
@@ -235,30 +232,19 @@ Also covered:
 - It reports what changed (with links), what it checked, what's left and what it learned.
 - **Images and video: asked about first.** Every client sources media differently (iStock, Adobe Stock, AI-generated, client-provided, or existing assets in the file), for video as well as images. If your request doesn't say which to use, Claude asks before starting anything, with the client's usual source marked as recommended, and waits for your answer. To skip the question, say it up front, for example: `… — images: iStock` or `… — copy only, no new images`.
 
-## Sharing with co-workers (the plugin carries all client SOPs)
-The plugin always ships with the team's **full, current notes**: every agency SOP, task SOP, project file, `_index.md`, the playbook, prices and cost settings. Personal logs (usage, Figma audit log) are never included.
+## SOP manager and co-workers
+**SOP manager** (one person; their session folder has a `.master` file pointing to the plugin source):
+- Adds and updates SOPs directly in the plugin, either by asking the agent or with `/figma-maintainer:sop <client> — <rule>`. Edits land in `knowledge/` in the plugin source.
+- Shares with `/figma-maintainer:share`, which commits, bumps the version, tags it, updates their own install and writes `~/ClaudeAI/figma-maintainer-plugin.zip`.
+- Reviews co-workers' proposals with `/figma-maintainer:review-contributions <zip>`, applies the approved ones, then shares again.
 
-**Master (whoever maintains the SOPs, marked by `.master` in their notes folder):**
-```
-/figma-maintainer:share
-```
-This copies your notes into the plugin, bumps the version, commits it, and writes `~/ClaudeAI/figma-maintainer-plugin.zip`. Send that zip.
-
-**Co-worker, first time:** unzip, then `/plugin marketplace add <folder>` and `/plugin install figma-maintainer@e2m-figma`, then restart. All notes are installed automatically.
-
-**Co-worker, update:** unzip over the same folder, run `/plugin marketplace update e2m-figma`, and restart. Their notes sync automatically:
-- **new client SOPs** are added;
-- **updated SOPs** replace their copy, if they hadn't edited it;
-- **SOPs they edited themselves** are kept, and the plugin's version is saved beside them as `<file>.from-plugin` and listed in `sync-conflicts.md`. Nothing is ever lost or deleted.
-
-**Co-worker added a new client SOP?** They send their notes folder (or zip) to the master, who runs `/figma-maintainer:import-notes <zip or folder>`:
-- new SOPs are added;
-- different versions are saved as `.incoming` for review.
-
-Then the master runs `/figma-maintainer:share` again, so everyone gets the merged SOPs.
+**Co-workers:**
+- **Install or update** from the zip, then restart. All SOPs come with it.
+- **SOPs are read-only for them.** A guard blocks edits to SOP files.
+- **When they learn something new** (a client requirement, a correction, a workflow improvement), the agent writes it as a proposal in `~/.claude/figma-maintainer/contributions/`. `/figma-maintainer:contribute` packs those into a zip to send to the SOP manager.
 
 ## Updating
-When you get a new zip, unzip it over the same folder, run `/plugin marketplace update e2m-figma`, and restart Claude Code. Your notes sync as described above.
+When you get a new zip, unzip it over the same folder, run `/plugin marketplace update e2m-figma`, and restart Claude Code. The new SOPs are live immediately; your session files are untouched.
 
 ## Task types (reusable actions) vs client task configurations
 | Task type (works for any client) | Generic action | Client configurations |

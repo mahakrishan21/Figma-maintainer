@@ -31,7 +31,7 @@ Never ask the user for something already in these notes.
 - **Task SOPs:** a client folder can hold `task-<name>.md` files. Each is a reusable method for a recurring task type, for example `digital-drive/task-responsive-designs.md` for "Create Tablet and Mobile Designs from Desktop Designs". When the request matches a task SOP's "When this applies", follow its method on **any** project of that agency. Add each job's specific IDs and decisions under its "Jobs" section, never in the method. For a new recurring task type, create one from `clients/_template/task.md`.
 - **Precedence:** the user's message, then the project file, then the task SOP, then `client.md`, then the playbook. Example: Lasso Up's `client.md` says Adobe Stock, so use Adobe Stock for every Lasso Up project unless the prompt says otherwise.
 - **SOP format:** `client.md` has 10 numbered sections (overview, contacts, workflow and versioning, design standards, content, images and video, forms, handoff, hard rules, rule log), and each project file has 9. A `<not set>` field means unknown: ask, or use the team default the template names. When a rule is stated, write it into its section with source and date, and add a rule-log line.
-- **Never invent SOP rules.** The SOPs are built over time from what the user or client actually says. Record a rule only when they state it, with its date and source (for example "(rule from the user, 2026-10-14)"). Leave placeholders as they are.
+- **Never invent SOP rules.** The SOPs are built over time from what the user or client actually says. Record a rule only when they state it, with its date and source (for example "(rule from the user, 2026-10-14)"). Leave placeholders as they are. SOPs are edited only on the SOP manager's machine; co-workers write contributions (see Learning).
 
 ## Security guardrails (always)
 Read `~/.claude/figma-maintainer/guides/figma-guardrails.md` once per task, and follow it. In short:
@@ -153,13 +153,19 @@ Every client sources media differently: iStock, Adobe Stock, AI-generated, clien
 
 ## Learning
 
-At the end of every task:
+**SOPs live only in the plugin**, the single source of truth. One SOP manager maintains them. The links in `~/.claude/figma-maintainer/` (`clients/`, `playbook.md`, `pricing.json`, `cost-config.json`) point into the plugin's `knowledge/` folder. Everything else in that folder is this person's **session files**: `job-log.md`, logs, `audits/`, `reports/` and `contributions/`.
 
-- Append one entry to `job-log.md` (max ~6 lines): date, client, file/node, task, what changed, open items, and any correction received.
-- Put new **project** facts (node IDs, page map, components, asset log, pending decisions) in the project file, and **client-wide** rules (contacts, how they give feedback, a preference that holds across their projects) in `client.md`. Update in place; don't append duplicates.
-- Put a lesson in `playbook.md` only if it would help on other clients' files. Check it isn't already there, and keep it to one line.
-- When the user's message contains a correction ("no, always…", "next time…", "that's wrong"): apply it now, save it as a rule (client or playbook), and tag it `(correction, YYYY-MM-DD)`.
-- Keep the notes tight. Merge or delete rules that turn out to be wrong or redundant rather than letting files grow.
+At the end of every task:
+- **Always:** append one entry to `job-log.md` (max ~6 lines): date, client, file/node, task, what changed, open items, and any correction received.
+- **SOP manager's machine** (`~/.claude/figma-maintainer/.master` exists):
+  - Put new or corrected rules straight into the right SOP section: project facts in the project file, client-wide rules in `client.md`, recurring-task rules in the client's `task-*.md`, and cross-client lessons in `playbook.md` (one line, no duplicates).
+  - Tag every rule with its source and date. Corrections are tagged `(correction, YYYY-MM-DD)`.
+  - Remind the user to commit and run `/figma-maintainer:share`.
+- **Co-worker's machine** (no `.master`): **never edit SOPs.** The SOP guard blocks it.
+  - For each new client requirement, correction or workflow improvement, write a proposal file `~/.claude/figma-maintainer/contributions/<YYYY-MM-DD>-<agency>-<topic>.md`, using the format in `clients/_template/contribution.md`.
+  - List the proposals in the report, and tell the user to send them with `/figma-maintainer:contribute`.
+- When the user's message contains a correction ("no, always…", "next time…", "that's wrong"), apply it to the current job now, then record it as above.
+- Keep SOPs tight. On the SOP manager's machine, merge or delete rules that turn out to be wrong or redundant.
 
 ## Report (completion report)
 

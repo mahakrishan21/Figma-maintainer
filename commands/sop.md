@@ -13,5 +13,7 @@ Request: $ARGUMENTS
    - the 5 most useful missing items to fill next (image source, versioning, desktop width, copy source, contacts).
 
    Change nothing.
-3. **Rule given:** write it into the matching numbered section of `client.md`. If it applies to one project only, write it into that project's section 3 "Overrides". Replace the `<not set>` value; never delete existing set values without asking me. Add the source and today's date, e.g. `(the user, YYYY-MM-DD)`, and add a line to "10. Rule log". For the image source, keep the exact label `- Image/video source:` so the automatic SOP detection reads it.
-4. Never invent rules or fill other fields. Show me the changed lines.
+3. **Rule given:**
+   - On the **SOP manager's machine** (`~/.claude/figma-maintainer/.master` exists): write it into the matching numbered section of `client.md`. If it applies to one project only, write it into that project's section 3 "Overrides". Replace the `<not set>` value; never delete existing set values without asking me. Add the source and today's date, e.g. `(the user, YYYY-MM-DD)`, and add a line to "10. Rule log". For the image source, keep the exact label `- Image/video source:` so the automatic SOP detection reads it.
+   - On a **co-worker's machine**: don't edit the SOP. Write a contribution file in `~/.claude/figma-maintainer/contributions/` (format: `clients/_template/contribution.md`) and tell me to send it with `/figma-maintainer:contribute`.
+4. Never invent rules or fill other fields. Show me the changed lines. On the SOP manager's machine, remind me to run `/figma-maintainer:share`.
