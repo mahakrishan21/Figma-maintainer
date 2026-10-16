@@ -93,6 +93,14 @@ def measure(rows, pricing, sidechain_only=None):
     return t
 
 
+def file_keys(rows):
+    text = ""
+    for r in rows[:3]:
+        c = (r.get("message") or {}).get("content")
+        text += c if isinstance(c, str) else " ".join(b.get("text", "") for b in c or [] if isinstance(b, dict))
+    return sorted(set(re.findall(r"figma\.com/(?:design|file)/([A-Za-z0-9]{10,})", text)))
+
+
 def client_for(rows):
     """Match a Figma file key in the task prompt to a client notes file."""
     text = ""
@@ -150,7 +158,8 @@ def tasks_of(session_file, pricing):
         if not t["requests"]:
             continue
         t.update({"id": f.stem.replace("agent-", ""), "agent": meta.get("agentType", "agent"),
-                  "description": meta.get("description", f.stem), "client": client_for(rows), "file": str(f)})
+                  "description": meta.get("description", f.stem), "client": client_for(rows), "file": str(f),
+                  "file_keys": file_keys(rows)})
         out.append(t)
     return out
 
@@ -189,6 +198,18 @@ def log_task(t, session_id):
            "models": sorted(t["models"])}
     with open(LEDGER, "a") as f:
         f.write(json.dumps(rec) + "\n")
+    try:  # also into work/<person>/<agency>/<project>/usage.jsonl
+        import workdir
+        for k in t.get("file_keys", []):
+            r = workdir.resolve_key(k)
+            if r:
+                proj = workdir.FM / "work" / workdir.person() / r[0] / r[1]
+                workdir.ensure(proj)
+                with open(proj / "usage.jsonl", "a") as f:
+                    f.write(json.dumps(rec) + "\n")
+                break
+    except Exception:
+        pass
     return True
 
 

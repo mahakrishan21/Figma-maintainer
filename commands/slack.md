@@ -16,3 +16,5 @@ Questions for client:
 • <images/video needed, missing fonts, missing content or links, decisions — or "None">
 ```
 Then run `python3 -I ~/.claude/figma-maintainer/scripts/usage_report.py --slack` (add `--task "<words>"` for a single task) and show its output as a separate **Usage (internal)** block. Never put token or cost numbers in the client-facing block. If INR shows "set fx rate", mention it once.
+
+Store every file this produces in the project folder from `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (person › agency › project; created only if missing).

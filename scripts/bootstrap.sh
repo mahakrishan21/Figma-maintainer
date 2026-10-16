@@ -11,7 +11,7 @@
 set -u
 root="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 dest="$HOME/.claude/figma-maintainer"
-mkdir -p "$dest" "$dest/audits" "$dest/reports" "$dest/contributions" "$dest/guides" || exit 0
+mkdir -p "$dest" "$dest/work" "$dest/contributions" "$dest/guides" || exit 0
 
 src="$root"
 if [ -f "$dest/.master" ]; then
@@ -41,6 +41,13 @@ link "$src/scripts" scripts
 for d in "$src"/skills/*/; do
   n="$(basename "$d")"; [ -f "$d/SKILL.md" ] && ln -sfn "$d/SKILL.md" "$dest/guides/$n.md"
 done
+# Per person -> per client -> per project work folders live under work/<person>/ (created on demand by workdir.py)
+if [ ! -s "$dest/.person" ]; then
+  n="$(git config --global user.name 2>/dev/null)"; [ -n "$n" ] || n="${USER:-me}"
+  printf '%s\n' "$n" > "$dest/.person"
+fi
+pslug="$(tr '[:upper:]' '[:lower:]' < "$dest/.person" | head -1 | sed -E "s/['’]//g; s/[^a-z0-9]+/-/g; s/^-+|-+$//g")"
+mkdir -p "$dest/work/${pslug:-me}"
 [ -e "$dest/job-log.md" ] || printf '# Job Log\n\nNewest last. Max ~6 lines per entry. (Personal session log, not shared.)\n' > "$dest/job-log.md"
 rm -f "$dest/.sync-state.json"
 # Old local SOP copies (from earlier plugin versions) that differ from the plugin -> listed for contribution

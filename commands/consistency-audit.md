@@ -11,3 +11,5 @@ $ARGUMENTS
 If no URL is given, use the Figma file and page from the current conversation. If there isn't one, ask me for the link before doing anything.
 
 The audit is read-only: nothing in Figma changes. When it's done, show me the report summary and the high-severity rows, and tell me where the full report file is. Then ask whether figma-maintainer should apply any of the corrections, and wait for my answer.
+
+Store every file this produces in the project folder from `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (person › agency › project; created only if missing).

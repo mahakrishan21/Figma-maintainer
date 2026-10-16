@@ -7,3 +7,5 @@ argument-hint: [latest | session | "<task words>" | client <name> [since YYYY-MM
 Use the usage-reporter agent (figma-maintainer:usage-reporter) for: $ARGUMENTS
 
 If no argument is given, report this session (every task plus the main conversation). Show its "Usage (internal)" block as it is. Write the HTML report only when I said "html".
+
+Store every file this produces in the project folder from `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (person › agency › project; created only if missing).

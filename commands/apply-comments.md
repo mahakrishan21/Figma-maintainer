@@ -11,3 +11,5 @@ Then use the figma-maintainer agent (figma-maintainer:figma-maintainer) in clien
 $ARGUMENTS
 
 It reads every unresolved comment pinned to that frame (the whole file if the URL has no node-id), applies the copy and layout changes, annotates the image-editing requests instead of doing them, and reports every comment by number. When it's done, pass its report to me in full: done, not done, approvals and decisions needed.
+
+Store every file this produces in the project folder from `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (person › agency › project; created only if missing).

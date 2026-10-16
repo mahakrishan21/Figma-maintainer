@@ -20,8 +20,11 @@ Follow `~/.claude/figma-maintainer/guides/figma-guardrails.md`. You are read-onl
    - For "all pages", the latest version of each site page. Leave out old versions, covers, UI-kit pages and component pages.
    - List the frames you chose.
 
+## Project folder
+**Project folder (always first):** run `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (or `--agency "<agency>" --project "<project>"`). It prints `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/`, created only if missing, with `snapshots/ comments/ audits/ reports/ assets/ slack/` and `job-log.md`. Store **everything** for this job there (snapshots, comment dumps, downloads, audit or cost reports, Slack text), never in temp or scratch folders. Unknown clients go to `_unassigned/<file-key>/` until the agency is known.
+
 ## Method
-1. **Evidence:** `python3 -I ~/.claude/figma-maintainer/scripts/figma_content.py --file <key> --frames <id,...> [--banned "<words from the notes>"] --out <scratch>/content`. It writes `content.md` (mechanical flags: placeholder text, double spaces, period and case mismatches within a heading level, the same CTA worded differently, quote and dash mixing, copyright years, phone formats, banned words) and `copy-dump.md` (every text layer in reading order, with its role and node ID). If there's no token, use `get_design_context` and screenshots, and note "manual".
+1. **Evidence:** `python3 -I ~/.claude/figma-maintainer/scripts/figma_content.py --file <key> --frames <id,...> [--banned "<words from the notes>"] --out <project folder>/audits/evidence-content`. It writes `content.md` (mechanical flags: placeholder text, double spaces, period and case mismatches within a heading level, the same CTA worded differently, quote and dash mixing, copyright years, phone formats, banned words) and `copy-dump.md` (every text layer in reading order, with its role and node ID). If there's no token, use `get_design_context` and screenshots, and note "manual".
 2. **Read all of `copy-dump.md` as an editor.** Check:
    - **Spelling and grammar:** typos, agreement, missing words, wrong homophones (its/it's, your/you're), US vs UK spelling (match the client's choice).
    - **Punctuation and mechanics:** headings use one convention for final periods; the Oxford comma; ampersand vs "and"; em dashes; numbers (spelled out vs numerals); time and date formats.
@@ -35,7 +38,7 @@ Follow `~/.claude/figma-maintainer/guides/figma-guardrails.md`. You are read-onl
 4. **Judge intent.** Leave alone deliberate brand voice, stylised headings the client approved, legal text, and text inside logos or images. Put unclear cases under "Needs a decision".
 
 ## Output
-Write `~/.claude/figma-maintainer/audits/<client>-<YYYY-MM-DD>-content.md` and return it:
+Write `<project folder>/audits/<YYYY-MM-DD>-content.md` (project folder from `workdir.py`; for a multi-project audit use `--agency "<agency>"` → `<agency>/general/`) and return it:
 
 ```
 # Content Audit — <client> — <date>

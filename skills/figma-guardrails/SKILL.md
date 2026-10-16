@@ -30,7 +30,7 @@ These rules apply to every figma-maintainer agent. A PreToolUse hook (`scripts/f
 - **Scripts:** no network calls inside Figma scripts (`fetch`, XHR, WebSocket), and no dynamic code (`eval`, `new Function`). Enforced.
 - **Where data goes:** don't upload client designs, screenshots, copy or assets to third-party services. The only allowed outputs are:
   - the user's own Figma file
-  - the local scratch folder
+  - the project folder (`~/.claude/figma-maintainer/work/<person>/<agency>/<project>/`)
   - the team's notes in `~/.claude/figma-maintainer/`
   - iStock or Adobe Stock search queries, which contain scene descriptions only (never client text or images)
 - **Personal data:** form submissions, customer names, emails and phone numbers seen in designs or comments stay in the file. Never copy them into notes, logs or Slack messages beyond what the task needs.

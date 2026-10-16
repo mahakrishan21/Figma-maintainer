@@ -35,7 +35,8 @@ A Claude Code subagent that works like a senior UI/UX designer making maintenanc
 | `knowledge/clients/` | `_index.md` (every agency and its projects), `<agency>/client.md` (agency SOP), `<agency>/task-*.md` (recurring task SOPs), `<agency>/<project>.md` (project notes), and `_template/` (client, project, task and contribution templates) |
 | `knowledge/playbook.md` · `pricing.json` · `cost-config.json` | Team-wide Figma rules, model prices, currency settings |
 | `agents/` `commands/` `skills/` `scripts/` `hooks/` | The plugin itself |
-| `~/.claude/figma-maintainer/` (per person, never shared) | **Session files:** `job-log.md`, usage and Figma audit logs, `audits/`, `reports/` and `contributions/`, plus **links** (`clients/`, `playbook.md`…) into the plugin's `knowledge/`, created at each session start |
+| `~/.claude/figma-maintainer/` (per person, never shared) | **Session files**, plus **links** (`clients/`, `playbook.md`…) into the plugin's `knowledge/`, created at each session start |
+| `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/` | **All work for one project:** `job-log.md`, `snapshots/`, `comments/`, `audits/`, `reports/`, `assets/` (downloads), `slack/`, `figma-calls.jsonl`, `usage.jsonl`. Created automatically the first time you work on that project; reused afterwards |
 
 ## When it's active (isolation from other plugins)
 figma-maintainer only acts on **Figma maintenance work**. Its hooks stay silent in website builds, other plugins' sessions and general chat. It's active when:
@@ -231,6 +232,15 @@ Also covered:
 - It stops if an original changes unexpectedly, or if the same approach fails twice.
 - It reports what changed (with links), what it checked, what's left and what it learned.
 - **Images and video: asked about first.** Every client sources media differently (iStock, Adobe Stock, AI-generated, client-provided, or existing assets in the file), for video as well as images. If your request doesn't say which to use, Claude asks before starting anything, with the client's usual source marked as recommended, and waits for your answer. To skip the question, say it up front, for example: `… — images: iStock` or `… — copy only, no new images`.
+
+### Project folders (person › client › project)
+At the start of every job the agent runs `scripts/workdir.py` with the Figma link:
+- It finds the agency and project from the SOPs (the project file, or the "Jobs" list in a task SOP).
+- It creates `work/<person>/<agency>/<project>/` **only if it doesn't exist yet**.
+- Snapshots, comment dumps, downloads, audits, reports and Slack text for that job are stored there, along with the project's job log.
+- The Figma call log and usage log also get a per-project copy.
+
+Files the SOPs don't know yet go to `work/<person>/_unassigned/<file-key>/`. The person's name is in `~/.claude/figma-maintainer/.person`, taken from your git name on first run; edit it if you like. `~/.claude/figma-maintainer/job-log.md` is a one-line-per-job index pointing to the project folders.
 
 ## SOP manager and co-workers
 **SOP manager** (one person; their session folder has a `.master` file pointing to the plugin source):

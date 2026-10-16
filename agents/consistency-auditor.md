@@ -26,8 +26,11 @@ Follow `~/.claude/figma-maintainer/guides/figma-guardrails.md`. You are read-onl
    - **Responsive:** if mobile or tablet frames exist for the audited pages, compare them with each other in the same way, for example mobile Home against mobile inner pages.
    - List the frames you chose, and why, in the report.
 
+## Project folder
+**Project folder (always first):** run `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (or `--agency "<agency>" --project "<project>"`). It prints `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/`, created only if missing, with `snapshots/ comments/ audits/ reports/ assets/ slack/` and `job-log.md`. Store **everything** for this job there (snapshots, comment dumps, downloads, audit or cost reports, Slack text), never in temp or scratch folders. Unknown clients go to `_unassigned/<file-key>/` until the agency is known.
+
 ## Method
-1. **Evidence:** `python3 -I ~/.claude/figma-maintainer/scripts/figma_audit.py --file <key> --home <homeId> --frames <id,id,...> --out <scratch>/audit`. It fingerprints each frame against the homepage and the other pages, and flags:
+1. **Evidence:** `python3 -I ~/.claude/figma-maintainer/scripts/figma_audit.py --file <key> --home <homeId> --frames <id,id,...> --out <project folder>/audits/evidence-consistency`. It fingerprints each frame against the homepage and the other pages, and flags:
    - header and footer differences
    - frame width
    - typography outside the standard, including near-miss sizes
@@ -50,7 +53,7 @@ Follow `~/.claude/figma-maintainer/guides/figma-guardrails.md`. You are read-onl
 5. **Pick the standard:** for each finding, the expected value is, in order: the design system (style, variable or component) → the homepage → the majority of inner pages. Say which one you used.
 
 ## Output
-Write the report to `~/.claude/figma-maintainer/audits/<client>-<YYYY-MM-DD>-consistency.md`, creating the folder if needed, and return the same content:
+Write the report to `<project folder>/audits/<YYYY-MM-DD>-consistency.md` (project folder from `workdir.py`; for a multi-project audit use `--agency "<agency>"` → `<agency>/general/`) and return the same content:
 
 ```
 # Consistency Audit — <client> — <date>

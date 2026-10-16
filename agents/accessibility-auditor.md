@@ -20,8 +20,11 @@ Follow `~/.claude/figma-maintainer/guides/figma-guardrails.md`. You are read-onl
    - Include mobile and tablet frames when they exist, since target sizes matter most there.
    - List the frames you chose.
 
+## Project folder
+**Project folder (always first):** run `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (or `--agency "<agency>" --project "<project>"`). It prints `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/`, created only if missing, with `snapshots/ comments/ audits/ reports/ assets/ slack/` and `job-log.md`. Store **everything** for this job there (snapshots, comment dumps, downloads, audit or cost reports, Slack text), never in temp or scratch folders. Unknown clients go to `_unassigned/<file-key>/` until the agency is known.
+
 ## Method
-1. **Evidence:** `python3 -I ~/.claude/figma-maintainer/scripts/figma_a11y.py --file <key> --frames <id,...> --out <scratch>/a11y`. It flags:
+1. **Evidence:** `python3 -I ~/.claude/figma-maintainer/scripts/figma_a11y.py --file <key> --frames <id,...> --out <project folder>/audits/evidence-a11y`. It flags:
    - text contrast against the solid background behind it
    - text over images (listed for a visual check)
    - text smaller than 12px; small body text on mobile
@@ -48,7 +51,7 @@ Follow `~/.claude/figma-maintainer/guides/figma-guardrails.md`. You are read-onl
 4. For each contrast failure, compute an **accessible alternative** in the same hue: the nearest darker or lighter shade that passes, as a hex value. Check whether a passing colour already exists in the file's styles or variables (`get_variable_defs`) and prefer it.
 
 ## Output
-Write `~/.claude/figma-maintainer/audits/<client>-<YYYY-MM-DD>-accessibility.md` and return it:
+Write `<project folder>/audits/<YYYY-MM-DD>-accessibility.md` (project folder from `workdir.py`; for a multi-project audit use `--agency "<agency>"` → `<agency>/general/`) and return it:
 
 ```
 # Accessibility Audit (WCAG 2.2 AA) — <client> — <date>

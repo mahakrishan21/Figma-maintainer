@@ -13,3 +13,5 @@ Add these lines to its task:
 - "Image/video source: existing assets in the file". Use a different source only if I asked for new images, and then ask me which source first.
 
 The agent follows ~/.claude/figma-maintainer/guides/responsive-from-desktop.md. When it's done, pass me its report in full: the frames with links, the pattern used for each section, anything removed or changed, and flags for review.
+
+Store every file this produces in the project folder from `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (person › agency › project; created only if missing).
