@@ -109,6 +109,15 @@ Paste a Dropbox (file or folder), Google Drive file, OneDrive or SharePoint, or 
 - **Google Drive folders:** use the Google Drive connector.
 - **WeTransfer, Box or private links:** it asks for a public link or a local file instead.
 
+### Client message after every job
+Every job also ends with a **Client message (copy-paste)**, the final comment for the client:
+1. what we've done;
+2. each page: its name, a short note, and the link;
+3. a Note (placeholders, what we need from the client);
+4. "Thank you!".
+
+Set a client's greeting ("Hi Jesse," / "Dear Sir,") in their `client.md` §8. To write one on demand, run `/figma-maintainer:client-message [extra notes]`.
+
 ### Slack update after every job
 Every job and audit ends with a short **Slack update (copy-paste)** block:
 - what changed, as bullets

@@ -187,6 +187,8 @@ At the end of every task:
 - **Pending approval / needs a decision:** the open questions (in the 4-part format) and any permissions needed.
 - **Learned:** what you saved, or nothing.
 
+Then the **Slack update** (team) and the **Client message** (client), as described below.
+
 ## Slack update (always, at the very end)
 After the report, add a section titled `Slack update (copy-paste)` holding one code block. Short and clear, under 12 lines, Slack formatting (*bold*, •), no markdown headings:
 ```
@@ -197,7 +199,64 @@ Updated: <link to the new or edited frame>
 Questions for client:
 • <images or video needed / which source; missing fonts; missing content or links; decisions — one line each, or "None">
 ```
-Write it for the team and the client lead, not for designers: plain words, no node IDs, no tool names. Don't include token or cost numbers; the caller adds a separate "Usage (internal)" block from usage-reporter.
+Write it for the team and the client lead, not for designers: plain words, no node IDs, no tool names. Don't include token or cost numbers; the caller adds a separate "Usage (internal)" block from usage-reporter. The client-facing text goes in the Client message below.
+
+## Client message (final comment, always, after the Slack update)
+Add a section titled `Client message (copy-paste)` holding one plain-text code block: the final comment the team posts to the client (teaming comment, email or Figma). Write it for the **client**: friendly, plain English, correct grammar, no node IDs, tool names, internal notes, token or cost numbers.
+
+Structure (keep this order; leave out a part only if it doesn't apply):
+```
+<Greeting, only if the client SOP sets one, e.g. "Hi Jesse," / "Dear Sir,">
+
+<Opening: 1–2 sentences on what we've done, e.g. "We've updated the design according to your latest suggestions." / "The six inner pages are ready for your review.">
+
+<Page name> - <one short note on what changed or what to look at>
+<link>
+
+<Page name> - <note>
+<link>
+
+Note: <placeholders still in the design, what we need from the client (images, copy, fonts, decisions), anything not done yet and why>
+
+Thank you!
+```
+Rules:
+- **One block per page or frame** that changed, in page order, with the link right under its name. Prefer the prototype or preview link when one exists; otherwise the Figma link to that frame (`https://www.figma.com/design/<fileKey>/?node-id=<id>`).
+- The page note says what the client will see, in their words ("the Fredericksburg & Richmond images have been added to the locations"), not how it was done.
+- **Note:** list every placeholder (sample copy, placeholder cards, watermarked stock photos) and what we need from them to replace it, plus open questions. Merge in the Slack update's "Questions for client". Leave the Note out if there's nothing to say.
+- Keep it short: about 4–12 lines plus links. Fix grammar and typos; never invent changes that weren't made.
+- Greeting and sign-off: use the client SOP's `Client message` settings (client.md §8) when set; otherwise no greeting and "Thank you!".
+
+Reference examples (the team's format):
+```
+We've updated the design according to your latest suggestions.
+
+Homepage - The Fredericksburg & Richmond images have been added to the locations, and the thumbnail perspective has been corrected for Decks, Fences and Patios (homepage only).
+https://www.figma.com/proto/Bu1gCvMu3cNZIe3KqeuLxh/Veterans-Choice-Home?page-id=3%3A3&node-id=910-33
+
+Thank you!
+```
+```
+The six inner pages are ready for your review. Everything uses your Octopus copy word for word, except a few placeholders we added so you can see the layout:
+
+About Wela
+https://designervault-api.sitepreviews.dev/previews/.../about-wela.html
+
+Note: We've used placeholder content in a few places so you can see the layout: a sample case study on the About page, placeholder advisor cards on the Managing Growing Complexity and Growing Your Business pages, and watermarked iStock photos throughout. We'll replace them once you approve the final images and provide the advisor photos for each page.
+
+Thank you!
+```
+```
+Dear Sir,
+
+We have prepared an internal survey for the team to gather reflections on the usage of AI tools. Please find the responses at the link below:
+<link>
+
+Additionally, we have created a summary and presentation slides based on the above responses:
+<link>
+
+Kindly have a look and let us know if you have any specific analysis, thoughts or suggestions.
+```
 
 After a job that built or changed a page (not after audits or one-line fixes), end with: "Want a Consistency, Content or Accessibility Audit of this page?" Never run audits yourself; the auditor agents do them, read-only.
 

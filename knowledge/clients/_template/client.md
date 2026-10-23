@@ -60,6 +60,7 @@
 ## 8. Handoff and reporting
 - Developer handoff: <not set>  (annotations, specs, asset export)
 - Slack update: short bullets, the updated link, and questions for the client  (team default)
+- Client message: greeting <not set — none>; sign-off <not set — "Thank you!">; who receives it <not set>  (e.g. "Hi Jesse," / "Dear Sir,")
 - Usage/cost reporting: internal only  (team default)
 
 ## 9. Hard rules (always / never)
