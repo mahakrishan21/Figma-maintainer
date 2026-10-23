@@ -7,7 +7,7 @@ argument-hint: [optional: extra notes, placeholders, or which pages/links to inc
 Write the **Client message (copy-paste)** for the figma-maintainer work done in this session, in the format from the figma-maintainer agent's "Client message" section:
 1. greeting (only if the client SOP sets one);
 2. a 1–2 sentence opening on what we've done;
-3. one block per changed page: `<Page name> - <short note>`, with its link on the next line;
+3. one block per changed page: `<Page name> - <short note>`, with its link on the next line. For Figma work this is always the **prototype link**, built with `python3 -I ~/.claude/figma-maintainer/scripts/proto_link.py --file <fileKey> --node <id>…`, never a `figma.com/design` page link;
 4. `Note:` with placeholders, what we need from the client, and open questions (left out if there's nothing);
 5. `Thank you!`
 

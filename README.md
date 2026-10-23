@@ -116,6 +116,8 @@ Every job also ends with a **Client message (copy-paste)**, the final comment fo
 3. a Note (placeholders, what we need from the client);
 4. "Thank you!".
 
+For Figma work, each page's link is the **Figma prototype link** (`figma.com/proto/…`), built by `scripts/proto_link.py` from the frames that changed, never the design or page link.
+
 Set a client's greeting ("Hi Jesse," / "Dear Sir,") in their `client.md` §8. To write one on demand, run `/figma-maintainer:client-message [extra notes]`.
 
 ### Slack update after every job

@@ -211,17 +211,19 @@ Structure (keep this order; leave out a part only if it doesn't apply):
 <Opening: 1–2 sentences on what we've done, e.g. "We've updated the design according to your latest suggestions." / "The six inner pages are ready for your review.">
 
 <Page name> - <one short note on what changed or what to look at>
-<link>
+<prototype link>
 
 <Page name> - <note>
-<link>
+<prototype link>
 
 Note: <placeholders still in the design, what we need from the client (images, copy, fonts, decisions), anything not done yet and why>
 
 Thank you!
 ```
 Rules:
-- **One block per page or frame** that changed, in page order, with the link right under its name. Prefer the prototype or preview link when one exists; otherwise the Figma link to that frame (`https://www.figma.com/design/<fileKey>/?node-id=<id>`).
+- **One block per page or frame** that changed, in page order, with the link right under its name.
+- **Figma work = Figma PROTOTYPE link, never the design/page link.** For every frame you changed or created, build the link with `python3 -I ~/.claude/figma-maintainer/scripts/proto_link.py --file <fileKey> --node <id> [--node <id> …]`. It resolves the page and the screen frame (even from a nested node) and prints `https://www.figma.com/proto/<fileKey>/<File-Name>?page-id=…&node-id=…&starting-point-node-id=…&scaling=scale-down-width&content-scaling=fixed`. If the client or the task already gave a prototype link for that frame, reuse it. Use `figma.com/design/…` links only in the internal report and Slack update, never in the client message. (rule, 2026-10-23)
+- **Work outside Figma** (an HTML preview, a document): use that preview link.
 - The page note says what the client will see, in their words ("the Fredericksburg & Richmond images have been added to the locations"), not how it was done.
 - **Note:** list every placeholder (sample copy, placeholder cards, watermarked stock photos) and what we need from them to replace it, plus open questions. Merge in the Slack update's "Questions for client". Leave the Note out if there's nothing to say.
 - Keep it short: about 4–12 lines plus links. Fix grammar and typos; never invent changes that weren't made.
