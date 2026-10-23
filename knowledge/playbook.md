@@ -13,6 +13,7 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Tall full-page frames (~5000px) can time out in `get_screenshot`; screenshot section by section instead.
 
 ## Editing
+- "Looks like you don't have edit access to this file" from `create_session`/`get_metadata`/`use_figma` means the Figma MCP account (check `whoami`) isn't an editor, even if the REST token can read. Stop, do read-only prep via REST, and ask the file owner to share edit access with that account. (2026-10-23)
 - Scope = the frame or section in the link's node-id, never the page it sits on. Other frames on the same page are read-only. If there's no node-id, ask. (correction, 2026-10-14)
 - A client's task configuration (`task-<name>.md`) applies only to that client. Reuse the task type, not another client's rules. (rule, 2026-10-14)
 - Design desktop only unless the prompt explicitly asks for tablet/mobile frames; "should be responsive" isn't a request. Offer them at the end. (correction, 2026-10-14)
@@ -30,6 +31,8 @@ General rules for any client's file. One line each. Client-specific rules go in 
 
 ## Images
 - Image and video sources differ by client (iStock, Adobe Stock, AI, client-provided, existing assets). Always ask which one per slot before placing media; the client's preferred source is only the recommended option. (rule, 2026-10-13)
+
+- `upload_assets` `nodeIds` only takes plain IDs (no instance sublayers `I…;…`). For card images inside instances, upload onto a plain in-scope frame with no fills, copy the imageHash to the sublayer, then reset that frame's fills. On stacked fills (image under gradients), rebuild the fills array from the original with only the imageHash swapped. (2026-10-23)
 
 ## Quality checks
 - Image boxes often hide stacked image fills under the visible one (the last fill is on top). Report them; remove them only with approval. (rule, 2026-10-14)
@@ -57,3 +60,11 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Switching a frame's layoutMode (H to V) can turn it or its children from FILL to HUG/FIXED width. Re-assert FILL afterwards and run a "narrower than parent" check. (2026-10-15)
 - Assigning a value to a variable-bound property (itemSpacing, padding) silently unbinds it. Rebind with `setBoundVariable`, or unbind on purpose and report it. (2026-10-15)
 - Position absolute overlays (cards, dropdowns, search panels) only after the final section sizing (FILL or bound width). If the parent resizes later, MAX/STRETCH constraints push them off-frame. (2026-10-15)
+
+## Copy docs and scripts (2026-10-23)
+- Google Docs with pending suggestions: `read_file_content` merges insertions and deletions into one string ("equipment system"). Export the doc as .docx (`download_file_content`) and read `w:ins`/`w:del`. Decode the base64 from the session transcript; don't retype it. (2026-10-23)
+- A `use_figma` script that throws is rolled back as a whole: a clone made before the error didn't persist. Still re-read the canvas before retrying. (2026-10-23)
+- Exact text matches can fail on a leading non-breaking space (U+00A0, e.g. " Call to Discuss"). Match with `String.fromCharCode(160)` or normalize first. (2026-10-23)
+- upload_assets: POST each URL with `curl -sS` and check the JSON (`success`, `imageHash`). Backgrounded parallel curls in one shell call failed silently. (2026-10-23)
+- A hug-width text cloned into a FILL slot shows its hidden `textAlignHorizontal` (the footer field label was CENTER), so set LEFT explicitly. (2026-10-23)
+- Google Docs tabs: a `tab=t.…` link can point to content the connector doesn't separate. Fetch the tab with `…/export?format=docx&tab=<tabId>` (or `format=txt`). The txt export drops pending suggestions (pre-suggestion text) while the docx keeps them with author and date, so compare both before calling copy "different". (correction, 2026-10-23)

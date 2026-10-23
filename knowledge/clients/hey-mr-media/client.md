@@ -66,7 +66,8 @@
 - <not set>
 
 ## 10. Rule log
-- <YYYY-MM-DD — rule — source>
+- 2026-10-23 — Comfort Zone: contact forms carry the current site's SMS consent disclaimer; T&C and Privacy Policy pages required (phone service, CRM/payments) — client note in the Contact Us copy doc (see comfort-zone.md §5)
+- 2026-10-23 — Comfort Zone: Financing page = text block with a link-out button, then FAQ block and contact form — client message relayed by the user (see comfort-zone.md §5)
 
 ## teaming.rocks projects (read-only snapshot 2026-10-14)
 - Alan Bradley Windows & Doors — To Do · teaming agency: Hey Mr Media - Web
