@@ -27,12 +27,17 @@ General rules for any client's file. One line each. Client-specific rules go in 
 
 - `figma.saveVersionHistoryAsync` throws "not a supported API" in the use_figma runtime: no in-script checkpoint. Report it; duplicate first only if the change is substantial and approved. (2026-10-14)
 - Text layers whose name equals their content auto-rename on a `characters` change ("Heading" became "Test passed"). Set `autoRename=false` first if the layer name must stay. (2026-10-14)
+- No tool duplicates a whole Figma file: `create_new_file` makes a blank file, REST has no copy endpoint, and `use_figma` can't move nodes between files. For "work in a copy", stop before editing. Ask the user to duplicate the file in Figma, give the MCP account (`whoami`) edit access, and send the new link. (2026-10-27)
+- Before a comment or copy round, count `hasMissingFont` in the target. If the text font can't load, swap images only, and annotate each text layer with the exact new copy ("Client comment #N - new copy: …"). A designer with the font applies it in the desktop app. (2026-10-27)
+- `upload_assets` with `nodeIds` replaces the whole fills array. On stacked fills (photo + gradients + cutout), rebuild the stack afterwards with only the photo hash swapped. In a same-file copy, read the stack from the untouched source node. `figma_snapshot` doesn't cover annotations, so verify them by read-back. (2026-10-27)
 - The guard asks before any deletion. It reports "deletes N node(s)" for single deletes; loops over nodes with `.remove()` count as bulk deletes. Ancestor-walk scope checks are ignored. (rule, 2026-10-14)
 
 ## Images
 - Image and video sources differ by client (iStock, Adobe Stock, AI, client-provided, existing assets). Always ask which one per slot before placing media; the client's preferred source is only the recommended option. (rule, 2026-10-13)
 
 - `upload_assets` `nodeIds` only takes plain IDs (no instance sublayers `I…;…`). For card images inside instances, upload onto a plain in-scope frame with no fills, copy the imageHash to the sublayer, then reset that frame's fills. On stacked fills (image under gradients), rebuild the fills array from the original with only the imageHash swapped. (2026-10-23)
+
+- `fetch_assets.py` skips `.jfif` Drive files without listing them as failed, so compare the saved count with the number of links. Fetch a `.jfif` by hand (it's a JPEG) and save it as `.jpg`. (2026-10-27)
 
 ## Quality checks
 - Image boxes often hide stacked image fills under the visible one (the last fill is on top). Report them; remove them only with approval. (rule, 2026-10-14)
