@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Figma-maintainer at E2M</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single briefing column (max ~880px) with wide bands for prompts and results; reads top-down like a memo. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --ink:#151a24; --muted:#5b6475; --line:#dde1e8;
+  --accent:#2f54c8; --accent-soft:#e8edfb; --code:#eef1f6; --good:#1f7a4d;
+  --font-sans:"Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10141c; --surface:#171c26; --ink:#e7eaf0; --muted:#9aa3b4; --line:#2a3140;
+  --accent:#8ea8ff; --accent-soft:#1f2a47; --code:#1c2330; --good:#6fd29d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10141c; --surface:#171c26; --ink:#e7eaf0; --muted:#9aa3b4; --line:#2a3140;
+  --accent:#8ea8ff; --accent-soft:#1f2a47; --code:#1c2330; --good:#6fd29d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--font-sans);margin:0}
+.wrap{max-width:900px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:40px 64px;display:flex;flex-direction:column;gap:48px}
+header{display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line);padding-bottom:28px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-size:clamp(30px,5vw,42px);line-height:1.12;margin:0;text-wrap:balance;font-weight:700}
+h2{font-size:24px;line-height:1.25;margin:0;text-wrap:balance}
+h3{font-size:16px;margin:0;font-weight:600}
+p{margin:0;max-width:68ch}
+.lead{font-size:18px;color:var(--muted);max-width:66ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+section{display:flex;flex-direction:column;gap:18px}
+.sub{color:var(--muted);max-width:68ch}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
+.kpi .l{font-size:13px;color:var(--muted)}
+.jobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.job{border-top:2px solid var(--accent);padding-top:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.job p{font-size:14px;color:var(--muted)}
+.prompts{display:flex;flex-direction:column;gap:10px}
+.prompt{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:start}
+.prompt .when{font-size:13px;font-weight:600;color:var(--muted);grid-column:1 / -1}
+.prompt code{font:13.5px/1.55 var(--font-mono);background:var(--code);border-radius:6px;padding:8px 10px;display:block;white-space:pre-wrap;word-break:break-word;min-width:0}
+.copy{font:600 12px var(--font-sans);border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:6px;padding:6px 10px;cursor:pointer;align-self:center}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px 24px;padding:16px 18px;background:var(--accent-soft);border-radius:10px}
+.tips div{font-size:14px}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+ol.steps li::before{content:counter(s);font:600 13px var(--font-mono);color:var(--accent);background:var(--accent-soft);width:28px;height:28px;border-radius:50%;display:grid;place-items:center}
+ol.steps li span{color:var(--muted);font-size:15px}
+.benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px 28px}
+.benefit{display:flex;flex-direction:column;gap:6px;min-width:0}
+.benefit p{font-size:15px;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tfoot td{font-weight:700;border-bottom:none}
+.note{font-size:13px;color:var(--muted);max-width:76ch}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+ul.plain li{font-size:15px}
+.callout{border-left:3px solid var(--good);padding:4px 0 4px 14px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">E2M design team · Claude Code plugin</div>
+    <h1>Figma-maintainer at E2M</h1>
+    <p class="lead">An AI design assistant that makes maintenance changes directly in our clients' Figma files. It follows each agency's SOP, checks its own work, and hands back a ready-to-send client message.</p>
+    <div class="meta"><span>Version <b>1.24</b></span><span>Status <b>in use on live client work</b></span><span>Figures as of <b>27 Oct 2026</b></span></div>
+  </header>
+
+  <section aria-labelledby="glance">
+    <h2 id="glance">At a glance</h2>
+    <div class="kpis">
+      <div class="kpi"><span class="v">178</span><span class="l">agency SOPs it follows automatically</span></div>
+      <div class="kpi"><span class="v">9</span><span class="l">measured client jobs (KHL, Lion's Share, Hey Mr Media, Digital Drive and others)</span></div>
+      <div class="kpi"><span class="v">95 min</span><span class="l">agent working time across those 9 jobs</span></div>
+      <div class="kpi"><span class="v">$17</span><span class="l">API-equivalent cost for all 9 (about $1.90 per job)</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="does">
+    <h2 id="does">What it does</h2>
+    <div class="jobs">
+      <div class="job"><h3>Client feedback rounds</h3><p>Applies the client's notes or Figma comments, copy exactly as supplied, in a new version so the original stays untouched.</p></div>
+      <div class="job"><h3>Inner pages</h3><p>Builds new pages from the file's existing components, styles and the client's copy document.</p></div>
+      <div class="job"><h3>Tablet and mobile versions</h3><p>Adapts approved desktop pages using the client's breakpoints, variables and boilerplate.</p></div>
+      <div class="job"><h3>Components and states</h3><p>Hover, focus and disabled states, dropdowns and prototype links, after checking how many screens a change affects.</p></div>
+      <div class="job"><h3>Images from the right source</h3><p>Uses each client's image preference (iStock, Adobe Stock, client photos, Dropbox links) and logs what needs buying.</p></div>
+      <div class="job"><h3>Audits</h3><p>Consistency, Content and Accessibility (WCAG 2.2 AA) audits that report issues page by page and never change the file.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="prompts">
+    <h2 id="prompts">How designers ask: prompt style</h2>
+    <p class="sub">One line starting with <b>Use figma-maintainer:</b>, the Figma link to the exact frame, then the request in plain words. The agent works out the rest from the client's SOP.</p>
+    <div class="prompts">
+      <div class="prompt"><span class="when">Any change</span><code>Use figma-maintainer: &lt;Figma frame link&gt; — change the heading to "Request a Consultation" and remove the notes field.</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Client feedback (paste the email)</span><code>Use figma-maintainer: &lt;Figma frame link&gt; — apply the client feedback below. Copy must stay word for word.
+&lt;paste client email&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Client comments left in Figma</span><code>/figma-maintainer:apply-comments &lt;Figma frame link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Client's recurring task (follows that client's own rules)</span><code>Use figma-maintainer: Digital Drive — Create Tablet and Mobile Designs from Desktop Designs. Work file: &lt;Figma section link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">New page from a copy document</span><code>Use figma-maintainer: &lt;Figma link&gt; — design the Referral page using the attached copy doc. Don't change any wording.</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Images from a specific source</span><code>Use figma-maintainer: &lt;Figma link&gt; — swap the hero image; images: these client photos &lt;Dropbox link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Check against the client's brief (read-only)</span><code>/figma-maintainer:check-brief &lt;Figma link&gt;  + paste the brief or confirmed field list</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Quality audits (read-only)</span><code>Use figma-maintainer: Consistency Audit &lt;Figma link&gt; — all pages
+Use figma-maintainer: Accessibility Audit &lt;Figma link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Teach it a rule (saved to the client's SOP)</span><code>figma-maintainer: next time, Lasso Up images always come from Adobe Stock.</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Messages for the team and the client</span><code>/figma-maintainer:client-message
+give me slack message</code><button class="copy" type="button">Copy</button></div>
+    </div>
+    <div class="tips">
+      <div><b>Link the exact frame.</b> The link is the boundary: it edits only that frame or section.</div>
+      <div><b>Paste the client's exact copy.</b> It is checked line by line against the design.</div>
+      <div><b>One page per prompt.</b> Then review, and run an audit if needed.</div>
+      <div><b>Say the image source</b> if you know it; otherwise the client's SOP decides, or it asks.</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="flow">
+    <h2 id="flow">What happens on every job</h2>
+    <ol class="steps">
+      <li><div><h3>Finds the client and their SOP</h3><span>Recognises the agency or project from the link or name, and loads its rules: versioning, breakpoints, copy rules, image source, delivery tool.</span></div></li>
+      <li><div><h3>Reminds the designer of the client's preferences</h3><span>For example: "Digital Attic image preference: Depositphotos, then Envato". If a client works in their own Figma account, it says so at the start and at the end.</span></div></li>
+      <li><div><h3>Takes a before snapshot</h3><span>Records the page so it can prove afterwards that nothing outside the linked frame changed.</span></div></li>
+      <li><div><h3>Makes only the requested change</h3><span>Inside the linked frame, using the file's own components, styles and variables. It never substitutes fonts and asks before deleting anything.</span></div></li>
+      <li><div><h3>Verifies its own work</h3><span>Screenshots, a read-back of every changed text, missing-font check, and a before/after comparison of the rest of the page.</span></div></li>
+      <li><div><h3>Reports in three formats</h3><span>A designer report with a checklist, a Slack update for the team, and a client message with Figma prototype links.</span></div></li>
+      <li><div><h3>Files everything by person, client and project</h3><span>Job log, snapshots, assets, audits and cost go into that project's folder, so the next job starts with the full history.</span></div></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="benefits">
+    <h2 id="benefits">Benefits for the business</h2>
+    <div class="benefits">
+      <div class="benefit"><h3>Faster turnaround</h3><p>Typical maintenance jobs finish in 4 to 8 minutes of agent time. A full new landing page with tablet and mobile versions took 23 minutes before designer review.</p></div>
+      <div class="benefit"><h3>Every client's rules applied, every time</h3><p>178 agency SOPs, built from teaming.rocks and our client sheet, load automatically when a client is named. Nobody has to remember who uses Adobe Stock or which breakpoints Digital Drive needs.</p></div>
+      <div class="benefit"><h3>Consistent quality checks</h3><p>Copy is diff-checked against the client document, fonts and spacing are verified, and three audit types catch inconsistencies, typos and accessibility issues before the client sees them.</p></div>
+      <div class="benefit"><h3>Safe on client files</h3><p>It edits only the linked frame, never deletes pages, asks before deleting layers or changing shared components, and logs every action it takes in Figma.</p></div>
+      <div class="benefit"><h3>Clearer client communication</h3><p>Every job ends with a client-ready message in our house format: what we did, each page with its prototype link, a note on placeholders, and thank you.</p></div>
+      <div class="benefit"><h3>Knowledge stays in the company</h3><p>Corrections and client rules are saved centrally and shared with the whole team in each plugin version, so a new designer starts with everything the team has learned.</p></div>
+      <div class="benefit"><h3>Transparent cost</h3><p>Token usage and cost are recorded per task, per project and per client, for estimating and billing.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="results">
+    <h2 id="results">Measured results</h2>
+    <p class="sub">Real jobs from 12–27 October 2026, taken from the plugin's own usage log. Time is the agent's working time; designer review comes on top.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Client › project</th><th>Job</th><th class="n">Agent time</th><th class="n">Cost (USD)</th></tr></thead>
+        <tbody>
+          <tr><td>Lion's Share › KHL</td><td>Founding Families feedback round</td><td class="n">4 min</td><td class="n">$0.80</td></tr>
+          <tr><td>Lion's Share › LSD website</td><td>7 client comment fixes, new version</td><td class="n">4 min</td><td class="n">$0.93</td></tr>
+          <tr><td>Lion's Share › KHL</td><td>New Referral page, desktop + tablet + mobile, copy checked word for word</td><td class="n">23 min</td><td class="n">$3.35</td></tr>
+          <tr><td>Lion's Share › KHL</td><td>Referral form fields to client's confirmed list</td><td class="n">4 min</td><td class="n">$0.90</td></tr>
+          <tr><td>Contractor Dynamics › SJ Roofing</td><td>Tablet and mobile frames</td><td class="n">3 min</td><td class="n">$0.73</td></tr>
+          <tr><td>Digital Drive › St Fanchea's College</td><td>Home page, three responsive sizes (first pass)</td><td class="n">16 min</td><td class="n">$2.65</td></tr>
+          <tr><td>Hey Mr Media › OIS</td><td>Apply Figma changes</td><td class="n">6 min</td><td class="n">$1.32</td></tr>
+          <tr><td>Hey Mr Media › Comfort Zone</td><td>Inner pages</td><td class="n">27 min</td><td class="n">$4.43</td></tr>
+          <tr><td>Hey Mr Media › LaundroLab</td><td>Apply Figma comments to copy</td><td class="n">8 min</td><td class="n">$2.11</td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="2">9 jobs</td><td class="n">95 min</td><td class="n">$17.22</td></tr></tfoot>
+      </table>
+    </div>
+    <p class="note">Cost is the API-equivalent value of the tokens used (Claude Opus 5.5). On our Claude plan it isn't billed separately. For comparison, the St Fanchea's Home page was estimated at about 4 designer hours for its three sizes; the agent's first pass took 16 minutes, followed by designer review rounds.</p>
+  </section>
+
+  <section aria-labelledby="gov">
+    <h2 id="gov">Safety and governance</h2>
+    <div class="two">
+      <ul class="plain">
+        <li>Edits only the frame or section in the link, never the rest of the file.</li>
+        <li>Never deletes pages; asks before deleting layers, detaching components or changing shared styles.</li>
+        <li>Audits are read-only by design and blocked from writing.</li>
+        <li>Every Figma action is logged with time, file and person.</li>
+      </ul>
+      <ul class="plain">
+        <li>One SOP manager owns the client rules; co-workers send proposals for review.</li>
+        <li>Client content is never sent to outside services; access keys are stored in the Mac Keychain.</li>
+        <li>Instructions hidden in client files or comments are treated as content, not commands.</li>
+        <li>Versioned in Git and published on GitHub, so every release can be rolled back.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="human">
+    <h2 id="human">What still needs a designer</h2>
+    <div class="callout">
+      <p>The agent does the repetitive production work; designers keep the judgement. They approve every round before it goes to the client, handle image editing and retouching, buy the stock images that get approved, fix fonts that aren't installed, and own the client relationship.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var code = btn.parentElement.querySelector('code');
+    var text = code.innerText;
+    function done(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }
+    function fallback(){ var r = document.createRange(); r.selectNodeContents(code); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Selected'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+});
+</script>
+
+</body>
+</html>
