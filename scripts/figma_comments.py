@@ -124,6 +124,11 @@ def main():
     ap.add_argument("--all-frames", action="store_true", help="ignore the node filter")
     ap.add_argument("--include-resolved", action="store_true")
     ap.add_argument("--author", help="only top-level comments by this handle (case-insensitive)")
+    ap.add_argument("--round", choices=["latest", "all"], default="latest",
+                    help="latest (default): only the newest round of comments; all: every open comment")
+    ap.add_argument("--window-days", type=float, default=2,
+                    help="latest round = comments up to this many days before the newest one (default 2)")
+    ap.add_argument("--since", help="YYYY-MM-DD: treat every comment from this date on as the current round")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
 
@@ -178,7 +183,7 @@ def main():
             off = c["client_meta"].get("node_offset") or {"x": 0, "y": 0}
             x, y = off["x"], off["y"]
             items.append({
-                "comment_id": c["id"], "author": c["user"]["handle"], "created": c["created_at"][:10],
+                "comment_id": c["id"], "author": c["user"]["handle"], "created": c["created_at"][:10], "created_at": c["created_at"],
                 "resolved": bool(c.get("resolved_at")), "message": c["message"],
                 "pin": {"x": round(x), "y": round(y)},
                 "replies": [{"author": r["user"]["handle"], "message": r["message"]}
@@ -188,12 +193,43 @@ def main():
             })
         groups.append({"frame_id": fid, "frame_name": frame["name"], "comments": items})
 
-    data = {"file_key": key, "node": node, "groups": groups}
+    # ---- rounds: designers rarely resolve comments, so every comment stays "open".
+    # Default = only the latest round (newest comment's date minus --window-days); older ones are listed, not applied.
+    from datetime import datetime, timedelta
+    def ts(c):
+        return datetime.fromisoformat(c["created_at"].replace("Z", "+00:00"))
+    allc = [c for g in groups for c in g["comments"]]
+    round_info = {"mode": a.round, "window_days": a.window_days, "since": a.since}
+    if allc:
+        newest = max(ts(c) for c in allc)
+        if a.since:
+            cutoff = datetime.fromisoformat(a.since).replace(tzinfo=newest.tzinfo)
+        elif a.round == "all":
+            cutoff = min(ts(c) for c in allc)
+        else:
+            cutoff = newest - timedelta(days=a.window_days)
+        for g in groups:
+            g["older"] = [c for c in g["comments"] if ts(c) < cutoff]
+            g["comments"] = [c for c in g["comments"] if ts(c) >= cutoff]
+        cur = [c for g in groups for c in g["comments"]]
+        old = [c for g in groups for c in g["older"]]
+        round_info.update({"current_from": min(c["created"] for c in cur) if cur else None,
+                           "current_to": max(c["created"] for c in cur) if cur else None,
+                           "current_count": len(cur), "older_count": len(old),
+                           "older_dates": sorted({c["created"] for c in old})})
+    data = {"file_key": key, "node": node, "round": round_info, "groups": groups}
     (out / "comments.json").write_text(json.dumps(data, indent=2, ensure_ascii=False))
 
     md = [f"# Comments — file {key}" + (f", frame {node}" if node and not a.all_frames else "")]
     total = sum(len(g["comments"]) for g in groups)
-    md.append(f"{total} comment(s){'' if a.include_resolved else ' (unresolved only)'}.")
+    ri = round_info
+    if ri.get("current_count") is not None:
+        rng = ri["current_from"] if ri["current_from"] == ri["current_to"] else f"{ri['current_from']} → {ri['current_to']}"
+        md.append(f"**Current round: {ri['current_count']} comment(s) from {rng}** (these are the ones to apply)."
+                  + (f" Older open comments: {ri['older_count']} from {', '.join(ri['older_dates'])}, not applied unless the user asks "
+                     f"(re-run with --round all or --since <date>)." if ri["older_count"] else " No older open comments."))
+    else:
+        md.append(f"{total} comment(s).")
     for g in groups:
         md.append(f"\n## {g['frame_name']} `{g['frame_id']}` — {len(g['comments'])}")
         for i, c in enumerate(g["comments"], 1):
@@ -207,6 +243,10 @@ def main():
                 md.append(f"   - text `{t['id']}` ~{t['distance']}px: {txt[:140]!r}")
             for t in c["near_images"]:
                 md.append(f"   - image `{t['id']}` ~{t['distance']}px: {t['name']}")
+        if g.get("older"):
+            md.append(f"\n### Older open comments on {g['frame_name']}: {len(g['older'])} (not applied by default)")
+            for c in g["older"]:
+                md.append(f"- {c['created']} · {c['author']}: {flat(c['message'])[:140]}")
     (out / "comments.md").write_text("\n".join(md) + "\n")
     print("\n".join(md))
 

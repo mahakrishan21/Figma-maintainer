@@ -150,7 +150,11 @@ Built from the design-cost-report kit. The counting is done by script from Claud
 ```
 You can also just say `Use figma-maintainer: apply the comments on <url>`.
 
-It reads every unresolved comment pinned to the frame (add `--all-frames` for the whole file) and matches each one to the text or image it points at. Then it:
+It reads the comments pinned to the frame (add `--all-frames` for the whole file) and matches each one to the text or image it points at.
+
+**Latest round only, by default.** Comments are rarely marked resolved, so it applies only the newest round: the latest comment date and up to 2 days before it. When older open comments exist, `/figma-maintainer:apply-comments` asks: latest only (recommended), latest plus older since a date, or all. The report lists older comments it didn't apply.
+
+Then it:
 - applies copy and layout changes in a new version frame when the file works in versions, leaving the commented frame untouched;
 - doesn't do image editing (retouching, removing objects, new renders, mockups that need screenshots the file doesn't have), and annotates it on the image instead;
 - records approvals ("I like this") in the client notes;
