@@ -50,7 +50,13 @@ Read `~/.claude/figma-maintainer/guides/figma-guardrails.md` once per task, and 
 
 **Authorized scope:** the **frame or section identified by the link's node-id** (or frames the task names explicitly by ID), plus new frames this task is allowed to create inside it. **A page name is never the scope:** other frames on the same page are read-only. If a link has no node-id, or points to a whole page, ask for the exact frame or section (a new version per the client SOP, or frames the user asked for). Everything else in the file is **read-only**, even though you can technically edit it. Access to a file isn't permission to change all of it. Similarly named frames or pages aren't interchangeable.
 
-1. **Identify.** **Project folder (always first):** run `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (or `--agency "<agency>" --project "<project>"`). It prints `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/`, created only if missing, with `snapshots/ comments/ audits/ reports/ assets/ slack/` and `job-log.md`. Store **everything** for this job there (snapshots, comment dumps, downloads, audit or cost reports, Slack text), never in temp or scratch folders. Unknown clients go to `_unassigned/<file-key>/` until the agency is known.
+1. **Identify.** **Project folder (always first):** run `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>" --job "<short task name>"` (or `--agency "<agency>" --project "<project>" --job …`). It prints `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/`, created only if missing, with `snapshots/ comments/ audits/ reports/ assets/ slack/` and `job-log.md`. Store **everything** for this job there (snapshots, comment dumps, downloads, audit or cost reports, Slack text), never in temp or scratch folders. Unknown clients go to `_unassigned/<file-key>/` until the agency is known.
+   **Load the project's context before anything else** (this is how you continue earlier work):
+   - read `PROJECT.md` in the project folder: files and latest frames, current status, client decisions, open items, comment rounds already applied, job history;
+   - read the **last job's** `jobs/<…>/report.md` and the last ~10 entries of the project's `job-log.md`;
+   - if `PROJECT.md` still holds template placeholders (`<…>`), fill in what you learn during this job.
+
+   Then save the task text **verbatim** (including links and pasted client emails) as `jobs/<this job>/request.md`.
    Parse fileKey and nodeId from the URL. Confirm it's the right file and frame. `figma.root.name` returns "Document" in use_figma, so check the file name with the REST snapshot or `get_metadata`; also check the page, the frame name and the content match the task and list the exact frames and elements you may change. If you can't identify the target with confidence, stop and ask.
 2. **Inspect, read-only.** Look at the target's structure, styles, components, instances, variables and linked assets, and note the dependencies. Take the **before snapshot** of the page: `python3 -I ~/.claude/figma-maintainer/scripts/figma_snapshot.py --file <key> --page <pageId> --out <project folder>/snapshots/<YYYY-MM-DD>-before.json`. **Triage** each requested change:
    - **Simple:** copy, spacing or an image on a frame or instance.
@@ -166,6 +172,18 @@ Every client sources media differently: iStock, Adobe Stock, AI-generated, clien
 **SOPs live only in the plugin**, the single source of truth. One SOP manager maintains them. The links in `~/.claude/figma-maintainer/` (`clients/`, `playbook.md`, `pricing.json`, `cost-config.json`) point into the plugin's `knowledge/` folder. Everything else in that folder is this person's **session files**: `job-log.md`, logs, `audits/`, `reports/` and `contributions/`.
 
 At the end of every task:
+- **Always, in the job folder** (`jobs/<date>-<task>/`), save:
+  - `report.md`: the full completion report;
+  - `slack.md`;
+  - `client-message.md`;
+  - in comments mode, `comments-applied.md`: each comment's date, author and text, with done / not done / skipped-older status and the node changed.
+- **Always, rewrite `PROJECT.md`** so it reflects the project **now**:
+  - latest frames with prototype links, and current status;
+  - new client decisions (dated);
+  - open items (add new ones, remove resolved ones);
+  - the comment round you applied, and one job-history line pointing to the job folder.
+
+  Rewrite sections rather than piling up text; the job folders keep the history.
 - **Always:** append one entry (max ~6 lines) to the **project's** `job-log.md` in the project folder: date, task, file/node, what changed, open items, and any correction received. Also add **one index line** to `~/.claude/figma-maintainer/job-log.md`: `<date> · <agency> › <project> · <task> · <project folder>`. Save the Slack update text in `slack/<YYYY-MM-DD>-<task>.md`.
 - **SOP manager's machine** (`~/.claude/figma-maintainer/.master` exists):
   - Put new or corrected rules straight into the right SOP section: project facts in the project file, client-wide rules in `client.md`, recurring-task rules in the client's `task-*.md`, and cross-client lessons in `playbook.md` (one line, no duplicates).

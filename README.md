@@ -265,6 +265,11 @@ At the start of every job the agent runs `scripts/workdir.py` with the Figma lin
 - Snapshots, comment dumps, downloads, audits, reports and Slack text for that job are stored there, along with the project's job log.
 - The Figma call log and usage log also get a per-project copy.
 
+Each project folder also holds:
+- **`PROJECT.md`**, the project's living context: Figma files and latest frames (prototype links), current status, dated client decisions, open items, comment rounds already applied, and job history. The agent **reads it before every job and rewrites it after**, so each new request continues from where the last one ended.
+- **`jobs/<date>-<task>/`**, one folder per job: the exact request (`request.md`), `report.md`, `slack.md`, `client-message.md`, and `comments-applied.md` for comment rounds.
+- **`usage.jsonl`**, which also records each session's ID and transcript location, so an earlier conversation can be found again.
+
 Files the SOPs don't know yet go to `work/<person>/_unassigned/<file-key>/`. The person's name is in `~/.claude/figma-maintainer/.person`, taken from your git name on first run; edit it if you like. `~/.claude/figma-maintainer/job-log.md` is a one-line-per-job index pointing to the project folders.
 
 ## SOP manager and co-workers

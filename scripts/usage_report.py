@@ -195,7 +195,7 @@ def log_task(t, session_id):
     rec = {"date": (t["end"] or datetime.now(timezone.utc)).strftime("%Y-%m-%d"), "session": session_id, "task_id": t["id"],
            "agent": t["agent"], "description": t["description"], "client": t["client"], "new_tokens": t["new"],
            "cache_read": t["cache_read"], "usd": round(t["usd"], 4), "minutes": t["minutes"], "tool_calls": t["tool_calls"],
-           "models": sorted(t["models"])}
+           "models": sorted(t["models"]), "transcript": t.get("file", "")}
     with open(LEDGER, "a") as f:
         f.write(json.dumps(rec) + "\n")
     try:  # also into work/<person>/<agency>/<project>/usage.jsonl

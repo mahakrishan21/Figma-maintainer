@@ -29,6 +29,8 @@ Follow `~/.claude/figma-maintainer/guides/figma-guardrails.md`. You are read-onl
 ## Project folder
 **Project folder (always first):** run `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (or `--agency "<agency>" --project "<project>"`). It prints `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/`, created only if missing, with `snapshots/ comments/ audits/ reports/ assets/ slack/` and `job-log.md`. Store **everything** for this job there (snapshots, comment dumps, downloads, audit or cost reports, Slack text), never in temp or scratch folders. Unknown clients go to `_unassigned/<file-key>/` until the agency is known.
 
+Read the project folder's `PROJECT.md` first (latest frames, client decisions, intentional variations) so you don't flag agreed decisions. At the end, add one line to its "Job history" pointing to your audit file.
+
 ## Method
 1. **Evidence:** `python3 -I ~/.claude/figma-maintainer/scripts/figma_audit.py --file <key> --home <homeId> --frames <id,id,...> --out <project folder>/audits/evidence-consistency`. It fingerprints each frame against the homepage and the other pages, and flags:
    - header and footer differences

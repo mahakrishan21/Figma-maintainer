@@ -4,11 +4,11 @@
   workdir.py --url "<figma url>"                 resolve agency/project from the SOPs by file key
   workdir.py --agency "Lasso up" --project "Meeks Electrical"
   workdir.py --file-key <key>                    same as --url
-  workdir.py ... --job "<short job name>"        also print a dated job subfolder path (created)
+  workdir.py ... --job "<short job name>"        also create and print jobs/<date>-<job>/ for this job's records
 
 Creates (only if missing) and prints:
   ~/.claude/figma-maintainer/work/<person>/<agency-slug>/<project-slug>/
-      job-log.md  snapshots/ comments/ audits/ reports/ assets/ slack/
+      PROJECT.md (living project context)  job-log.md  jobs/ snapshots/ comments/ audits/ reports/ assets/ slack/
 Person = the name in ~/.claude/figma-maintainer/.person (set at first session start).
 Agency/project come from the plugin SOPs (clients/): a project file (<agency>/<project>.md) or a
 "### Job N: <Project>" entry in a task SOP that mentions the file key. Unknown files go to
@@ -19,7 +19,39 @@ from datetime import date
 from pathlib import Path
 
 FM = Path.home() / ".claude" / "figma-maintainer"
-SUBDIRS = ("snapshots", "comments", "audits", "reports", "assets", "slack")
+SUBDIRS = ("snapshots", "comments", "audits", "reports", "assets", "slack", "jobs")
+
+PROJECT_TEMPLATE = """# {agency} › {project} — project context
+
+> Living context for this project. **Read it before every job; update it at the end of every job.**
+> Keep it current (rewrite sections; don't just append). The full history lives in jobs/ and job-log.md.
+
+## Client & project
+- Agency (our client): {agency}
+- Project (their client): {project}
+- SOP: ~/.claude/figma-maintainer/clients/{agency}/ (client.md, project/task SOPs)
+- Image preference and delivery tool: see the SOP (repeat here only if this project differs)
+
+## Figma files and latest frames
+- <file name>: fileKey `<key>`
+- Latest version / frames: <page › section › frame `id`>, prototype link: <link>
+- Approved originals (never edit): <frames>
+
+## Current status
+- <what's done, what's in review, what's next>
+
+## Client decisions (dated)
+- <YYYY-MM-DD — decision — who / source>
+
+## Open items / waiting on the client
+- <question or asset needed — since when>
+
+## Comment rounds applied
+- <YYYY-MM-DD round (comments from … to …) — applied to <frame> — jobs/<folder>>
+
+## Job history
+- <YYYY-MM-DD — task — jobs/<folder>>
+"""
 
 
 def slug(s):
@@ -83,6 +115,9 @@ def ensure(path):
     jl = path / "job-log.md"
     if not jl.exists():
         jl.write_text(f"# Job log — {path.parent.name} › {path.name}\n\nNewest last. One entry per job.\n")
+    pm = path / "PROJECT.md"
+    if not pm.exists():
+        pm.write_text(PROJECT_TEMPLATE.format(agency=path.parent.name, project=path.name))
     return created
 
 
@@ -109,6 +144,9 @@ def main():
     job = None
     if a.job:
         job = root / "jobs" / f"{date.today()}-{slug(a.job)}"
+        n = 2
+        while job.exists() and any(job.iterdir()):  # a second job with the same name today gets its own folder
+            job = root / "jobs" / f"{date.today()}-{slug(a.job)}-{n}"; n += 1
         job.mkdir(parents=True, exist_ok=True)
     if a.json:
         print(json.dumps({"person": person(), "agency": agency, "project": project, "path": str(root),

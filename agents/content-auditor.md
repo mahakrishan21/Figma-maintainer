@@ -23,6 +23,8 @@ Follow `~/.claude/figma-maintainer/guides/figma-guardrails.md`. You are read-onl
 ## Project folder
 **Project folder (always first):** run `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (or `--agency "<agency>" --project "<project>"`). It prints `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/`, created only if missing, with `snapshots/ comments/ audits/ reports/ assets/ slack/` and `job-log.md`. Store **everything** for this job there (snapshots, comment dumps, downloads, audit or cost reports, Slack text), never in temp or scratch folders. Unknown clients go to `_unassigned/<file-key>/` until the agency is known.
 
+Read the project folder's `PROJECT.md` first (latest frames, client decisions, intentional variations) so you don't flag agreed decisions. At the end, add one line to its "Job history" pointing to your audit file.
+
 ## Method
 1. **Evidence:** `python3 -I ~/.claude/figma-maintainer/scripts/figma_content.py --file <key> --frames <id,...> [--banned "<words from the notes>"] --out <project folder>/audits/evidence-content`. It writes `content.md` (mechanical flags: placeholder text, double spaces, period and case mismatches within a heading level, the same CTA worded differently, quote and dash mixing, copyright years, phone formats, banned words) and `copy-dump.md` (every text layer in reading order, with its role and node ID). If there's no token, use `get_design_context` and screenshots, and note "manual".
 2. **Read all of `copy-dump.md` as an editor.** Check:
