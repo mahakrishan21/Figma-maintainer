@@ -35,7 +35,7 @@ Job folder: <path> (inbox.json is there)
 File: <file name> (<fileKey>)
 Comments: <all threads in inbox.json, or the ids I picked>
 ```
-It writes `analysis.md` and `plan.md` (Status: PENDING APPROVAL) to the job folder and returns a plan summary, the decisions needed and the hand-off fields.
+It writes `analysis.md` and `plan.md` (Status: PENDING APPROVAL) to the job folder and returns a plan summary, the decisions needed and the hand-off fields. Claude Code may block subagents from writing report files: then the agent returns both files' full text at the end of its reply, and you save them to the job folder verbatim before step 4. Check its key claims (for example "already done in frame X") with a quick read-only REST call before you show the plan.
 
 ## 4. My approval
 Show me the plan summary and the path of `plan.md`. Then ask with AskUserQuestion, in one call:
@@ -62,7 +62,7 @@ Project folder: <project folder>
 It runs in client comments mode: versioning per the SOP, before and after snapshots, guardrails, and the report, Slack update and client message (prototype links). It saves `report.md`, `slack.md`, `client-message.md` and `comments-applied.md` to the job folder, and updates `PROJECT.md`, including "Comment rounds applied".
 
 ## 6. After the job
-- Pass me its report in full: done, not done, annotations, questions, the Slack update and the client message.
+- Pass me its report in full: done, not done, annotations, questions, the Slack update and the client message. If it returned the text of `report.md`, `slack.md`, `client-message.md` or `comments-applied.md` instead of saving them, save them to the job folder.
 - Mark the comments it **applied or annotated** as handled: `python3 -I ~/.claude/figma-maintainer/scripts/comment_inbox.py --mark-handled --file <key> --ids <ids> --job <job folder>`. Comments that still need a decision stay open.
 - Run figma-maintainer:usage-reporter with `--task latest` and add its "Usage (internal)" block after the Slack update.
 - Offer a Consistency Audit of the changed page.

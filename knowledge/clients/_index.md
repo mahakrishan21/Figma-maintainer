@@ -133,7 +133,7 @@ Agency = our client. Each teaming project = the agency's client. Folder = client
 - **Temerity Digital** → `temerity-digital/` (SEO): ShapeScaper
 - **The Dental House** → `the-dental-house/` (Web): The Dental House - Website changes
 - **The Nerdy Group** → `the-nerdy-group/` (Web): Allendale Christian School; Alpha USA; Darkroom Faith; Entry Systems; LCAM; Ministry Leadership Center; Wela Financial; West Church; Wheaton College Billy Graham Center
-- **Thrive POP** → `thrive-pop/` (Web): Liberty Floor; Pioneer Resources
+- **Thrive POP** → `thrive-pop/` (Web): Liberty Floor; Pioneer Resources; PIPP horticulture
 - **Tims Digital** → `tims-digital/` (Web): node-it.com; TB Graphics; Tims Digital WP Dev Tasks List
 - **Tiny Blue Sky** → `tiny-blue-sky/` (Web): BHI Foundation
 - **Torapath Technologies** → `torapath-technologies/` (Web): Pensmore Building Solutions

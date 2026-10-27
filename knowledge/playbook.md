@@ -24,6 +24,7 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Comment-matched node IDs point at the commented version. After duplicating, find the copies by text content; don't map by findAll index.
 - Text with line separators: a regex literal containing U+2028 breaks the script (use `String.fromCharCode(0x2028)`), and deleting a paragraph can leave a leading `\n`. Check char codes after the edit.
 - Annotations (`node.annotations = [{label}]`) work on instances. Use them for specs the canvas can't show, such as dropdown options and states.
+- In a fresh `frame.clone()`, find copied nodes by the source's child-index path, and instance sublayers as `'I' + copiedInstanceId + ';' + <original sublayer suffix>`. This avoids `getMainComponentAsync`, which the guard flags near writes. Annotations also work on instance sublayers. (2026-10-27)
 
 - `figma.saveVersionHistoryAsync` throws "not a supported API" in the use_figma runtime: no in-script checkpoint. Report it; duplicate first only if the change is substantial and approved. (2026-10-14)
 - Text layers whose name equals their content auto-rename on a `characters` change ("Heading" became "Test passed"). Set `autoRename=false` first if the layer name must stay. (2026-10-14)
