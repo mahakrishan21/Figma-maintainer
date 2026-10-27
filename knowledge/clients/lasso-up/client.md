@@ -45,8 +45,7 @@
 - SEO title / meta: <not set>  (annotate on the frame for dev?)
 
 ## 6. Images and video
-- Image/video source: **Adobe Stock**, always (rule from the user, 2026-10-14). Used automatically; don't ask.
-- ⚠️ SOP sheet (2026-10-27) says image priority: 1) Canva Images → 2) iStock. This conflicts with the rule above; ask the user which applies before the next job.
+- Image/video source: **Adobe Stock**, always (rule from the user, 2026-10-14; confirmed 2026-10-27 over the SOP sheet's "Canva Images → iStock"). Used automatically; remind the user of it at the start of every job.
 - Stock plan / licence: <not set>  (iStock Essentials/Editorial; Adobe Stock standard)
 - Watermarked comps OK for review: <not set>
 - AI imagery allowed: <not set>
@@ -68,6 +67,7 @@
 - <not set>
 
 ## 10. Rule log
+- 2026-10-27 — Image source stays Adobe Stock (the SOP sheet's Canva Images → iStock doesn't apply) — the user
 - 2026-10-14 — Images and video always from Adobe Stock — the user
 
 ## teaming.rocks projects (read-only snapshot 2026-10-14)
