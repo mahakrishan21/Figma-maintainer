@@ -2,7 +2,7 @@
 """PreToolUse guard for Figma write tools (enforced guardrails, not just instructions).
 
 Blocks or escalates Figma MCP writes that break the team's security rules:
-  DENY  - writes by read-only agents (auditors, usage-reporter)
+  DENY  - writes by read-only agents (auditors, usage-reporter, client-comments)
   DENY  - a Figma file that wasn't given in this task (file key absent from the user's / caller's messages)
   DENY  - network or dynamic code inside use_figma scripts (fetch, XHR, WebSocket, eval, new Function, importScripts)
   DENY  - deleting pages or the document
@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 FM = Path.home() / ".claude" / "figma-maintainer"
-READ_ONLY_AGENTS = ("consistency-auditor", "content-auditor", "accessibility-auditor", "usage-reporter")
+READ_ONLY_AGENTS = ("consistency-auditor", "content-auditor", "accessibility-auditor", "usage-reporter", "client-comments")
 
 
 def out(decision, reason):

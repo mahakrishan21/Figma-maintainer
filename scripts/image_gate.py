@@ -13,11 +13,15 @@ try:
 except Exception:
     sys.exit(0)
 prompt = HOOK.get("prompt", "") or ""
+# Background and system messages (agent hand-backs, task notifications) aren't user prompts: stay silent
+if re.match(r"\s*(another claude session sent a message|<agent-message|\[subagent hand-back\]|<task-notification>|\[SYSTEM NOTIFICATION)", prompt, re.I) \
+        or re.search(r"<agent-message|<task-notification>|\[SYSTEM NOTIFICATION", prompt[:400]):
+    sys.exit(0)
 # Only figma-maintainer work. Website builds, other plugins and general chat get nothing from this hook.
 if not prompt_is_fm(prompt, HOOK.get("transcript_path", "")):
     sys.exit(0)
-# Messages relayed from agents (hand-backs) aren't user prompts: stay silent
-if re.match(r"\s*(another claude session sent a message|<agent-message|\[subagent hand-back\])", prompt, re.I) or "<agent-message" in prompt[:400]:
+# The slash command carries its own instructions
+if re.match(r"\s*/figma-maintainer:client-comment\b", prompt):
     sys.exit(0)
 p = prompt.lower()
 
@@ -65,19 +69,33 @@ def find_client():
 
 STOP = {"use", "figma", "maintainer", "figma maintainer", "page", "homepage", "home", "the", "and", "for", "with", "make", "change", "design",
         "update", "client", "frame", "section", "link", "images", "image", "mobile", "tablet", "desktop", "copy", "apply", "comments"}
+# Everyday and generic business words: a typo match must rest on a distinctive word of the name, never on these
+COMMON = {"a", "an", "the", "and", "or", "of", "in", "on", "at", "to", "for", "with", "from", "by", "is", "it", "its", "this", "that",
+          "these", "those", "my", "our", "your", "their", "we", "you", "they", "i", "me", "us", "be", "are", "was", "as", "so", "not",
+          "no", "yes", "all", "any", "many", "some", "more", "most", "new", "old", "up", "out", "into", "over", "can", "will", "just",
+          "also", "then", "than", "only", "each", "every", "page", "pages", "site", "website", "web", "design", "designs", "project",
+          "projects", "group", "studio", "agency", "media", "digital", "marketing", "solutions", "creative", "co", "inc", "llc", "ltd",
+          "company", "services", "service", "plugin", "agent", "comment", "comments", "action", "actions", "file", "files", "home"}
 
 
 def suggest_clients(limit=4):
-    """Closest agency/project names to words in the prompt (typo tolerance). [(score, label, folder)]"""
+    """Closest agency/project names to words in the prompt (typo tolerance). [(score, label, folder)]
+    Compares word for word with the same number of words as the name; a match must rest on a distinctive
+    (non-COMMON) word of the name, so phrases like "an action" or "many projects" never suggest a client."""
     import difflib
     idx = CL / "_index.md"
     if not idx.exists():
         return []
+
+    def ratio(a, b):
+        return difflib.SequenceMatcher(None, a, b).ratio()
     text = re.sub(r"https?://\S+", " ", prompt)
     text = re.sub(r"(?i)use\s+figma[\s_-]*maintainer\s*:?", " ", text)
-    toks = [t for t in norm(text).split() if t]
-    grams = {" ".join(toks[i:i + n]) for n in range(1, 5) for i in range(len(toks) - n + 1)}
-    grams = {g for g in grams if len(g) >= 4 and g not in STOP}
+    toks = [t for t in norm(text).split() if t][:600]
+    grams = {}
+    for n in range(1, 5):
+        grams[n] = {tuple(toks[i:i + n]) for i in range(len(toks) - n + 1)}
+        grams[n] = {g for g in grams[n] if not ({"figma", "maintainer"} & set(g)) and not all(t in COMMON for t in g)}
     best = {}
     for line in idx.read_text(errors="ignore").splitlines():
         m = re.match(r"- \*\*(.+?)\*\* → `([^`]+)/`(?:[^:\n]*:\s*(.*)|.*)$", line)
@@ -87,16 +105,25 @@ def suggest_clients(limit=4):
         projects = [x.strip() for x in (m.group(3) or "").split(";") if x.strip()]
         for name, label in [(agency, agency)] + [(x, f"{x} ({agency})") for x in projects]:
             nn = norm(re.sub(r"\(.*?\)", "", name))
-            if len(nn) < 4 or nn in GENERIC:
+            nt = tuple(nn.split())
+            if len(nn) < 4 or nn in GENERIC or not 1 <= len(nt) <= 4:
                 continue
-            for g in grams:
-                if abs(len(g) - len(nn)) > max(3, len(nn) * 0.35):
-                    continue
-                sm = difflib.SequenceMatcher(None, nn, g)
-                if sm.real_quick_ratio() < 0.78 or sm.quick_ratio() < 0.78:
-                    continue
-                r = sm.ratio()
-                if r >= 0.78 and r > best.get(folder + label, (0,))[0]:
+            for g in grams[len(nt)]:
+                if len(nt) == 1:
+                    if g[0] in STOP or len(g[0]) < 4 or abs(len(g[0]) - len(nn)) > 3:
+                        continue
+                    r = ratio(nn, g[0])
+                    if r < (0.9 if len(nn) <= 5 else 0.85):
+                        continue
+                else:
+                    if not all(x == y or (len(x) > 2 and ratio(x, y) >= 0.75) for x, y in zip(nt, g)):
+                        continue
+                    if not any(x not in COMMON and ratio(x, y) >= 0.8 for x, y in zip(nt, g)):
+                        continue
+                    r = ratio(nn, " ".join(g))
+                    if r < 0.8:
+                        continue
+                if r > best.get(folder + label, (0,))[0]:
                     best[folder + label] = (r, label, folder)
     out, seen = [], set()
     for r, label, folder in sorted(best.values(), reverse=True):
@@ -158,6 +185,23 @@ if CLIENT:
                   + (f"IMAGE SOURCE CONFLICT in the SOP: {conflict} Ask the user which source applies before starting, then save the answer with /figma-maintainer:sop. " if conflict else "")
                   + deliv_ctx)
 
+# "I got a client comment": the client-comment workflow finds, analyses and plans it before any job starts.
+# The phrase must open the request (first ~300 characters) and not describe a feature ("client comment agent"),
+# so a long spec or a discussion about the plugin doesn't start the workflow.
+CC_RX = (r"\b(got|get|have|has|received|new|there'?s|there is|check|any|another)\b[^.\n?]{0,40}?\bclient('?s)?\s+(figma\s+)?comments?\b"
+         r"(?!\s*(automation|agent|feature|workflow|mode|command|script|hook|plugin|inbox|discovery))"
+         r"|\bclient\s+(has\s+)?(left|added|posted|commented|replied)\b")
+cc = re.search(CC_RX, re.sub(r"^\s*(use\s+)?figma[\s_-]*maintainer\s*[:,]?\s*", "", p))
+if cc and cc.start() < 300:
+    cmd = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "commands", "client-comment.md")
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": CLIENT_CTX +
+        f"figma-maintainer client comment: the user says they have a new client comment. Read {cmd} and follow it step by step "
+        "(the arguments are this prompt): find the comment with comment_inbox.py (Figma's Mac notifications; a Figma link or file name "
+        "in the prompt takes priority), analyse it with the read-only figma-maintainer:client-comments agent, show the plan and ask the "
+        "user to approve it, and only then hand it to figma-maintainer:figma-maintainer. Don't ask the image/video question now: "
+        "it's settled after the analysis, from the client SOP or by asking. No Figma edits before the user approves the plan."}}))
+    sys.exit(0)
+
 # "Consistency Audit" is read-only: route it to the auditor, no image question.
 AUDITS = [
     ("Consistency Audit", "consistency-auditor", r"consisten(cy|t)\s*(audit|check|review)|audit\s+(the\s+)?consisten|design\s+consistency"),
@@ -183,8 +227,10 @@ if re.search(r"slack\s*(message|msg|update)|token(s)?\s*(usage|used|count|report
              "Then ALWAYS launch figma-maintainer:usage-reporter (session scope, or the task they named) and add its output as a separate "
              "'Usage (internal)' block after the Slack message. Never put token or cost numbers in the client-facing message.")
 
-is_job = ("figma.com/design" in p or "figma.com/file" in p or "figma-maintainer" in p
-          or "figma maintainer" in p)
+# A job = a Figma link, a job command, or the plugin named as the one to use ("Use figma-maintainer: …", "figma-maintainer, …").
+# A bare mention of the plugin (e.g. while discussing its development) is not a job.
+is_job = bool(re.search(r"figma\.com/(design|file)/", p) or re.search(r"/figma-maintainer:(apply-comments|make-responsive)\b", p)
+              or re.search(r"\buse\s+(the\s+)?figma[\s_-]*maintainer\b|(^|\n)\s*figma[\s_-]*maintainer\s*[:,]", p))
 if not is_job and CLIENT and not SLACK:
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": CLIENT_CTX}}))
     sys.exit(0)

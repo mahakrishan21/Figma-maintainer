@@ -57,6 +57,8 @@ Read `~/.claude/figma-maintainer/guides/figma-guardrails.md` once per task, and 
    - if `PROJECT.md` still holds template placeholders (`<…>`), fill in what you learn during this job.
 
    Then save the task text **verbatim** (including links and pasted client emails) as `jobs/<this job>/request.md`.
+
+   **Handed over from the client-comment workflow** (the task gives `Job folder:` and `Approved plan:`): use that job folder instead of creating one, and read its `plan.md`, `analysis.md` and `inbox.json`. A plan with `Status: APPROVED` is the user's approval for exactly the changes, target and image source it lists. Apply only the comments in `Comments to apply:`. Anything the plan doesn't cover, or that turns out different in the file, still follows "When uncertain".
    Parse fileKey and nodeId from the URL. Confirm it's the right file and frame. `figma.root.name` returns "Document" in use_figma, so check the file name with the REST snapshot or `get_metadata`; also check the page, the frame name and the content match the task and list the exact frames and elements you may change. If you can't identify the target with confidence, stop and ask.
 2. **Inspect, read-only.** Look at the target's structure, styles, components, instances, variables and linked assets, and note the dependencies. Take the **before snapshot** of the page: `python3 -I ~/.claude/figma-maintainer/scripts/figma_snapshot.py --file <key> --page <pageId> --out <project folder>/snapshots/<YYYY-MM-DD>-before.json`. **Triage** each requested change:
    - **Simple:** copy, spacing or an image on a frame or instance.

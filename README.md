@@ -36,6 +36,7 @@ A Claude Code subagent that works like a senior UI/UX designer making maintenanc
 | `knowledge/playbook.md` · `pricing.json` · `cost-config.json` | Team-wide Figma rules, model prices, currency settings |
 | `agents/` `commands/` `skills/` `scripts/` `hooks/` | The plugin itself |
 | `~/.claude/figma-maintainer/` (per person, never shared) | **Session files**, plus **links** (`clients/`, `playbook.md`…) into the plugin's `knowledge/`, created at each session start |
+| `~/.claude/figma-maintainer/work/<person>/comment-inbox.json` | Which client comments were already found and handled, per Figma file (so they don't come back) |
 | `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/` | **All work for one project:** `job-log.md`, `snapshots/`, `comments/`, `audits/`, `reports/`, `assets/` (downloads), `slack/`, `figma-calls.jsonl`, `usage.jsonl`. Created automatically the first time you work on that project; reused afterwards |
 
 ## When it's active (isolation from other plugins)
@@ -154,7 +155,22 @@ Built from the design-cost-report kit. The counting is done by script from Claud
   - `~/.claude/figma-maintainer/cost-config.json`: currencies and your INR rate (`"fx": {"INR": 84.0}`). The rate is never guessed.
 - "New tokens" means input, cache writes and output. Cached reads are shown separately, because they're cheap re-reads of context. On a Pro or Max plan, the cost is the equivalent API value, not a charge.
 
-### Client comments in Figma
+### Client comments, found automatically
+When a client comments, you don't need the link. Just say:
+```
+Use figma-maintainer: I got a client comment
+/figma-maintainer:client-comment [optional: link, file name or client]
+```
+1. **Find.** `scripts/comment_inbox.py` reads **only Figma's** Mac notifications (read-only): who commented, on which file, the text and the time. It matches the file name to its key from your Figma desktop tabs, our SOPs and project folders, and the team's file list. Then it finds the exact comment thread, its page and frame, and the rest of that file's current round. If there's no notification, it scans recent files, or you give the link.
+2. **Client.** It comes from our SOPs; for new files the Figma project folder suggests it and you confirm.
+3. **Analyse (read-only).** The `client-comments` agent reads `PROJECT.md`, the last job, the client and project SOPs, and the commented frames. It writes `analysis.md` and `plan.md` (every comment, the change, the target frame, the image source, open questions) to `jobs/<date>-client-comment/`.
+4. **Approve.** You see the plan and choose Approve, Approve with changes, or Not now. **Nothing changes in Figma before you approve.**
+5. **Apply.** The approved plan goes to the figma-maintainer agent, which applies it with the usual versioning, guardrails, report, Slack update and client message.
+6. **Records.** Everything stays in the job folder. `PROJECT.md` records the round, and the comments are marked handled, so they don't come back.
+
+Every commenter counts as the client: our team doesn't comment on its own designs. Finding files by name across the whole team needs a Figma token with the `projects:read` scope. Without it, files you haven't opened recently need the link.
+
+### Client comments in Figma (with a link)
 ```
 /figma-maintainer:read-comments <figma URL>     # list the comments on that frame (read-only)
 /figma-maintainer:apply-comments <figma URL>    # apply them
@@ -207,13 +223,15 @@ Every agency has `clients/<agency>/client.md`, and every project has a `<project
 `skills/figma-guardrails` holds the written rules. `scripts/figma_guard.py` **enforces** them on every Figma write:
 | Check | Result |
 |---|---|
-| Write by an auditor or usage-reporter | Blocked |
+| Write by an auditor, usage-reporter or the client-comments analyst | Blocked |
 | Figma file not linked in this task (your recent messages or the agent's brief) | Blocked |
 | Task instructions can't be read to confirm the file | Blocked (fails closed) |
 | Network or dynamic code in a Figma script (fetch, XHR, eval…) | Blocked |
 | Deleting pages or the document | Blocked |
 | Any node deletion, detaching instances, flattening, editing a main component, new Figma file or page, variable or style edits, plugin data, renaming the document | Asks you first |
 | Every allowed write | Logged to `~/.claude/figma-maintainer/figma-audit-log.jsonl` (time, file, agent, description, node IDs) |
+
+Client comment discovery reads **only Figma's** records from the Mac notification database, read-only. It never reads other apps' notifications, and it never replies to, resolves or deletes comments.
 
 Every job also follows a **7-step safe procedure**: Identify → Inspect → Confirm → Plan → Back up and execute → Validate → Report.
 - **Back up:** client-reviewed frames are duplicated per the SOP. For big in-place changes, the agent asks first (duplicate, or you save a named version). Figma's version-history API isn't available to the agent.
@@ -245,6 +263,7 @@ Also covered:
 | `/figma-maintainer:accessibility-audit <url>` | Read-only: WCAG 2.2 AA |
 | `/figma-maintainer:check-brief <url>` + brief | Read-only: page vs client brief, matches and mismatches |
 | `/figma-maintainer:compare-versions <old> <new>` | Read-only: every change between two frames |
+| `/figma-maintainer:client-comment [link\|file\|client]` | Find the new client comment, plan the changes, ask you to approve, then apply them |
 | `/figma-maintainer:read-comments <url>` | List the Figma comments, each matched to its layer |
 | `/figma-maintainer:apply-comments <url>` | Apply the comments (except image editing) |
 | `/figma-maintainer:components-and-interactions` | Guide for hover, variant and prototype changes |
@@ -290,7 +309,7 @@ When you get a new zip, unzip it over the same folder, run `/plugin marketplace 
 | Task type (works for any client) | Generic action | Client configurations |
 |---|---|---|
 | Create Tablet and Mobile Designs from Desktop Designs | `responsive-from-desktop` skill · `/figma-maintainer:make-responsive` | `digital-drive/task-responsive-designs.md` (Digital Drive only) |
-| Apply client comments | `/figma-maintainer:apply-comments` | none yet |
+| Apply client comments | `/figma-maintainer:client-comment` (finds them) · `/figma-maintainer:apply-comments` (with a link) | none yet |
 | Consistency / Content / Accessibility Audit | `/figma-maintainer:*-audit` | none yet |
 | Check against brief, compare versions | `/figma-maintainer:check-brief`, `:compare-versions` | none yet |
 

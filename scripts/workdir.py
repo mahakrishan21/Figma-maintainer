@@ -90,6 +90,10 @@ def resolve_key(key):
                 return agency, slug(jobs[-1].group(1))
             return agency, "general"
         return agency, slug(f.stem)
+    # projects set up before their SOP: a work folder whose PROJECT.md lists the key
+    for pm in sorted((FM / "work").glob("*/*/*/PROJECT.md")):
+        if pm.parts[-3] != "_unassigned" and key in pm.read_text(errors="ignore"):
+            return pm.parts[-3], pm.parts[-2]
     return None
 
 

@@ -151,11 +151,13 @@ def main():
     if a.author:
         tops = [c for c in tops if c["user"]["handle"].lower() == a.author.lower()]
 
-    pinned = {}
+    pinned, unpinned = {}, []
     for c in tops:
         nid = (c.get("client_meta") or {}).get("node_id")
         if nid:
             pinned.setdefault(nid, []).append(c)
+        else:
+            unpinned.append(c)  # dropped on the canvas, not on a frame
 
     frames = {}
     want = sorted(pinned) if (a.all_frames or not node) else sorted(set(pinned) | {node})
@@ -192,6 +194,22 @@ def main():
                 "near_images": [{"id": t["id"], "distance": t["distance"], "name": t["name"]} for t in nearest(images, x, y, 2)],
             })
         groups.append({"frame_id": fid, "frame_name": frame["name"], "comments": items})
+    if unpinned and (a.all_frames or not node):
+        groups.append({"frame_id": None, "frame_name": "Not pinned to a frame", "comments": [{
+            "comment_id": c["id"], "author": c["user"]["handle"], "created": c["created_at"][:10], "created_at": c["created_at"],
+            "resolved": bool(c.get("resolved_at")), "message": c["message"], "pin": None,
+            "replies": [{"author": r["user"]["handle"], "message": r["message"]}
+                        for r in sorted(replies.get(c["id"], []), key=lambda r: r["created_at"])],
+            "near_text": [], "near_images": []} for c in sorted(unpinned, key=lambda c: c["created_at"])]})
+    try:  # page of each frame (one light call); the comments are still usable without it
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from proto_link import locate
+        where = locate(key, [g["frame_id"] for g in groups if g["frame_id"]], tok)[1]
+        for g in groups:
+            g["page"] = (where.get(g["frame_id"]) or {}).get("page")
+            g["page_id"] = (where.get(g["frame_id"]) or {}).get("page_id")
+    except (Exception, SystemExit):
+        pass
 
     # ---- rounds: designers rarely resolve comments, so every comment stays "open".
     # Default = only the latest round (newest comment's date minus --window-days); older ones are listed, not applied.
@@ -231,10 +249,12 @@ def main():
     else:
         md.append(f"{total} comment(s).")
     for g in groups:
-        md.append(f"\n## {g['frame_name']} `{g['frame_id']}` — {len(g['comments'])}")
+        md.append(f"\n## {g['frame_name']}" + (f" `{g['frame_id']}`" if g["frame_id"] else "")
+                  + (f" (page \"{g['page']}\")" if g.get("page") else "") + f" — {len(g['comments'])}")
         for i, c in enumerate(g["comments"], 1):
             msg = flat(c["message"])
-            md.append(f"\n{i}. **{msg}** — {c['author']}, {c['created']}, pin ({c['pin']['x']}, {c['pin']['y']})"
+            pin = f", pin ({c['pin']['x']}, {c['pin']['y']})" if c["pin"] else ""
+            md.append(f"\n{i}. **{msg}** — {c['author']}, {c['created']}{pin}"
                       + (" [resolved]" if c["resolved"] else ""))
             for r in c["replies"]:
                 md.append(f"   - reply, {r['author']}: {flat(r['message'])}")

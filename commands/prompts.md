@@ -29,6 +29,8 @@ Replace `<url>` with a Figma link. Include the node-id to target one frame.
 - `/figma-maintainer:compare-versions <url V2> <url V3>` (lists every change)
 
 ### Client comments
+- `Use figma-maintainer: I got a client comment` (finds it from Figma's notifications, plans it, asks you to approve, then applies it)
+- `/figma-maintainer:client-comment PIPP horticulture` (same, for a named file or client)
 - `/figma-maintainer:read-comments <url>` (list only)
 - `/figma-maintainer:apply-comments <url> — images: no new images`
 - `Use figma-maintainer: apply only Jesse's comments on <url>`
