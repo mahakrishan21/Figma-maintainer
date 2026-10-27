@@ -44,9 +44,12 @@ def normalize(url):
         q["dl"] = ["1"]
         q.pop("raw", None)
         return urllib.parse.urlunparse(u._replace(query=urllib.parse.urlencode(q, doseq=True))), "dropbox"
+    if "docs.google.com" in host and re.search(r"/(document|spreadsheets|presentation)/d/", u.path):
+        return None, "Google Docs/Sheets/Slides are documents, not media: get their text with fetch_doc.py"
     if "drive.google.com" in host or "docs.google.com" in host:
         if "/folders/" in u.path or "folderview" in u.path:
-            return None, "Google Drive folder: use the Google Drive connector (search_files / download_file_content), or share each file link"
+            return None, ("Google Drive folder couldn't be listed publicly (it may be private): ask for 'Anyone with the link' access, "
+                          "use the Google Drive connector, or share the file links")
         m = re.search(r"/d/([A-Za-z0-9_-]{10,})", u.path)
         fid = m.group(1) if m else (q.get("id") or [None])[0]
         if not fid:
@@ -165,6 +168,30 @@ def local_files(arg):
                   and kind_of(f) in ("image", "video", "font", "zip"))
 
 
+def drive_folder_files(url, depth=0, seen=None):
+    """Best-effort listing of a PUBLIC Google Drive folder (no sign-in) via its embedded folder view.
+    Returns (media_file_links, doc_links). Goes one level into subfolders."""
+    seen = seen or set()
+    m = re.search(r"/folders/([A-Za-z0-9_-]{10,})", url) or re.search(r"[?&]id=([A-Za-z0-9_-]{10,})", url)
+    if not m or m.group(1) in seen:
+        return [], []
+    fid = m.group(1); seen.add(fid)
+    req = urllib.request.Request(f"https://drive.google.com/embeddedfolderview?id={fid}", headers={"User-Agent": "Mozilla/5.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            html = r.read().decode("utf-8", "replace")
+    except Exception:
+        return [], []
+    files = list(dict.fromkeys(re.findall(r"https://drive\.google\.com/file/d/([A-Za-z0-9_-]{10,})", html)))
+    docs = list(dict.fromkeys(re.findall(r"https://docs\.google\.com/(?:document|spreadsheets|presentation)/d/[A-Za-z0-9_-]{20,}", html)))
+    media = [f"https://drive.google.com/file/d/{x}/view" for x in files]
+    if depth < 1:
+        for sub in dict.fromkeys(re.findall(r"https://drive\.google\.com/drive/folders/([A-Za-z0-9_-]{10,})", html)):
+            m2, d2 = drive_folder_files(f"https://drive.google.com/drive/folders/{sub}", depth + 1, seen)
+            media += m2; docs += d2
+    return media, docs
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("links", nargs="+", help="share links and/or local files or folders")
@@ -177,7 +204,18 @@ def main():
     out = Path(a.out).expanduser()
     out.mkdir(parents=True, exist_ok=True)
     records, failures = [], []
-    for i, link in enumerate(a.links, 1):
+    links = []
+    for link in a.links:  # expand public Google Drive folders into their files
+        if re.search(r"drive\.google\.com/.*(/folders/|folderview)", link):
+            media, docs = drive_folder_files(link)
+            if media or docs:
+                links += media
+                for d in docs:
+                    failures.append({"link": d, "reason": "Google Doc/Sheet/Slides in the folder: get its text with fetch_doc.py"})
+                print(f"Drive folder: {len(media)} file(s) found, {len(docs)} document(s) listed for fetch_doc.py")
+                continue
+        links.append(link)
+    for i, link in enumerate(links, 1):
         local = local_files(link) if not re.match(r"https?://", link) else None
         if local is not None:
             files, src = [], "local"

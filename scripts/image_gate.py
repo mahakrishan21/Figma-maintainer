@@ -46,10 +46,10 @@ def find_client():
         return None
     best = None
     for line in idx.read_text(errors="ignore").splitlines():
-        m = re.match(r"- \*\*(.+?)\*\* → `([^`]+)/`[^:]*:\s*(.*)$", line)
+        m = re.match(r"- \*\*(.+?)\*\* → `([^`]+)/`(?:[^:\n]*:\s*(.*)|.*)$", line)
         if not m:
             continue
-        agency, folder, projects = m.group(1), m.group(2), [x.strip() for x in m.group(3).split(";")]
+        agency, folder, projects = m.group(1), m.group(2), [x.strip() for x in (m.group(3) or "").split(";") if x.strip()]
         for name, is_agency in [(agency, True)] + [(x, False) for x in projects]:
             n = norm(re.sub(r"\(.*?\)", "", name))
             if len(n) < 4 or n in GENERIC:
@@ -61,6 +61,49 @@ def find_client():
                     proj = cand if cand.exists() else None
                 best = (len(n), CL / folder, proj)
     return (best[1], best[2]) if best else None
+
+
+STOP = {"use", "figma", "maintainer", "figma maintainer", "page", "homepage", "home", "the", "and", "for", "with", "make", "change", "design",
+        "update", "client", "frame", "section", "link", "images", "image", "mobile", "tablet", "desktop", "copy", "apply", "comments"}
+
+
+def suggest_clients(limit=4):
+    """Closest agency/project names to words in the prompt (typo tolerance). [(score, label, folder)]"""
+    import difflib
+    idx = CL / "_index.md"
+    if not idx.exists():
+        return []
+    text = re.sub(r"https?://\S+", " ", prompt)
+    text = re.sub(r"(?i)use\s+figma[\s_-]*maintainer\s*:?", " ", text)
+    toks = [t for t in norm(text).split() if t]
+    grams = {" ".join(toks[i:i + n]) for n in range(1, 5) for i in range(len(toks) - n + 1)}
+    grams = {g for g in grams if len(g) >= 4 and g not in STOP}
+    best = {}
+    for line in idx.read_text(errors="ignore").splitlines():
+        m = re.match(r"- \*\*(.+?)\*\* → `([^`]+)/`(?:[^:\n]*:\s*(.*)|.*)$", line)
+        if not m:
+            continue
+        agency, folder = m.group(1), m.group(2)
+        projects = [x.strip() for x in (m.group(3) or "").split(";") if x.strip()]
+        for name, label in [(agency, agency)] + [(x, f"{x} ({agency})") for x in projects]:
+            nn = norm(re.sub(r"\(.*?\)", "", name))
+            if len(nn) < 4 or nn in GENERIC:
+                continue
+            for g in grams:
+                if abs(len(g) - len(nn)) > max(3, len(nn) * 0.35):
+                    continue
+                sm = difflib.SequenceMatcher(None, nn, g)
+                if sm.real_quick_ratio() < 0.78 or sm.quick_ratio() < 0.78:
+                    continue
+                r = sm.ratio()
+                if r >= 0.78 and r > best.get(folder + label, (0,))[0]:
+                    best[folder + label] = (r, label, folder)
+    out, seen = [], set()
+    for r, label, folder in sorted(best.values(), reverse=True):
+        if folder in seen:  # one option per client
+            continue
+        seen.add(folder); out.append((r, label, folder))
+    return out[:limit]
 
 
 def sop_line(folder, proj, label_rx):
@@ -160,6 +203,26 @@ SOURCES = [
     ("existing assets in the file", r"\bexisting (images?|assets?|photos?)\b|\bimages? (already )?in the file\b"),
     ("no new images or video", r"\bno (new )?(images?|photos?|videos?|media)\b|\bwithout (new )?(images?|media)\b|\bkeep (the )?(current )?images?\b|\bleave (the )?images?\b|\bdon'?t (change|touch) (the )?images?\b"),
 ]
+if not CLIENT:
+    sugg = suggest_clients()
+    if sugg:
+        opts = "; ".join(f"\"{lab}\" → clients/{fol}/client.md" for _, lab, fol in sugg)
+        msg = ("figma-maintainer client check: the prompt doesn't name a known client exactly. Closest matches: " + opts + ". "
+               "Before anything else (no Figma reads, no agent launch), ask the user with AskUserQuestion: 'Which client is this for?', "
+               "with these names as options (best match first, marked '(Recommended)' only if it is clearly the closest), plus 'None of these'. ")
+    else:
+        msg = ("figma-maintainer client check: the prompt doesn't name a client. Before anything else (no Figma reads, no agent launch), "
+               "ask the user which client (agency) and project this is for; check clients/_index.md for the exact name. ")
+    msg += ("After the user confirms the client, read that client's client.md: §6 'Image/video source' → if set, use it and remind the user "
+            "in one line (e.g. 'Lasso up image preference: Adobe Stock'); if not set, ask the image/video source question "
+            "(Client-provided / iStock / Adobe Stock / other stock such as Getty, Shutterstock, Depositphotos, Envato / AI-generated). "
+            "Also apply §3 'Delivery tool (Figma)' (remind if it's the client's own Figma account). Pass 'Client: <name>' and "
+            "'Image/video source: …' to the figma-maintainer agent.")
+    if SLACK:
+        msg += " ALSO, after the job: " + SLACK
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": msg}}))
+    sys.exit(0)
+
 found = [name for name, rx in SOURCES if re.search(rx, p)]
 if not found and SOP_SOURCE:
     found = [f"{SOP_SOURCE} (client SOP)"]

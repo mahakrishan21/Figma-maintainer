@@ -104,9 +104,20 @@ Use figma-maintainer: <figma URL> — hero: @assets/hero.jpg, about: @assets/tea
 ```
 Tagged files and folders (searched inside, subfolders included) count as the image source, so there's no question. Your originals are never moved or changed; it works from resized copies. Name a slot next to a file and it uses that file there.
 
+### Client copy from Google Docs, Sheets and Slides
+Paste the link to a shared copy document. `scripts/fetch_doc.py` saves:
+- **Docs:** every tab as Markdown (headings and bold kept), plus plain text that the agent uses for word-for-word copy checks;
+- **Sheets:** CSV;
+- **Slides:** text plus PDF.
+
+All of it goes into the project folder. Private files get a clear "not shared publicly" message.
+
+### Name the client in every prompt
+Start with the client: `Use figma-maintainer: Lasso Up — …`. A typo like "Lasso Upp" or "Contracter Dynamix" gets a quick question, *"Which client is this for?"*, with the closest matches. Once the client is confirmed, its image preference (iStock, Adobe Stock, Getty, Shutterstock…) and delivery tool are applied automatically and shown to you.
+
 ### Client images and video from links
 Paste a Dropbox (file or folder), Google Drive file, OneDrive or SharePoint, or direct link in your request. That counts as the image source, so there's no question. The agent downloads the files (`scripts/fetch_assets.py`), makes Figma-sized copies (Figma's limit is 4096px) and thumbnails, looks through them, and places the right one in each slot.
-- **Google Drive folders:** use the Google Drive connector.
+- **Google Drive folders:** public folders are downloaded directly (one subfolder level deep). Private folders need the Google Drive connector.
 - **WeTransfer, Box or private links:** it asks for a public link or a local file instead.
 
 ### Client message after every job
