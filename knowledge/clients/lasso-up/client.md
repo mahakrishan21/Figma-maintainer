@@ -19,6 +19,7 @@
 
 ## 3. Workflow and versioning
 - Where designs live: <not set>  (one Figma file per project / shared agency file / team project)
+- Delivery tool (Figma): <not set — ask: E2M's Figma or the client's Figma account?>
 - Versioning: <not set>  (new dated section "Updated: D Mon, YYYY" / new V# frame / edit in place)
 - Frame naming: <not set>
 - Review flow: <not set>  (e.g. Internal Review, then Ready for Client's Review in teaming)
@@ -45,6 +46,7 @@
 
 ## 6. Images and video
 - Image/video source: **Adobe Stock**, always (rule from the user, 2026-10-14). Used automatically; don't ask.
+- ⚠️ SOP sheet (2026-10-27) says image priority: 1) Canva Images → 2) iStock. This conflicts with the rule above; ask the user which applies before the next job.
 - Stock plan / licence: <not set>  (iStock Essentials/Editorial; Adobe Stock standard)
 - Watermarked comps OK for review: <not set>
 - AI imagery allowed: <not set>

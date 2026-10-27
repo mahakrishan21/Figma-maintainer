@@ -1,6 +1,6 @@
 {
   "name": "figma-maintainer",
-  "version": "1.23.1",
+  "version": "1.24.0",
   "description": "Senior UI/UX designer subagent for direct Figma maintenance (copy, forms, images from client links, inner pages, mobile/tablet, components and states, applying Figma comments) plus read-only Consistency, Content and Accessibility Audit agents. Ends every job with a Slack-ready update and a client-ready final comment. Reports token usage and API cost (USD + INR) per task and session.",
   "author": {
     "name": "E2M Solutions"

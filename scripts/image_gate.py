@@ -63,6 +63,16 @@ def find_client():
     return (best[1], best[2]) if best else None
 
 
+def sop_line(folder, proj, label_rx):
+    for f in [proj, folder / "client.md"]:
+        if f and f.exists():
+            for line in f.read_text(errors="ignore").splitlines():
+                m = re.match(r"\s*-\s*" + label_rx + r"[^:]*:\s*(.+)$", line)
+                if m:
+                    return m.group(1).strip()
+    return None
+
+
 def sop_source(folder, proj):
     for f in [proj, folder / "client.md"]:
         if f and f.exists():
@@ -85,10 +95,25 @@ if CLIENT:
         tasks.append(f"{tf.name} ({h.group(1).strip() if h else tf.stem})")
     if proj and proj.name.startswith("task-"):
         proj = None
+    conflict = sop_line(folder, proj, r"⚠️\s*SOP sheet")
+    if conflict:
+        SOP_SOURCE = None  # conflicting SOP entries: ask instead of auto-applying
+    delivery = sop_line(folder, proj, r"Delivery tool \(Figma\)") or ""
+    if "client" in delivery.lower() and "e2m" not in delivery.lower():
+        deliv_ctx = ("DELIVERY REMINDER: this client's delivery tool is THEIR OWN Figma account (" + delivery + "). Tell the user at the start of the job "
+                     "and again in the final report and Slack update: \"Deliver this in the client's Figma account, not E2M's.\" ")
+    elif delivery and not delivery.startswith("<"):
+        deliv_ctx = "Delivery tool: " + delivery + " (mention it in the final report). "
+    else:
+        deliv_ctx = ("Delivery tool isn't set in this client's SOP: in the final report, ask once whether delivery is in E2M's Figma or the client's "
+                     "Figma account, and save the answer with /figma-maintainer:sop. ")
     CLIENT_CTX = (f"Client detected: {folder.name} → follow its SOP in {folder / 'client.md'}"
                   + (f"; task SOPs available: {'; '.join(tasks)}. If the request matches one, follow it" if tasks else "")
                   + (f"; project notes {proj}" if proj else "") + " (precedence: prompt > project > task SOP > client). "
-                  + (f"SOP image/video source: {SOP_SOURCE} (from {src_file.name}); use it without asking. " if SOP_SOURCE else ""))
+                  + (f"IMAGE PREFERENCE REMINDER: the SOP sets the image/video source to {SOP_SOURCE} (from {src_file.name}). Use it without asking, but tell the user "
+                     f"in one line at the start of the job (\"{folder.name} image preference: {SOP_SOURCE}\") and repeat it in the report. " if SOP_SOURCE else "")
+                  + (f"IMAGE SOURCE CONFLICT in the SOP: {conflict} Ask the user which source applies before starting, then save the answer with /figma-maintainer:sop. " if conflict else "")
+                  + deliv_ctx)
 
 # "Consistency Audit" is read-only: route it to the auditor, no image question.
 AUDITS = [

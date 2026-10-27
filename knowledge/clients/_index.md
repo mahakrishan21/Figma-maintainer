@@ -156,3 +156,28 @@ Agency = our client. Each teaming project = the agency's client. Folder = client
 - **Your Salon Support** → `your-salon-support/` (eCommerce): Your Support Salon Task List
 - **Zozimus** → `zozimus/` (Web): Shortlist HR
 - **Digital Drive** → `digital-drive/` (SEO): St Fanchea's College  ← added manually 2026-10-14
+
+## Added from the SOP sheet (not in the teaming snapshot)
+- **Alarie Design Associates Inc** → `alarie-design-associates-inc/` (from the SOP sheet 2026-10-27)
+- **American-Security-Cabinets** → `american-security-cabinets/` (from the SOP sheet 2026-10-27)
+- **Bidview Marketing** → `bidview-marketing/` (from the SOP sheet 2026-10-27)
+- **Caalano Digital** → `caalano-digital/` (from the SOP sheet 2026-10-27)
+- **Childress Agency** → `childress-agency/` (from the SOP sheet 2026-10-27)
+- **Darren Craig** → `darren-craig/` (from the SOP sheet 2026-10-27)
+- **Designstaff.co** → `designstaff-co/` (from the SOP sheet 2026-10-27)
+- **Education Advisors** → `education-advisors/` (from the SOP sheet 2026-10-27)
+- **Enchanted Cove** → `enchanted-cove/` (from the SOP sheet 2026-10-27)
+- **Essential Studios** → `essential-studios/` (from the SOP sheet 2026-10-27)
+- **Healor** → `healor/` (from the SOP sheet 2026-10-27)
+- **Hey Day Web Media** → `hey-day-web-media/` (from the SOP sheet 2026-10-27)
+- **Michigan Creative** → `michigan-creative/` (from the SOP sheet 2026-10-27)
+- **Muletown Digital** → `muletown-digital/` (from the SOP sheet 2026-10-27)
+- **Neomark Digital Solutions** → `neomark-digital-solutions/` (from the SOP sheet 2026-10-27)
+- **Outcomes Rocket - Web Projects** → `outcomes-rocket/` (from the SOP sheet 2026-10-27)
+- **Platinum Consulting Services** → `platinum-consulting-services/` (from the SOP sheet 2026-10-27)
+- **PulseCliq** → `pulsecliq/` (from the SOP sheet 2026-10-27)
+- **Samcro Design** → `samcro-design/` (from the SOP sheet 2026-10-27)
+- **Speck Designs** → `speck-designs/` (from the SOP sheet 2026-10-27)
+- **SprintEO LLC** → `sprinteo-llc/` (from the SOP sheet 2026-10-27)
+- **VHEDC website** → `vhedc-website/` (from the SOP sheet 2026-10-27)
+- **Wundernetz.ch** → `wundernetz-ch/` (from the SOP sheet 2026-10-27)

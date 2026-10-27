@@ -19,6 +19,7 @@
 
 ## 3. Workflow and versioning
 - Where designs live: <not set>  (one Figma file per project / shared agency file / team project)
+- Delivery tool (Figma): <not set — ask: E2M's Figma or the client's Figma account?>
 - Versioning: <not set>  (new dated section "Updated: D Mon, YYYY" / new V# frame / edit in place)
 - Frame naming: <not set>
 - Review flow: <not set>  (e.g. Internal Review, then Ready for Client's Review in teaming)

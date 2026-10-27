@@ -19,6 +19,7 @@
 
 ## 3. Workflow and versioning
 - Where designs live: <not set>  (one Figma file per project / shared agency file / team project)
+- Delivery tool (Figma): E2M's Figma (SOP sheet, 2026-10-27)
 - Versioning: <not set>  (new dated section "Updated: D Mon, YYYY" / new V# frame / edit in place)
 - Frame naming: <not set>
 - Review flow: <not set>  (e.g. Internal Review, then Ready for Client's Review in teaming)
@@ -44,7 +45,7 @@
 - SEO title / meta: <not set>  (annotate on the frame for dev?)
 
 ## 6. Images and video
-- Image/video source: <not set — ask each job; iStock is the team default suggestion> (when set, it's used automatically without asking)
+- Image/video source: 1) Client-provided → 2) iStock (SOP sheet, 2026-10-27). Used automatically; remind the user of it at the start of every job.
 - Stock plan / licence: <not set>  (iStock Essentials/Editorial; Adobe Stock standard)
 - Watermarked comps OK for review: <not set>
 - AI imagery allowed: <not set>
@@ -66,6 +67,7 @@
 - <not set>
 
 ## 10. Rule log
+- 2026-10-27 — Delivery tool: E2M's Figma; Image priority: 1) Client-provided → 2) iStock — SOP sheet, 2026-10-27
 - <YYYY-MM-DD — rule — source>
 
 ## teaming.rocks projects (read-only snapshot 2026-10-14)

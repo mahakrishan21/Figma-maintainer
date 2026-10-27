@@ -19,6 +19,7 @@
 
 ## 3. Workflow and versioning
 - Where designs live: <not set>  (one Figma file per project / shared agency file / team project)
+- Delivery tool (Figma): E2M's Figma (SOP sheet, 2026-10-27)
 - Versioning: <not set>  (new dated section "Updated: D Mon, YYYY" / new V# frame / edit in place)
 - Frame naming: <not set>
 - Review flow: <not set>  (e.g. Internal Review, then Ready for Client's Review in teaming)
@@ -66,6 +67,7 @@
 - <not set>
 
 ## 10. Rule log
+- 2026-10-27 — Delivery tool: E2M's Figma — SOP sheet, 2026-10-27
 - <YYYY-MM-DD — rule — source>
 
 ## teaming.rocks projects (read-only snapshot 2026-10-14)
