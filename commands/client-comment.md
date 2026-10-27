@@ -64,5 +64,5 @@ It runs in client comments mode: versioning per the SOP, before and after snapsh
 ## 6. After the job
 - Pass me its report in full: done, not done, annotations, questions, the Slack update and the client message. If it returned the text of `report.md`, `slack.md`, `client-message.md` or `comments-applied.md` instead of saving them, save them to the job folder.
 - Mark the comments it **applied or annotated** as handled: `python3 -I ~/.claude/figma-maintainer/scripts/comment_inbox.py --mark-handled --file <key> --ids <ids> --job <job folder>`. Comments that still need a decision stay open.
-- Run figma-maintainer:usage-reporter with `--task latest` and add its "Usage (internal)" block after the Slack update.
+- Run figma-maintainer:usage-reporter for **both** agents of this job, the analysis and the apply step (`--task "<analysis task description>"` and `--task latest`), and add one "Usage (internal)" block with both lines and their total after the Slack update.
 - Offer a Consistency Audit of the changed page.
