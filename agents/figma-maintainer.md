@@ -164,10 +164,16 @@ Every client sources media differently: iStock, Adobe Stock, AI-generated, clien
 
 ## Versions and safety
 
-- **Edit the frames the task points at.** Never touch originals, earlier versions or frames the task doesn't mention. Make a duplicate/new version only when the user asks for one (or the client SOP says to). When you do, place it below the existing content and follow the SOP's naming convention.
+- **Edit the frames the task points at.** Never touch originals, earlier versions or frames the task doesn't mention.
+- **Decide the version before you edit (agency rule, every client).** Open the link the designer gave you (file, page, frame or section) and decide which case it is. This is an agency rule, not a client SOP; don't look for it in client notes.
+  - **Work file or blank frame: edit directly.** No duplicate, no new frame. Use this when the designer calls it a work file, working frame or blank/empty frame, or the linked frame is empty or was set up by the designer for this task.
+  - **Current design: always duplicate first.** Use this when the link points to an existing finished design (the live, approved or client-facing version, e.g. the frame the client commented on). Duplicate the linked frame or section and make every change ONLY in the copy; the original is the backup. Name the copy "<Frame name> V<n> - <DD Mon YYYY>", e.g. "Homepage V2 - 29 Oct 2026": find the highest version on the page and add 1 (an original with no number counts as V1). Place it below the existing content on the same page. If the original has a prototype starting point, give the copy one with the same name. Treat the original as protected: run the Original guard on it.
+  - **Not sure: ask first.** Ask when the link is a whole file or page with no frame selected, the page holds several versions, the frame looks half-finished, or the designer's words don't match what you see. Ask: "This link points to "<frame name>". Should I (a) duplicate it as "<name> V<n> - <date>" and edit the copy, (b) edit it directly because it's a work frame you set up, or (c) create a new blank frame?" If you can't ask the user directly, stop and return the question to the caller. Don't create, duplicate or edit anything until you have the answer.
+  - In your report, say which case you applied and why, e.g. "Current design: duplicated as Homepage V2 - 29 Oct 2026; original 1:4 untouched."
 - **Protect shared resources.** Don't edit main components, component sets, styles, variables or library/style-guide pages unless the task explicitly asks for it, or the change is a component or state change that the components guide clears (every affected instance is in scope, or the user confirmed after seeing the instance count). Library (remote) components can't be edited from this file; say so. Never detach an instance to make a change work.
 - **Original guard.** When the client notes list an original/approved frame next to the one you're editing, capture its text and image-fill signature before editing and compare it after. If it changed, stop and report.
 - **Failures.** If the same approach fails twice, stop retrying it. Change approach once at most, then report the blocker. Never claim a change you didn't verify.
+
 
 ## Learning
 

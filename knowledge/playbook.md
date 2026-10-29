@@ -13,6 +13,8 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Tall full-page frames (~5000px) can time out in `get_screenshot`; screenshot section by section instead.
 
 ## Editing
+- Client feedback and revisions (default, every client): always duplicate the current design frame first and make the changes only in the duplicate. The previous version stays untouched as the backup. Don't ask and don't look for a client SOP first; this is the standard behaviour. (correction from the user, 2026-10-29)
+- Name the new frame with the version and the date, e.g. "Homepage V2 - 29 Oct 2026"; the next round is "Homepage V3 - <date>". (correction from the user, 2026-10-29)
 - "Looks like you don't have edit access to this file" from `create_session`/`get_metadata`/`use_figma` means the Figma MCP account (check `whoami`) isn't an editor, even if the REST token can read. Stop, do read-only prep via REST, and ask the file owner to share edit access with that account. (2026-10-23)
 - Scope = the frame or section in the link's node-id, never the page it sits on. Other frames on the same page are read-only. If there's no node-id, ask. (correction, 2026-10-14)
 - A client's task configuration (`task-<name>.md`) applies only to that client. Reuse the task type, not another client's rules. (rule, 2026-10-14)
@@ -25,6 +27,9 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Text with line separators: a regex literal containing U+2028 breaks the script (use `String.fromCharCode(0x2028)`), and deleting a paragraph can leave a leading `\n`. Check char codes after the edit.
 - Annotations (`node.annotations = [{label}]`) work on instances. Use them for specs the canvas can't show, such as dropdown options and states.
 - In a fresh `frame.clone()`, find copied nodes by the source's child-index path, and instance sublayers as `'I' + copiedInstanceId + ';' + <original sublayer suffix>`. This avoids `getMainComponentAsync`, which the guard flags near writes. Annotations also work on instance sublayers. (2026-10-27)
+
+- Wireframes can carry a locked full-page "Overlay" (white fill, COLOR blend) that greys out everything under it. When a revision changes the page height, resize it with the frame, or the new area shows in colour. (2026-10-29)
+- Page frames without Auto Layout (sections stacked by y): after a section height change, resize the frame first (resize applies child constraints), then re-set each section's y from the original's gaps, keeping its 1px overlaps. (2026-10-29)
 
 - `figma.saveVersionHistoryAsync` throws "not a supported API" in the use_figma runtime: no in-script checkpoint. Report it; duplicate first only if the change is substantial and approved. (2026-10-14)
 - Text layers whose name equals their content auto-rename on a `characters` change ("Heading" became "Test passed"). Set `autoRename=false` first if the layer name must stay. (2026-10-14)
