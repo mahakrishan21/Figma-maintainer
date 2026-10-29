@@ -64,6 +64,7 @@ Delivery tool: <from SOP, or "not set">
 
 ## Changes
 1. "<comment, short>" (<author>, <date>) → <change, in one line> · <elements and node ids> · <Apply | Complex | New image | Annotate only>
+   Check: <what must be true in the output afterwards, measurable, e.g. text in the copy of 4084:329 reads "Used in 4,500+ cannabis grow rooms worldwide"; or annotation on the copy of <id> mentions the render>
 2. …
 
 ## Not changing
@@ -82,7 +83,7 @@ Delivery tool: <from SOP, or "not set">
 - Image/video source: <…>
 ```
 
-Keep both files factual and short; no design changes are described that the comments don't ask for.
+Keep both files factual and short; no design changes are described that the comments don't ask for. Every change gets a **Check:** line: the qa-checker agent verifies the finished work against it after the job, so make it measurable (exact text, the element, the frame).
 
 ## Reply to the caller
 Return, in this order:

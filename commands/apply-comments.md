@@ -17,6 +17,10 @@ Then use the figma-maintainer agent (figma-maintainer:figma-maintainer) in clien
 
 $ARGUMENTS
 
-It reads the comments pinned to that frame (the whole file if the URL has no node-id), the latest round by default, applies the copy and layout changes, annotates the image-editing requests instead of doing them, and reports every comment by number. When it's done, pass its report to me in full: done, not done, approvals and decisions needed.
+It reads the comments pinned to that frame (the whole file if the URL has no node-id), the latest round by default, applies the copy and layout changes, annotates the image-editing requests instead of doing them, and reports every comment by number.
+
+**QA (automatic):** when it's done, save any job files it returned as text, then launch **figma-maintainer:qa-checker** with `Job folder: <its job folder>` and `File: <fileKey>`, and save the result as `qa.md`. There's no approved plan on this path, so QA checks against the comments only; say so in its report. On FAIL with AUTO-FIX items, send only those items back to figma-maintainer once as a "QA fix round" (same job folder and output frames, no new duplicate), apply QA's message fixes, and run qa-checker again. If it still fails, or has USER items, hold the client message ("HELD: not ready to send") and ask me: send another fix round / I'll fix it in Figma / accept with an override.
+
+Then pass me the report in full, with the QA verdict at the top: done, not done, needs a human check, approvals and decisions needed.
 
 Store every file this produces in the project folder from `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (person › agency › project; created only if missing).

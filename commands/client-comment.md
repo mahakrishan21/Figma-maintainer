@@ -61,8 +61,31 @@ Project folder: <project folder>
 ```
 It runs in client comments mode: versioning per the SOP, before and after snapshots, guardrails, and the report, Slack update and client message (prototype links). It saves `report.md`, `slack.md`, `client-message.md` and `comments-applied.md` to the job folder, and updates `PROJECT.md`, including "Comment rounds applied".
 
-## 6. After the job
-- Pass me its report in full: done, not done, annotations, questions, the Slack update and the client message. If it returned the text of `report.md`, `slack.md`, `client-message.md` or `comments-applied.md` instead of saving them, save them to the job folder.
-- Mark the comments it **applied or annotated** as handled: `python3 -I ~/.claude/figma-maintainer/scripts/comment_inbox.py --mark-handled --file <key> --ids <ids> --job <job folder>`. Comments that still need a decision stay open.
-- Run figma-maintainer:usage-reporter for **both** agents of this job, the analysis and the apply step (`--task "<analysis task description>"` and `--task latest`), and add one "Usage (internal)" block with both lines and their total after the Slack update.
+## 6. QA check (automatic, read-only)
+First save any job files figma-maintainer returned as text instead of saving them (`report.md`, `slack.md`, `client-message.md`, `comments-applied.md`). Then, **without asking me**, launch **figma-maintainer:qa-checker** in the foreground:
+```
+Job folder: <job folder>
+File: <fileKey>
+```
+It checks every comment against Figma (its own layer diff, pixel diff and crops), traces every change back to the plan, checks the report, Slack update and client message against the evidence, and returns `qa.md` with a verdict and a fix list. Save its text as `<job folder>/qa.md`.
+
+- **PASS or PASS WITH NOTES:** go to step 7.
+- **FAIL with AUTO-FIX items (one automatic fix round, don't ask me):**
+  - Launch **figma-maintainer:figma-maintainer** in the foreground with:
+    ```
+    Use figma-maintainer: QA fix round 1.
+    Client: <agency> › <project>
+    Job folder: <job folder> (same job; don't create another)
+    Figma URL: <design link of the output frame>
+    Fix only these items from <job folder>/qa.md: <the AUTO-FIX items, verbatim>
+    ```
+  - Apply QA's `message_fixes` to `client-message.md` and `slack.md` yourself; they're local text files.
+  - Run **figma-maintainer:qa-checker** again with `Fix round: 1`, and save the result as `qa.md`, replacing the old one.
+- **Still FAIL, INCONCLUSIVE, or any USER items:** stop. The client message is **HELD**: show it to me marked "HELD: not ready to send". Show the remaining items and ask with AskUserQuestion: "Send another fix round" / "I'll fix it in Figma" / "Accept with an override". Record my choice at the end of `qa.md`.
+
+## 7. After the job
+- Pass me the report in full, with the **QA verdict at the top**: done, not done, annotations, "needs a human check" items (what to click), questions, the Slack update and the client message.
+- Mark as handled only the comments QA lists in `handled_ok` (PASS, PENDING-CLIENT or ALREADY-DONE): `python3 -I ~/.claude/figma-maintainer/scripts/comment_inbox.py --mark-handled --file <key> --ids <ids> --job <job folder>`. Comments that failed or still need a decision stay open.
+- Add " · QA: <verdict>" to this job's line under "Job history" in `PROJECT.md`.
+- Run figma-maintainer:usage-reporter for **every** agent of this job: the analysis, the apply step, QA, and any fix round and re-QA (`--task "<task description>"` for each). Add one "Usage (internal)" block with one line each and their total after the Slack update.
 - Offer a Consistency Audit of the changed page.

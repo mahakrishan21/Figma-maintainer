@@ -2,7 +2,7 @@
 """PreToolUse guard for Figma write tools (enforced guardrails, not just instructions).
 
 Blocks or escalates Figma MCP writes that break the team's security rules:
-  DENY  - writes by read-only agents (auditors, usage-reporter, client-comments)
+  DENY  - writes by read-only agents (auditors, usage-reporter, client-comments, qa-checker)
   DENY  - a Figma file that wasn't given in this task (file key absent from the user's / caller's messages)
   DENY  - network or dynamic code inside use_figma scripts (fetch, XHR, WebSocket, eval, new Function, importScripts)
   DENY  - deleting pages or the document
@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 FM = Path.home() / ".claude" / "figma-maintainer"
-READ_ONLY_AGENTS = ("consistency-auditor", "content-auditor", "accessibility-auditor", "usage-reporter", "client-comments")
+READ_ONLY_AGENTS = ("consistency-auditor", "content-auditor", "accessibility-auditor", "usage-reporter", "client-comments", "qa-checker")
 
 
 def out(decision, reason):
@@ -107,6 +107,8 @@ WRITE_RX = re.compile(r"\.\w+\s*=(?!=)|\.(remove|appendChild|insertChild|resize|
 def is_write(tool, code):
     if tool != "use_figma":
         return True
+    # reading speed-ups and declarations don't change the canvas
+    code = re.sub(r"figma\.skipInvisibleInstanceChildren\s*=\s*(true|false)", "", code)
     return bool(WRITE_RX.search(re.sub(r"(const|let|var)\s+\w+\s*=", "", code)))
 
 

@@ -155,6 +155,14 @@ Built from the design-cost-report kit. The counting is done by script from Claud
   - `~/.claude/figma-maintainer/cost-config.json`: currencies and your INR rate (`"fx": {"INR": 84.0}`). The rate is never guessed.
 - "New tokens" means input, cache writes and output. Cached reads are shown separately, because they're cheap re-reads of context. On a Pro or Max plan, the cost is the equivalent API value, not a charge.
 
+### QA check (automatic, after every job)
+When figma-maintainer finishes a job that changed Figma, the read-only **qa-checker** agent checks it before you see the client message. You don't run it; it runs on its own.
+- **Independent:** it starts from the client's comments (or your request) and the approved plan, not from the maker's report. It measures Figma with its own evidence: `scripts/figma_qa.py` compares the edited copy with its source layer by layer, takes a pixel diff with before/after crops, and checks protected frames, prototype hovers, links and quoted text in the messages, the job records, and edits by others.
+- **Both ways:** every comment must be done as asked, and every change in Figma must belong to a comment or plan item; anything else is flagged as an unrequested change.
+- **Messages:** the client message may only claim what's true in Figma, with the right prototype links and no internal details.
+- **Verdict:** PASS, PASS WITH NOTES (for example "check the hover in Present mode"), FAIL or INCONCLUSIVE, saved as `jobs/<job>/qa.md` with evidence in `jobs/<job>/qa/`.
+- **On FAIL:** fixable items go back to figma-maintainer **once**, automatically (same frames, no new duplicate), and QA checks again. If it still fails, the client message is **held** and you choose: another fix round, fix it yourself, or accept with an override.
+
 ### Client comments, found automatically
 When a client comments, you don't need the link. Just say:
 ```
@@ -223,7 +231,7 @@ Every agency has `clients/<agency>/client.md`, and every project has a `<project
 `skills/figma-guardrails` holds the written rules. `scripts/figma_guard.py` **enforces** them on every Figma write:
 | Check | Result |
 |---|---|
-| Write by an auditor, usage-reporter or the client-comments analyst | Blocked |
+| Write by an auditor, usage-reporter, the client-comments analyst or the QA checker | Blocked |
 | Figma file not linked in this task (your recent messages or the agent's brief) | Blocked |
 | Task instructions can't be read to confirm the file | Blocked (fails closed) |
 | Network or dynamic code in a Figma script (fetch, XHR, eval…) | Blocked |

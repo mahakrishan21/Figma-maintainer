@@ -185,11 +185,17 @@ if CLIENT:
                   + (f"IMAGE SOURCE CONFLICT in the SOP: {conflict} Ask the user which source applies before starting, then save the answer with /figma-maintainer:sop. " if conflict else "")
                   + deliv_ctx)
 
+QA_NOTE = (" AFTER the figma-maintainer agent finishes a job that changed Figma: launch figma-maintainer:qa-checker with the job folder "
+           "and file key BEFORE showing the client message. On FAIL with AUTO-FIX items, send only those items back to figma-maintainer "
+           "once as a 'QA fix round' (same job folder and output frames, no new duplicate), then run qa-checker again; if it still "
+           "fails, hold the client message and ask the user (send another fix round / I'll fix it / accept with an override).")
+
 # "I got a client comment": the client-comment workflow finds, analyses and plans it before any job starts.
 # The phrase must open the request (first ~300 characters) and not describe a feature ("client comment agent"),
 # so a long spec or a discussion about the plugin doesn't start the workflow.
-CC_RX = (r"\b(got|get|have|has|received|new|there'?s|there is|check|any|another)\b[^.\n?]{0,40}?\bclient('?s)?\s+(figma\s+)?comments?\b"
-         r"(?!\s*(automation|agent|feature|workflow|mode|command|script|hook|plugin|inbox|discovery))"
+# "check" isn't a trigger ("cross check the work with the client comments" is a QA request, not a new comment).
+CC_RX = (r"\b(got|get|have|has|received|new|there'?s|there is|any|another)\b[^.\n?]{0,40}?\bclient('?s)?\s+(figma\s+)?comments?\b"
+         r"(?!\s*(automation|agent|feature|workflow|mode|command|script|hook|plugin|inbox|discovery|with|against|vs|versus|qa)\b)"
          r"|\bclient\s+(has\s+)?(left|added|posted|commented|replied)\b")
 cc = re.search(CC_RX, re.sub(r"^\s*(use\s+)?figma[\s_-]*maintainer\s*[:,]?\s*", "", p))
 if cc and cc.start() < 300:
@@ -199,7 +205,7 @@ if cc and cc.start() < 300:
         "(the arguments are this prompt): find the comment with comment_inbox.py (Figma's Mac notifications; a Figma link or file name "
         "in the prompt takes priority), analyse it with the read-only figma-maintainer:client-comments agent, show the plan and ask the "
         "user to approve it, and only then hand it to figma-maintainer:figma-maintainer. Don't ask the image/video question now: "
-        "it's settled after the analysis, from the client SOP or by asking. No Figma edits before the user approves the plan."}}))
+        "it's settled after the analysis, from the client SOP or by asking. No Figma edits before the user approves the plan." + QA_NOTE}}))
     sys.exit(0)
 
 # "Consistency Audit" is read-only: route it to the auditor, no image question.
@@ -263,7 +269,7 @@ if not CLIENT:
             "in one line (e.g. 'Lasso up image preference: Adobe Stock'); if not set, ask the image/video source question "
             "(Client-provided / iStock / Adobe Stock / other stock such as Getty, Shutterstock, Depositphotos, Envato / AI-generated). "
             "Also apply §3 'Delivery tool (Figma)' (remind if it's the client's own Figma account). Pass 'Client: <name>' and "
-            "'Image/video source: …' to the figma-maintainer agent.")
+            "'Image/video source: …' to the figma-maintainer agent." + QA_NOTE)
     if SLACK:
         msg += " ALSO, after the job: " + SLACK
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": msg}}))
@@ -286,6 +292,7 @@ else:
            "Adobe Stock / AI-generated. Notes can add 'Use existing assets in the file' or 'No new images or video'. "
            "If the project or client notes (~/.claude/figma-maintainer/clients/<client>/<project>.md and client.md; find them with grep -rl <fileKey>) list a preferred source, mark it '(Recommended)'. "
            "Do not proceed until the user answers. Then pass the answer to the figma-maintainer agent as 'Image/video source: …'.")
+msg += QA_NOTE
 if SLACK:
     msg = msg + " ALSO, after the job: " + SLACK
 print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": CLIENT_CTX + msg}}))
