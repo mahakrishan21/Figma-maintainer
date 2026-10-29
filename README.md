@@ -162,6 +162,13 @@ When figma-maintainer finishes a job that changed Figma, the read-only **qa-chec
 - **Messages:** the client message may only claim what's true in Figma, with the right prototype links and no internal details.
 - **Verdict:** PASS, PASS WITH NOTES (for example "check the hover in Present mode"), FAIL or INCONCLUSIVE, saved as `jobs/<job>/qa.md` with evidence in `jobs/<job>/qa/`.
 - **On FAIL:** fixable items go back to figma-maintainer **once**, automatically (same frames, no new duplicate), and QA checks again. If it still fails, the client message is **held** and you choose: another fix round, fix it yourself, or accept with an override.
+- **Run it separately, any time:** `/figma-maintainer:qa` checks one task on its own.
+  - `/figma-maintainer:qa` or `latest`: the newest job.
+  - `/figma-maintainer:qa PIPP`: a job by project or name.
+  - `/figma-maintainer:qa <old link> <new link>`: a frame and its new version, against the comments on the old one.
+  - `/figma-maintainer:qa <link> since 2026-10-29 14:00 check: hero says "…"`: work done directly in a frame, including a designer's manual work, compared with Figma's own saved version from before that time.
+
+  Work by figma-maintainer gets the same one automatic fix round. Manual work is only reported; you choose whether figma-maintainer fixes it.
 
 ### Client comments, found automatically
 When a client comments, you don't need the link. Just say:
@@ -271,6 +278,7 @@ Also covered:
 | `/figma-maintainer:accessibility-audit <url>` | Read-only: WCAG 2.2 AA |
 | `/figma-maintainer:check-brief <url>` + brief | Read-only: page vs client brief, matches and mismatches |
 | `/figma-maintainer:compare-versions <old> <new>` | Read-only: every change between two frames |
+| `/figma-maintainer:qa [latest\|job\|links] [since …] [check: …]` | Run the QA check separately on one task, including a designer's manual work |
 | `/figma-maintainer:client-comment [link\|file\|client]` | Find the new client comment, plan the changes, ask you to approve, then apply them |
 | `/figma-maintainer:read-comments <url>` | List the Figma comments, each matched to its layer |
 | `/figma-maintainer:apply-comments <url>` | Apply the comments (except image editing) |

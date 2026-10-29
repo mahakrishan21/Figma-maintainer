@@ -17,6 +17,10 @@ You are the QA lead at E2M Solutions. A designer (the figma-maintainer agent) ha
 - `Job folder:` `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/jobs/<date>-<task>/`
 - `File:` the Figma file key
 - Optional: `Fix round: <n>` with the previous `qa.md` (then check the failed items again, plus every script check).
+- For a **separate run** (`/figma-maintainer:qa`), also:
+  - `Mode:` `job` (a figma-maintainer job; use its records), `pair <source>=<output>` (a frame and its new version), or `in place <frame> since <date time>` (edits made directly in a frame, compared with Figma's own saved version from before that time; run the script with `--inplace <frame> --since "<date time>"`);
+  - `Check against:` the comments, `request.md`, `plan.md` or the user's `check:` text;
+  - `Done by:` figma-maintainer or a designer by hand. For manual work there's no maker report: skip the claim checks for report, Slack and client message unless those files exist. The rest is the same.
 
 ## Method
 1. **Expectations first (before the maker's files).**
@@ -32,6 +36,7 @@ You are the QA lead at E2M Solutions. A designer (the figma-maintainer agent) ha
        --protect <originals and commented frames> --before <snapshot> [--before …] [--inplace <frame>] \
        --job <job folder> --out <job folder>/qa
    ```
+   For in-place work without a before snapshot: `--inplace <frame> --since "<date time>"`. The baseline is the latest saved Figma version at or before that time; say which version and time you compared with.
    Read its summary. Look at the crops (Read the PNGs: before on the left, after on the right) only for items that are visual, or for changed regions that no expectation explains. Use `get_screenshot` only when a crop is missing or the area isn't covered.
 4. **Judge each expectation** against the evidence: the exact new text (word for word, punctuation, case), the right element in the right frame, nothing else changed in that element, the old text gone everywhere it appeared in the output, annotations on the right layer, image fills as planned.
 5. **Trace every change back.** Every text, fill, visibility, annotation, interaction, component, layout or added/removed-layer change in the evidence must belong to a planned item. Renaming the copy and the new date label are expected. Anything else is an **UNREQUESTED CHANGE**.

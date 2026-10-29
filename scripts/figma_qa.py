@@ -8,7 +8,9 @@
               trees aligned by depth, type and name), so every change made in the copy is listed: text, fonts,
               fills and images, visibility, annotations, prototype interactions, components, layer names,
               size and position, added and removed layers. Plus a pixel diff of both renders with crops.
-- --inplace   a frame edited directly (work file / blank frame): compared with the job's before snapshot by node id.
+- --inplace   a frame edited directly (work file / blank frame): compared with the job's before snapshot by node id,
+              or, with --since, with Figma's own saved version of that frame from before that time (manual work, no snapshot).
+- --since     "2026-10-29 14:00 IST" / ISO time / a date: baseline = the latest saved version at or before it.
 - --before    the maker's before snapshot(s) (figma_snapshot.py). Used to prove protected frames are unchanged
               and to list anything else that changed on those pages.
 - --protect   originals, commented frames, earlier versions (default: every --pair source).
@@ -241,17 +243,25 @@ def hover_checks(frame, tok, key):
     return found, missing
 
 
-def render_diff(key, src, out, tok, crops_dir, max_crops=6):
+def render_diff(key, src, out, tok, crops_dir, max_crops=6, src_version=None):
+    """Render source (optionally at an older saved version) and output; list changed regions; save before|after crops."""
     Image, ImageChops = pil()
     if not Image:
         return {"skipped": "PIL not available"}
-    res = get(f"/images/{key}?ids={urllib.parse.quote(src + ',' + out, safe=',:')}&format=png&scale=0.5&use_absolute_bounds=true", tok)["images"]
-    imgs = {}
-    for nid in (src, out):
-        p = crops_dir / f"render-{nid.replace(':', '-')}.png"
-        urllib.request.urlretrieve(res[nid], p)
-        imgs[nid] = Image.open(p).convert("RGB")
-    a, b = imgs[src], imgs[out]
+    q = "&format=png&scale=0.5&use_absolute_bounds=true"
+    if src_version:
+        r_old = get(f"/images/{key}?ids={urllib.parse.quote(src, safe=':')}{q}&version={src_version}", tok)["images"]
+        r_new = get(f"/images/{key}?ids={urllib.parse.quote(out, safe=':')}{q}", tok)["images"]
+        urls = [(r_old[src], f"render-{src.replace(':', '-')}-v{src_version}.png"), (r_new[out], f"render-{out.replace(':', '-')}-now.png")]
+    else:
+        res = get(f"/images/{key}?ids={urllib.parse.quote(src + ',' + out, safe=',:')}{q}", tok)["images"]
+        urls = [(res[src], f"render-{src.replace(':', '-')}.png"), (res[out], f"render-{out.replace(':', '-')}.png")]
+    imgs = []
+    for u, name in urls:
+        p = crops_dir / name
+        urllib.request.urlretrieve(u, p)
+        imgs.append(Image.open(p).convert("RGB"))
+    a, b = imgs
     w, h = min(a.width, b.width), min(a.height, b.height)
     size_note = None if a.size == b.size else f"render sizes differ: {a.size} vs {b.size} (compared the overlapping area)"
     d = ImageChops.difference(a.crop((0, 0, w, h)), b.crop((0, 0, w, h))).convert("L").point(lambda v: 255 if v > 40 else 0)
@@ -273,10 +283,10 @@ def render_diff(key, src, out, tok, crops_dir, max_crops=6):
         ca, cb = a.crop((x0, y0, x1, y1)), b.crop((x0, y0, x1, y1))
         sheet = Image.new("RGB", (ca.width * 2 + 12, ca.height), "white")
         sheet.paste(ca, (0, 0)); sheet.paste(cb, (ca.width + 12, 0))
-        p = crops_dir / f"{src.replace(':', '-')}_{i:02d}.png"
+        p = crops_dir / f"{src.replace(':', '-')}{'-inplace' if src_version else ''}_{i:02d}.png"
         sheet.save(p)
         crops.append({"file": str(p), "y": r["y"], "x": r["x"]})
-    return {"regions": regions, "crops": crops, "note": size_note, "renders": [str(crops_dir / f"render-{n.replace(':', '-')}.png") for n in (src, out)]}
+    return {"regions": regions, "crops": crops, "note": size_note, "renders": [str(crops_dir / n) for _, n in urls]}
 
 
 def file_state(key, tok):
@@ -288,6 +298,35 @@ def file_state(key, tok):
 def ts(s):
     s = s.strip().replace("Z", "+00:00")
     return datetime.fromisoformat(s)
+
+
+def parse_when(s):
+    s = s.strip()
+    m = re.match(r"(\d{4}-\d{2}-\d{2})(?:[ T](\d{1,2}:\d{2})(?::\d{2})?)?\s*(IST|UTC|Z|[+-]\d{2}:?\d{2})?$", s)
+    if not m:
+        raise SystemExit(f"--since: can't read '{s}' (use e.g. '2026-10-29 14:00 IST' or 2026-10-29)")
+    t = datetime.fromisoformat(f"{m.group(1)}T{(m.group(2) or '00:00').zfill(5)}")
+    tz = m.group(3) or "IST"
+    if tz == "IST":
+        return (t - timedelta(hours=5, minutes=30)).replace(tzinfo=timezone.utc)
+    if tz in ("UTC", "Z"):
+        return t.replace(tzinfo=timezone.utc)
+    return datetime.fromisoformat(f"{m.group(1)}T{(m.group(2) or '00:00').zfill(5)}{tz[:3]}:{tz[-2:]}").astimezone(timezone.utc)
+
+
+def version_before(key, when, tok):
+    """Latest saved Figma version at or before `when` (pages back through the history)."""
+    url = f"/files/{key}/versions?page_size=50"
+    for _ in range(20):
+        res = get(url, tok)
+        for v in res.get("versions", []):
+            if ts(v["created_at"]) <= when:
+                return v
+        nxt = (res.get("pagination") or {}).get("next_page")
+        if not nxt:
+            return None
+        url = nxt.split("/v1", 1)[1]
+    return None
 
 
 def plan_approval(plan_text):
@@ -306,6 +345,7 @@ def main():
     ap.add_argument("--inplace", action="append", default=[], help="frame edited in place (needs --before)")
     ap.add_argument("--before", action="append", default=[], help="before snapshot JSON (repeat per page)")
     ap.add_argument("--protect", default="", help="comma-separated frames that must be unchanged")
+    ap.add_argument("--since", help="with --inplace and no --before: compare with Figma's saved version from before this time")
     ap.add_argument("--job"); ap.add_argument("--out", required=True)
     ap.add_argument("--no-render", action="store_true")
     a = ap.parse_args()
@@ -388,6 +428,60 @@ def main():
                 + (": " + "; ".join(f"y {g['y'][0]}–{g['y'][1]} x {g['x'][0]}–{g['x'][1]}" for g in rd["regions"][:8]) if rd["regions"] else ""))
             for c in rd["crops"]:
                 say(f"  - crop (before | after): {c['file']}")
+
+    # ---- in-place frames against Figma's own version history (manual work, no snapshot)
+    if a.inplace and a.since and not a.before:
+        when = parse_when(a.since)
+        v = version_before(key, when, tok)
+        if not v:
+            say(f"\n## In place: no saved Figma version at or before {when.isoformat(timespec='minutes')}; can't compare")
+            ev["flags"].append("no baseline version")
+        for f in [i.replace("-", ":") for i in a.inplace] if v else []:
+            old_doc = (get(f"/files/{key}/nodes?ids={urllib.parse.quote(f, safe=':')}&version={v['id']}", tok)["nodes"].get(f) or {}).get("document")
+            if not old_doc or f not in docs:
+                say(f"\n## In place {f}: the frame didn't exist in version {v['id']} ({v['created_at']})")
+                continue
+            r = diff_pair(old_doc, docs[f])
+            r.update({"source": f, "output": f, "source_name": old_doc["name"], "output_name": docs[f]["name"],
+                      "baseline_version": v["id"], "baseline_at": v["created_at"],
+                      "output_page": (where.get(f) or {}).get("page")})
+            r["hover"], r["hover_missing_dest"] = hover_checks(docs[f], tok, key)
+            if not a.no_render:
+                try:
+                    r["render"] = render_diff(key, f, f, tok, crops, src_version=v["id"])
+                except Exception as e:
+                    r["render"] = {"skipped": f"render failed: {e}"}
+            ev["inplace"].append(r)
+            say(f"\n## In place: \"{docs[f]['name']}\" {f} now vs Figma's saved version {v['id']} ({v['created_at']}, page \"{r['output_page']}\")")
+            say(f"Layers {r['layers'][0]} → {r['layers'][1]} · added {len(r['added'])} · removed {len(r['removed'])}")
+            for k, label in (("text", "Text"), ("fills", "Fills / images"), ("annotations", "Annotations"), ("visibility", "Visibility"),
+                             ("font", "Font / text style"), ("component", "Component / instance"), ("interactions", "Prototype interactions"),
+                             ("name", "Layer names"), ("layout", "Layout / style")):
+                for c in r[k][:12]:
+                    if k == "text":
+                        say(f"- {label}: {c['out']} '{c['name']}': {short(c['before'])} → {short(c['after'])}")
+                    elif k == "fills":
+                        say(f"- {label}: {c['out']} '{c['name']}' {c['prop']}: {c['before']} → {c['after']}")
+                    else:
+                        say(f"- {label}: {c['out']} '{c['name']}': {short(c.get('before') or c.get('changes') or c.get('props'), 140)} → {short(c.get('after'), 140)}")
+            if r["moved"]:
+                say(f"- Moved or resized only: {len(r['moved'])} layer(s)")
+            if r["reordered"]:
+                say("- Reordered in the layer list: " + "; ".join(f"{c['out']} '{c['name']}' ({c['layers']} layers)" for c in r["reordered"]))
+            for k, label in (("added", "Added layers"), ("removed", "Removed layers")):
+                if r[k]:
+                    say(f"- {label}: {len(r[k])}: " + "; ".join(f"{c.get('out') or c.get('src')} {c['type']} '{c['name']}'" + (f" \"{short(c['text'], 50)}\"" if c.get("text") else "") for c in r[k][:10]))
+            if not any(r[k] for k in ("text", "fills", "annotations", "visibility", "font", "component", "interactions", "name", "layout", "moved", "added", "removed", "reordered")):
+                say("- No differences since that version.")
+            for fl in r["flags"]:
+                say(f"- ⚠ {fl}")
+            rd = r.get("render") or {}
+            if rd.get("regions") is not None:
+                say(f"- Pixel diff: {len(rd['regions'])} changed region(s)")
+                for c in rd["crops"]:
+                    say(f"  - crop (before | after): {c['file']}")
+            elif rd.get("skipped"):
+                say(f"- Pixel diff skipped: {rd['skipped']}")
 
     # ---- in-place frames and protected frames, from the before snapshots
     protect = {p.strip().replace("-", ":") for p in a.protect.split(",") if p.strip()} or {s for s, _ in pairs}

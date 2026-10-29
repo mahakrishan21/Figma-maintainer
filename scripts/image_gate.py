@@ -20,8 +20,8 @@ if re.match(r"\s*(another claude session sent a message|<agent-message|\[subagen
 # Only figma-maintainer work. Website builds, other plugins and general chat get nothing from this hook.
 if not prompt_is_fm(prompt, HOOK.get("transcript_path", "")):
     sys.exit(0)
-# The slash command carries its own instructions
-if re.match(r"\s*/figma-maintainer:client-comment\b", prompt):
+# These slash commands carry their own instructions (no image question for a read-only QA run)
+if re.match(r"\s*/figma-maintainer:(client-comment|qa)\b", prompt):
     sys.exit(0)
 p = prompt.lower()
 
