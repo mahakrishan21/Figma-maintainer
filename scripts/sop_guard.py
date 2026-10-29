@@ -11,7 +11,7 @@ Every other path is ignored (this hook is silent for all non-SOP files).
 import json, os, sys
 from pathlib import Path
 
-FM = Path.home() / ".claude" / "figma-maintainer"
+FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer")
 SHARED = ("clients", "playbook.md", "pricing.json", "cost-config.json")
 
 

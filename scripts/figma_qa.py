@@ -24,8 +24,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from figma_common import fetch_frames, get, token  # noqa: E402
-from figma_snapshot import snapshot  # noqa: E402
+from figma_common import fetch_frames, get, token, wait_saved  # noqa: E402
+from figma_snapshot import last_logged_write, snapshot  # noqa: E402
 from proto_link import locate  # noqa: E402
 
 SKIP = {"id", "children", "transitionNodeID", "absoluteBoundingBox", "absoluteRenderBounds", "boundVariables",
@@ -119,9 +119,12 @@ def ws(s):
 def diff_pair(A, B):
     """Align source A and output B; return categorised changes keyed by output node id."""
     fa, fb = flat(A), flat(B)
-    # the root frames always align (the copy is usually renamed, e.g. a new date or V#)
-    ka = [(r["d"], r["n"]["type"], r["n"].get("name") if r["d"] else "<root>") for r in fa]
-    kb = [(r["d"], r["n"]["type"], r["n"].get("name") if r["d"] else "<root>") for r in fb]
+    # the root frames always align (the copy is usually renamed, e.g. a new date or V#); frames, instances and
+    # components align with each other, so a detached instance is reported as DETACHED rather than removed + added
+    def kind(t):
+        return "BOX" if t in ("FRAME", "INSTANCE", "COMPONENT") else t
+    ka = [(r["d"], kind(r["n"]["type"]), r["n"].get("name") if r["d"] else "<root>") for r in fa]
+    kb = [(r["d"], kind(r["n"]["type"]), r["n"].get("name") if r["d"] else "<root>") for r in fb]
     sm = difflib.SequenceMatcher(None, ka, kb, autojunk=False)
     res = {"layers": [len(fa), len(fb)], "text": [], "font": [], "fills": [], "visibility": [], "annotations": [],
            "interactions": [], "component": [], "name": [], "layout": [], "moved": [], "added": [], "removed": [],
@@ -183,7 +186,7 @@ def diff_pair(A, B):
     # a block that only moved in the layer order shows up as removed + added with the same layers: pair them
     def sig(run):
         d0 = run[0]["d"]
-        return [(r["d"] - d0, r["n"]["type"], r["n"].get("name")) for r in run]
+        return [(r["d"] - d0, kind(r["n"]["type"]), r["n"].get("name")) for r in run]
     used = set()
     for drun in dels:
         hit = next((k for k, irun in enumerate(ins) if k not in used and sig(irun) == sig(drun)), None)
@@ -354,11 +357,15 @@ def main():
     job = Path(a.job).expanduser() if a.job else None
     pairs = [p.replace("-", ":").split("=") for p in a.pair]
     ev = {"file": key, "pairs": [], "inplace": [], "protected": {}, "pages": [], "messages": {}, "comments": {}, "records": {}, "flags": []}
+    lw0 = last_logged_write(key)  # REST reads lag edits a little: wait until Figma has saved the maker's last write
+    saved = wait_saved(key, lw0, tok, max_wait=30) if lw0 else True
     state0 = file_state(key, tok)
     ev["state_start"] = state0
 
     say(f"# QA evidence: file {key}")
     say(f"Checked {datetime.now(timezone.utc).isoformat(timespec='seconds')} · file version {state0['version']} ({state0['version_at']}), last edit {state0['last_touched']}")
+    if not saved:
+        say(f"⚠ Figma hadn't confirmed saving the maker's last write ({lw0}) after 30 s: re-run QA if results look stale.")
 
     # ---- pairs (duplicate workflow)
     ids = [i for p in pairs for i in p] + [i.replace("-", ":") for i in a.inplace]
@@ -551,6 +558,8 @@ def main():
         first_w = min((ts(c["ts"]) for c in calls), default=None)
         last_w = max((ts(c["ts"]) for c in calls), default=None)
         pm = proj / "PROJECT.md"
+        rep = (job / "report.md").read_text(errors="ignore") if rec["report.md"] else ""
+        rec["undo_line"] = bool(re.search(r"(?im)^[-*\s]*\**undo\b", rep))
         rec.update({"plan_status": (re.search(r"Status:\s*([^\n]+)", plan) or [None, None])[1] if plan else None,
                     "approved_at": appr.isoformat() if appr else None, "first_write": first_w.isoformat() if first_w else None,
                     "last_write": last_w.isoformat() if last_w else None, "writes_logged": len(calls),
@@ -565,6 +574,8 @@ def main():
                     + ("approved before the first write ✓" if appr <= first_w else "✗ a write was logged BEFORE approval"))
         say(f"- Writes logged for this job: {len(calls)}" + (f", last {last_w.isoformat(timespec='seconds')}" if last_w else ""))
         say(f"- PROJECT.md mentions this job folder: {'✓' if rec['project_md_mentions_job'] else '✗'}")
+        if rec["report.md"]:
+            say(f"- Undo line in the report: {'✓' if rec['undo_line'] else '✗ missing (how to revert this job)'}")
 
         out_ids = outputs | inplace
         out_pages = {(where.get(d) or {}).get("page_id") for d in out_ids}

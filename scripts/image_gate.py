@@ -20,6 +20,17 @@ if re.match(r"\s*(another claude session sent a message|<agent-message|\[subagen
 # Only figma-maintainer work. Website builds, other plugins and general chat get nothing from this hook.
 if not prompt_is_fm(prompt, HOOK.get("transcript_path", "")):
     sys.exit(0)
+# "skip QA": the user waives the QA check for the pending job(s) in this session (the Stop-hook gate is cleared)
+if re.search(r"\b(skip|no|without|don'?t (run|do))\s+(the\s+)?qa\b", prompt, re.I):
+    import qa_gate
+    marks = qa_gate.clear(qa_gate.session_of(HOOK))
+    if len(prompt) < 120:
+        jobs = "; ".join(m.get("job") or ", ".join(m["files"]) for m in marks) or "no job was waiting for QA"
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext":
+            f"figma-maintainer: the user chose to skip the QA check ({jobs}). Don't run qa-checker for it; write 'QA skipped by the user' "
+            "in the report and keep the client message marked as not QA-checked."}}))
+        sys.exit(0)
+
 # These slash commands carry their own instructions (no image question for a read-only QA run)
 if re.match(r"\s*/figma-maintainer:(client-comment|qa)\b", prompt):
     sys.exit(0)
@@ -27,7 +38,7 @@ p = prompt.lower()
 
 # ---- client SOP lookup: agency/project name or Figma file key -> clients/<agency>/client.md (+ project.md)
 from pathlib import Path
-CL = Path.home() / ".claude" / "figma-maintainer" / "clients"
+CL = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer") / "clients"
 GENERIC = {"design", "web", "seo", "ppc", "misc", "tasks", "website", "homepage", "landing page", "maintenance", "wordpress tasks",
            "shopify tasks", "maintenance projects", "daily task list", "design task", "social media", "general"}
 
@@ -197,7 +208,11 @@ QA_NOTE = (" AFTER the figma-maintainer agent finishes a job that changed Figma:
 CC_RX = (r"\b(got|get|have|has|received|new|there'?s|there is|any|another)\b[^.\n?]{0,40}?\bclient('?s)?\s+(figma\s+)?comments?\b"
          r"(?!\s*(automation|agent|feature|workflow|mode|command|script|hook|plugin|inbox|discovery|with|against|vs|versus|qa)\b)"
          r"|\bclient\s+(has\s+)?(left|added|posted|commented|replied)\b")
-cc = re.search(CC_RX, re.sub(r"^\s*(use\s+)?figma[\s_-]*maintainer\s*[:,]?\s*", "", p))
+cc_text = re.sub(r"^\s*(use\s+)?figma[\s_-]*maintainer\s*[:,]?\s*", "", p)
+cc = re.search(CC_RX, cc_text)
+# "I don't have any client comments yet" / "no new client comments": not a new comment
+if cc and re.search(r"\b(don'?t|do not|didn'?t|haven'?t|no|not|never|without)\b", cc_text[max(0, cc.start() - 12):cc.end()]):
+    cc = None
 if cc and cc.start() < 300:
     cmd = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "commands", "client-comment.md")
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": CLIENT_CTX +

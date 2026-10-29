@@ -5,11 +5,11 @@
   contribute.py --extract <zip|dir>    (SOP manager) unpack received contributions to a review folder, list them
   contribute.py --review-old <session> <knowledge>   (bootstrap) list old local SOP copies that differ from the plugin
 """
-import hashlib, shutil, sys, tempfile, zipfile
+import hashlib, shutil, sys, tempfile, zipfile, os
 from datetime import datetime
 from pathlib import Path
 
-FM = Path.home() / ".claude" / "figma-maintainer"
+FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer")
 
 
 def sha(p):

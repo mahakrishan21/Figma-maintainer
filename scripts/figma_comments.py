@@ -18,50 +18,14 @@ Usage:
 Writes <dir>/comments.json (structured) and <dir>/comments.md (readable), and
 prints the markdown.
 """
-import argparse, json, os, re, sys, urllib.parse, urllib.request
+import argparse, json, os, re, sys, urllib.parse
 from pathlib import Path
 
 API = "https://api.figma.com/v1"
 
 
-def token():
-    t = os.environ.get("FIGMA_TOKEN", "").strip()
-    if t:
-        return t
-    try:  # macOS Keychain (preferred over plain-text files): security add-generic-password -s figma-maintainer -a FIGMA_TOKEN -w
-        import subprocess
-        r = subprocess.run(["security", "find-generic-password", "-s", "figma-maintainer", "-a", "FIGMA_TOKEN", "-w"],
-                           capture_output=True, text=True, timeout=10)
-        if r.returncode == 0 and r.stdout.strip():
-            return r.stdout.strip()
-    except Exception:
-        pass
-    home = Path.home()
-    f = home / ".claude/figma-maintainer/figma-token"
-    if f.is_file():
-        t = f.read_text().strip()
-        if t:
-            return t
-    for rc in (".zshrc", ".zprofile", ".bashrc", ".bash_profile"):
-        p = home / rc
-        if not p.is_file():
-            continue
-        for line in p.read_text(errors="ignore").splitlines():
-            m = re.match(r"""\s*export\s+FIGMA_TOKEN=["']?([^"'\s#]+)""", line)
-            if m:
-                t = m.group(1)
-    if t:
-        return t
-    sys.exit("No Figma token found. Set FIGMA_TOKEN (see the header of this script).")
-
-
-def get(path, tok):
-    req = urllib.request.Request(API + path, headers={"X-Figma-Token": tok})
-    try:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            return json.load(r)
-    except urllib.error.HTTPError as e:
-        sys.exit(f"Figma API {e.code} for {path.split('?')[0]}: {e.read()[:200].decode(errors='ignore')}")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from figma_common import get, token  # noqa: E402  (shared: retries, clear errors, test fixtures)
 
 
 def parse_url(url):

@@ -17,7 +17,7 @@ Note: the REST API reflects Figma's saved state; wait ~5 s after the last edit b
 import argparse, hashlib, json, os, sys, urllib.parse
 from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from figma_common import get, token  # noqa: E402
+from figma_common import FM, FigmaError, get, now_iso, token, wait_saved  # noqa: E402
 
 
 def paint_sig(paints):
@@ -58,7 +58,39 @@ def snapshot(key, page, tok):
         fname = get(f"/files/{key}?depth=1", tok).get("name")
     except SystemExit:
         fname = None
-    return {"file": key, "file_name": fname, "page": page, "page_name": doc.get("name"), "top": top, "nodes": nodes}
+    snap = {"file": key, "file_name": fname, "page": page, "page_name": doc.get("name"), "top": top, "nodes": nodes,
+            "taken_at": now_iso()}
+    try:  # undo point: the latest saved Figma version at this moment
+        snap["last_touched"] = get(f"/files/{key}/meta", tok, retries=1)["file"].get("last_touched_at")
+        v = (get(f"/files/{key}/versions?page_size=1", tok, retries=1).get("versions") or [{}])[0]
+        snap["version"] = {"id": v.get("id"), "created_at": v.get("created_at")}
+    except FigmaError:
+        snap["version"] = None
+    return snap
+
+
+def ist(iso):
+    from datetime import datetime, timedelta
+    try:
+        t = datetime.fromisoformat(iso.replace("Z", "+00:00")) + timedelta(hours=5, minutes=30)
+        return t.strftime("%d %b %Y %H:%M IST")
+    except Exception:
+        return iso
+
+
+def last_logged_write(key):
+    """Time of the last completed Figma write to this file in the audit log (any session), or None."""
+    f = FM / "figma-audit-log.jsonl"
+    last = None
+    if f.exists():
+        for line in f.read_text(errors="ignore").splitlines()[-2000:]:
+            try:
+                r = json.loads(line)
+            except Exception:
+                continue
+            if r.get("fileKey") == key and str(r.get("decision", "")).startswith("completed"):
+                last = r.get("ts")
+    return last
 
 
 def compare(before, after, targets, allow_new):
@@ -96,9 +128,17 @@ def main():
     ap.add_argument("--targets", default=""); ap.add_argument("--allow-new", action="store_true",
                                                               help="new top-level frames created by this task are expected")
     a = ap.parse_args()
-    snap = snapshot(a.file, a.page, token())
+    tok = token()
+    if a.compare:  # REST reads lag edits a little: wait until Figma has saved the last logged write
+        lw = last_logged_write(a.file)
+        if lw and not wait_saved(a.file, lw, tok, max_wait=30):
+            print(f"Note: Figma hadn't confirmed saving the last write ({lw}) after 30 s; the after snapshot may miss it. Re-run if in doubt.")
+    snap = snapshot(a.file, a.page, tok)
     Path(a.out).write_text(json.dumps(snap))
     print(f"Snapshot: file '{snap.get('file_name')}' · page {snap['page_name']} ({a.page}), {len(snap['nodes'])} nodes, {len(snap['top'])} top-level → {a.out}")
+    if snap.get("version") and snap["version"].get("id"):
+        print(f"Undo point: Figma version saved {ist(snap['version']['created_at'])} (id {snap['version']['id']}); "
+              f"file last edited {ist(snap.get('last_touched') or '')}. Restoring a version also reverts everyone's later edits.")
     if not a.compare:
         return
     before = json.loads(Path(a.compare).read_text())

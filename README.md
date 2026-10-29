@@ -156,7 +156,7 @@ Built from the design-cost-report kit. The counting is done by script from Claud
 - "New tokens" means input, cache writes and output. Cached reads are shown separately, because they're cheap re-reads of context. On a Pro or Max plan, the cost is the equivalent API value, not a charge.
 
 ### QA check (automatic, after every job)
-When figma-maintainer finishes a job that changed Figma, the read-only **qa-checker** agent checks it before you see the client message. You don't run it; it runs on its own.
+When figma-maintainer finishes a job that changed Figma, the read-only **qa-checker** agent checks it before you see the client message. You don't run it; it runs on its own, and it's **enforced**: a hook marks the job "QA pending", and the session can't finish its turn until QA has run (it asks Claude once, then warns). Say **"skip QA"** to waive it for a job.
 - **Independent:** it starts from the client's comments (or your request) and the approved plan, not from the maker's report. It measures Figma with its own evidence: `scripts/figma_qa.py` compares the edited copy with its source layer by layer, takes a pixel diff with before/after crops, and checks protected frames, prototype hovers, links and quoted text in the messages, the job records, and edits by others.
 - **Both ways:** every comment must be done as asked, and every change in Figma must belong to a comment or plan item; anything else is flagged as an unrequested change.
 - **Messages:** the client message may only claim what's true in Figma, with the right prototype links and no internal details.
@@ -244,7 +244,9 @@ Every agency has `clients/<agency>/client.md`, and every project has a `<project
 | Network or dynamic code in a Figma script (fetch, XHR, eval…) | Blocked |
 | Deleting pages or the document | Blocked |
 | Any node deletion, detaching instances, flattening, editing a main component, new Figma file or page, variable or style edits, plugin data, renaming the document | Asks you first |
-| Every allowed write | Logged to `~/.claude/figma-maintainer/figma-audit-log.jsonl` (time, file, agent, description, node IDs) |
+| The file changed after this job's last change (another designer, or you in Figma) | Asks you first: check the frame, then approve |
+| A job changed Figma but QA hasn't run | The turn can't end until QA runs (or you say "skip QA") |
+| Every allowed write | Logged to `~/.claude/figma-maintainer/figma-audit-log.jsonl` (time, file, agent, session, description, node IDs) |
 
 Client comment discovery reads **only Figma's** records from the Mac notification database, read-only. It never reads other apps' notifications, and it never replies to, resolves or deletes comments.
 
@@ -268,6 +270,26 @@ Also covered:
 - untrusted downloads never executed;
 - teaming.rocks and Figma comments are read-only unless you approve a change.
 
+### Live-edit protection and undo point
+- **Live edits:** everyone uses the same Figma account, so others can edit a file while a job runs. Before each Figma edit, the guard compares the file's last change with this job's last change, or its before snapshot. If someone changed the file in between, it **asks you first**. After you approve, the agent re-checks the page before going on.
+- **Undo point:** every before snapshot records the latest saved Figma version, and every report has an **Undo** line.
+  - **Duplicate workflow:** delete the new frame.
+  - **In place:** restore that version from File → Show version history. This also reverts other people's later edits, so the report lists the layers to revert by hand instead.
+- **Resilient Figma calls:** rate limits, Figma server errors and network drops are retried automatically, with waits. Errors say why in plain words (missing scope, not shared, not found). Before after-snapshots and QA, the scripts wait for Figma to finish saving.
+
+### Doctor
+`/figma-maintainer:doctor` checks this Mac's setup in one go and says how to fix each problem:
+- Python and the image library;
+- the session folder links;
+- the Figma token and each scope (including `projects:read`);
+- access to the Mac's Figma notifications and desktop tabs;
+- the INR rate;
+- the plugin version against the latest on GitHub, and that the plugin is enabled;
+- jobs waiting for QA;
+- the Figma connector account.
+
+Run it first on a new Mac, or when something stops working.
+
 ## Slash commands
 | Command | What it does |
 |---|---|
@@ -278,6 +300,7 @@ Also covered:
 | `/figma-maintainer:accessibility-audit <url>` | Read-only: WCAG 2.2 AA |
 | `/figma-maintainer:check-brief <url>` + brief | Read-only: page vs client brief, matches and mismatches |
 | `/figma-maintainer:compare-versions <old> <new>` | Read-only: every change between two frames |
+| `/figma-maintainer:doctor` | Check this Mac's setup and say how to fix each problem |
 | `/figma-maintainer:qa [latest\|job\|links] [since …] [check: …]` | Run the QA check separately on one task, including a designer's manual work |
 | `/figma-maintainer:client-comment [link\|file\|client]` | Find the new client comment, plan the changes, ask you to approve, then apply them |
 | `/figma-maintainer:read-comments <url>` | List the Figma comments, each matched to its layer |
@@ -317,6 +340,11 @@ Files the SOPs don't know yet go to `work/<person>/_unassigned/<file-key>/`. The
 - **Install or update** from the zip, then restart. All SOPs come with it.
 - **SOPs are read-only for them.** A guard blocks edits to SOP files.
 - **When they learn something new** (a client requirement, a correction, a workflow improvement), the agent writes it as a proposal in `~/.claude/figma-maintainer/contributions/`. `/figma-maintainer:contribute` packs those into a zip to send to the SOP manager.
+
+## Release check (SOP manager, before every new version)
+`bash scripts/release_check.sh` compiles every script with this Mac's Python, runs the test suite in `tests/`, checks the JSON files and validates the plugin. Tag a version only when it prints **RELEASE CHECK PASSED**.
+- The tests run offline: no Figma, no token.
+- `tests/prompts.json` holds real prompts, including every one the plugin once misrouted. **Add a case whenever routing gets something wrong.**
 
 ## Updating
 When you get a new zip, unzip it over the same folder, run `/plugin marketplace update e2m-figma`, and restart Claude Code. The new SOPs are live immediately; your session files are untouched.

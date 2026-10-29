@@ -5,11 +5,11 @@ Requires the .master file. Commits any pending changes (SOPs, scripts, agents), 
 version, tags it, updates the local install and writes ~/ClaudeAI/Figma-maintainer.zip.
 Session files (logs, audits, reports, contributions) live outside the plugin and are never shared.
 """
-import json, subprocess, sys
+import json, subprocess, sys, os
 from pathlib import Path
 
 PLUGIN = Path(__file__).resolve().parent.parent
-FM = Path.home() / ".claude" / "figma-maintainer"
+FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer")
 ZIP = PLUGIN.parent / "Figma-maintainer.zip"
 
 

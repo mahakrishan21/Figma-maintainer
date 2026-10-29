@@ -22,7 +22,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cost_report as cr  # noqa: E402
 
-FM = Path.home() / ".claude" / "figma-maintainer"
+FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer")
 LEDGER = FM / "usage-log.jsonl"
 SKIP_AGENTS = {"figma-maintainer:usage-reporter", "usage-reporter"}
 

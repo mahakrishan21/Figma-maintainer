@@ -26,7 +26,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from figma_common import API, link, parse_url, token  # noqa: E402
+from figma_common import FigmaError, get, link, parse_url, token  # noqa: E402
 from proto_link import locate  # noqa: E402
 import workdir  # noqa: E402
 
@@ -39,9 +39,7 @@ NOTES = []
 
 
 def api(path, tok):
-    req = urllib.request.Request(API + path, headers={"X-Figma-Token": tok})
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return json.load(r)
+    return get(path, tok)
 
 
 def norm(s):
@@ -174,9 +172,9 @@ def team_files(tok, teams, refresh=False):
     for t in teams:
         try:
             projects = api(f"/teams/{t}/projects", tok).get("projects", [])
-        except urllib.error.HTTPError as e:
+        except FigmaError as e:
             NOTES.append("Team file listing skipped: the Figma token lacks the projects:read scope (make a new token with it)."
-                         if e.code == 403 else f"Team file listing failed (HTTP {e.code}).")
+                         if e.status == 403 else f"Team file listing failed ({e}).")
             return []
         except Exception as e:
             NOTES.append(f"Team file listing failed ({e}).")
@@ -352,8 +350,8 @@ def client_for(key, folder):
 def build_file(key, name, how, tok, files, state, comments=None, notified=(), notifs=(), window_days=2, since=None):
     try:
         comments = comments if comments is not None else api(f"/files/{key}/comments?as_md=true", tok)["comments"]
-    except urllib.error.HTTPError as e:
-        return {"file_key": key, "file_name": name, "error": f"can't read comments (HTTP {e.code}); is the file shared with our Figma account?"}
+    except FigmaError as e:
+        return {"file_key": key, "file_name": name, "error": f"can't read comments: {e}"}
     meta = file_meta(key, tok, files.meta_cache)
     st = state["files"].get(key, {})
     threads, older, cutoff = threads_for(key, comments, tok, set(notified), st, window_days, since)
@@ -395,7 +393,7 @@ def from_notifications(a, tok, files, state):
         for score, e in cands[:4]:
             try:
                 comments = api(f"/files/{e['key']}/comments?as_md=true", tok)["comments"]
-            except urllib.error.HTTPError:
+            except FigmaError:
                 continue
             hits = [(n, match_notification(n, comments)) for n in ns]
             ids = [h[1]["id"] for _, h in hits if h]

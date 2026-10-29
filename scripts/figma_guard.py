@@ -8,6 +8,8 @@ Blocks or escalates Figma MCP writes that break the team's security rules:
   DENY  - deleting pages or the document
   ASK   - creating new Figma files or pages, editing variables/styles (shared design tokens),
           bulk deletes inside loops, plugin data/client storage, renaming the document
+  ASK   - the file changed after this job's last change or its before snapshot (someone else, or a person in
+          Figma, edited it): check the target frame first (live-edit protection)
 Every Figma write that passes is appended to ~/.claude/figma-maintainer/figma-audit-log.jsonl.
 """
 import json, os, re, sys
@@ -16,7 +18,7 @@ from fm_scope import is_fm_agent, session_used_plugin  # noqa: E402
 from datetime import datetime, timezone
 from pathlib import Path
 
-FM = Path.home() / ".claude" / "figma-maintainer"
+FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer")
 READ_ONLY_AGENTS = ("consistency-auditor", "content-auditor", "accessibility-auditor", "usage-reporter", "client-comments", "qa-checker")
 
 
@@ -26,7 +28,19 @@ def out(decision, reason):
     sys.exit(0)
 
 
+CTX = {}  # session and agent id of the current hook call, added to every log record
+
+
+def session_of(hook):
+    """Main session id: subagent transcripts live in <session>/subagents/agent-<id>.jsonl."""
+    tp = hook.get("transcript_path") or ""
+    if "/subagents/" in tp:
+        return Path(tp).parent.parent.name
+    return Path(tp).stem if tp else (hook.get("session_id") or "")
+
+
 def log(rec):
+    rec = dict(rec, **{k: v for k, v in CTX.items() if v})
     try:
         FM.mkdir(parents=True, exist_ok=True)
         with open(FM / "figma-audit-log.jsonl", "a") as f:
@@ -116,11 +130,74 @@ def node_ids(code):
     return sorted(set(re.findall(r"""getNodeByIdAsync\(\s*['"`]([0-9I;:]+)['"`]""", code)))[:40]
 
 
+LIVE_EDIT_GRACE = 120  # seconds: Figma's save time for our own writes
+
+
+def _ts(s):
+    return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+
+
+def live_edit_baseline(key):
+    """Later of: this file's newest before snapshot (project folder) and its last completed write (audit log), within 12 h."""
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    cands = []
+    try:
+        import workdir
+        r = workdir.resolve_key(key) or ("_unassigned", key)
+        snaps = workdir.FM / "work" / workdir.person() / r[0] / r[1] / "snapshots"
+        for f in sorted(snaps.glob("*before*.json"), key=lambda f: f.stat().st_mtime, reverse=True)[:6]:
+            try:
+                d = json.loads(f.read_text())
+            except Exception:
+                continue
+            if d.get("file") == key:
+                cands.append(_ts(d["taken_at"]) if d.get("taken_at") else datetime.fromtimestamp(f.stat().st_mtime, timezone.utc))
+                break
+    except Exception:
+        pass
+    lf = FM / "figma-audit-log.jsonl"
+    if lf.exists():
+        for line in lf.read_text(errors="ignore").splitlines()[-3000:]:
+            try:
+                rec = json.loads(line)
+            except Exception:
+                continue
+            if rec.get("fileKey") == key and str(rec.get("decision", "")).startswith("completed"):
+                cands.append(_ts(rec["ts"]))
+    cands = [c for c in cands if now - c < timedelta(hours=12)]
+    return max(cands) if cands else None
+
+
+def live_edit_check(key):
+    """None when fine; otherwise the 'ask' message. Never blocks when Figma can't be reached (logged)."""
+    base = live_edit_baseline(key)
+    if not base:
+        return None
+    try:
+        from figma_common import FigmaError, get, token
+        lt = get(f"/files/{key}/meta", token(), retries=0, timeout=10)["file"].get("last_touched_at")
+    except BaseException as e:  # FigmaError is a SystemExit; network problems must not block the job
+        log({"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "fileKey": key, "decision": "live-edit-check-skipped",
+             "why": str(e)[:160]})
+        return None
+    if not lt or (_ts(lt) - base).total_seconds() <= LIVE_EDIT_GRACE:
+        return None
+    from datetime import timedelta
+
+    def ist(t):
+        return (t + timedelta(hours=5, minutes=30)).strftime("%H:%M IST %d %b")
+    return (f"the file changed at {ist(_ts(lt))}, after this job's last change or before-snapshot at {ist(base)}. "
+            "Someone else (or you, in Figma) may have edited it. Check the target frame in Figma before approving; "
+            "after approval the agent re-compares the page with its before snapshot.")
+
+
 def main():
     try:
         hook = json.load(sys.stdin)
     except Exception:
         sys.exit(0)
+    CTX.update({"session": session_of(hook), "agent_id": hook.get("agent_id")})
     if "--post" in sys.argv:  # PostToolUse: record that the call actually ran (after any approval)
         if not (is_fm_agent(agent_type(hook)) or session_used_plugin(hook.get("transcript_path", ""))):
             sys.exit(0)
@@ -189,6 +266,13 @@ def main():
             log({"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "tool": short, "fileKey": key, "agent": who,
                  "description": inp.get("description", "")[:200], "nodes": node_ids(code), "decision": "ask", "why": risky})
             out("ask", "this script " + ", ".join(risky) + ". Confirm it's in scope.")
+
+    if key and is_write(short, code) and os.environ.get("FIGMA_GUARD_LIVE_EDIT", "1") != "0":
+        msg = live_edit_check(key)
+        if msg:
+            log({"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "tool": short, "fileKey": key, "agent": who,
+                 "description": (inp.get("description") or "")[:200], "nodes": node_ids(code), "decision": "ask", "why": ["live edit"]})
+            out("ask", msg)
 
     log({"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "tool": short, "fileKey": key, "agent": who,
          "description": (inp.get("description") or "")[:200], "nodes": node_ids(code),

@@ -30,6 +30,8 @@ Replace `<url>` with a Figma link. Include the node-id to target one frame.
 
 ### Client comments
 - QA runs by itself after every job: a verdict on top of the report, and the client message is held if something is wrong
+- `skip QA` (waive the QA check for the job that just ran)
+- `/figma-maintainer:doctor` (check this Mac's setup: token, scopes, notifications, version)
 - `/figma-maintainer:qa` (newest job) · `/figma-maintainer:qa PIPP` · `/figma-maintainer:qa <old link> <new link>` · `/figma-maintainer:qa <link> since 2026-10-29 14:00 check: …` (QA on its own, also for manual work)
 - `Use figma-maintainer: I got a client comment` (finds it from Figma's notifications, plans it, asks you to approve, then applies it)
 - `/figma-maintainer:client-comment PIPP horticulture` (same, for a named file or client)

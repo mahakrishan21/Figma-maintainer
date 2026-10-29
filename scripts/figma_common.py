@@ -1,11 +1,67 @@
-"""Shared helpers for the read-only Figma audit scripts (REST API only)."""
-import json, os, re, sys, urllib.error, urllib.parse, urllib.request
+"""Shared helpers for the Figma REST scripts (read-only).
+
+get() retries rate limits (429, honouring Retry-After), Figma server errors (5xx) and network errors with
+backoff, and fails with a FigmaError (a SystemExit, so scripts stop with a clear message) that says why.
+Test hooks: FIGMA_FIXTURES=<dir> serves responses from <dir>/index.json (API path → file) without network;
+FIGMA_RECORD=<dir> saves live responses there. FIGMA_MAINTAINER_HOME overrides ~/.claude/figma-maintainer.
+"""
+import hashlib, json, os, re, socket, sys, time, urllib.error, urllib.parse, urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 API = "https://api.figma.com/v1"
+FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer")
+RETRY_STATUS = (429, 500, 502, 503, 504)
+WHY = {
+    400: "Figma rejected the request (bad node id or parameter)",
+    401: "the Figma token is invalid or expired: make a new one and store it in the Keychain",
+    403: "no access: the token lacks the scope this needs, or the file isn't shared with the token's Figma account",
+    404: "not found, or not shared with the token's Figma account",
+    429: "Figma's rate limit: wait a few minutes and try again",
+}
+
+
+class FigmaError(SystemExit):
+    """A Figma API failure. Subclasses SystemExit, so an uncaught one stops the script with this message."""
+
+    def __init__(self, status, path, detail=""):
+        self.status, self.path = status, path
+        why = WHY.get(status) or ("a Figma server problem: try again shortly" if status >= 500 else
+                                  "network problem: check the connection" if status == 0 else "unexpected error")
+        super().__init__(f"Figma API {status or 'network error'} for {path.split('?')[0]}: {why}." + (f" ({detail[:160]})" if detail else ""))
+
+
+def _fixture(path):
+    d = Path(os.environ["FIGMA_FIXTURES"])
+    idx = json.loads((d / "index.json").read_text()) if (d / "index.json").exists() else {}
+    hit = idx.get(path)
+    if hit is None:  # tolerate query order: match on the path plus sorted query
+        u = urllib.parse.urlparse(path)
+        key = u.path + "?" + "&".join(sorted(u.query.split("&"))) if u.query else u.path
+        for k, v in idx.items():
+            ku = urllib.parse.urlparse(k)
+            if (ku.path + "?" + "&".join(sorted(ku.query.split("&"))) if ku.query else ku.path) == key:
+                hit = v
+                break
+    if hit is None:
+        raise FigmaError(404, path, "no fixture")
+    if isinstance(hit, dict) and "status" in hit:
+        raise FigmaError(hit["status"], path, "fixture error")
+    return json.loads((d / hit).read_text())
+
+
+def _record(path, data):
+    d = Path(os.environ["FIGMA_RECORD"]); d.mkdir(parents=True, exist_ok=True)
+    name = hashlib.sha1(path.encode()).hexdigest()[:16] + ".json"
+    (d / name).write_text(json.dumps(data))
+    idx = json.loads((d / "index.json").read_text()) if (d / "index.json").exists() else {}
+    idx[path] = name
+    (d / "index.json").write_text(json.dumps(idx, indent=1))
 
 
 def token():
+    if os.environ.get("FIGMA_FIXTURES"):
+        return "fixture-token"
     t = os.environ.get("FIGMA_TOKEN", "").strip()
     if t:
         return t
@@ -18,7 +74,7 @@ def token():
     except Exception:
         pass
     home = Path.home()
-    f = home / ".claude/figma-maintainer/figma-token"
+    f = FM / "figma-token"
     if f.is_file() and f.read_text().strip():
         return f.read_text().strip()
     for rc in (".zshrc", ".zprofile", ".bashrc", ".bash_profile"):
@@ -33,13 +89,55 @@ def token():
     sys.exit("No Figma token found. Set FIGMA_TOKEN (Figma > Settings > Security > Personal access tokens; read access to File content).")
 
 
-def get(path, tok):
-    req = urllib.request.Request(API + path, headers={"X-Figma-Token": tok})
-    try:
-        with urllib.request.urlopen(req, timeout=180) as r:
-            return json.load(r)
-    except urllib.error.HTTPError as e:
-        sys.exit(f"Figma API {e.code} for {path.split('?')[0]}: {e.read()[:200].decode(errors='ignore')}")
+def get(path, tok, retries=4, timeout=180):
+    """GET a Figma REST path ('/files/…'). Retries 429/5xx/network errors with backoff; raises FigmaError."""
+    if os.environ.get("FIGMA_FIXTURES"):
+        return _fixture(path)
+    url = path if path.startswith("http") else API + path
+    for attempt in range(retries + 1):
+        req = urllib.request.Request(url, headers={"X-Figma-Token": tok})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                data = json.load(r)
+            if os.environ.get("FIGMA_RECORD"):
+                _record(path, data)
+            return data
+        except urllib.error.HTTPError as e:
+            body = e.read()[:300].decode(errors="ignore")
+            if e.code in RETRY_STATUS and attempt < retries:
+                ra = (e.headers or {}).get("Retry-After") if hasattr(e, "headers") else None
+                wait = int(ra) if ra and str(ra).isdigit() else 2 ** (attempt + 1)
+                time.sleep(min(wait, 60))
+                continue
+            raise FigmaError(e.code, path, body)
+        except (urllib.error.URLError, socket.timeout, TimeoutError, ConnectionError) as e:
+            if attempt < retries:
+                time.sleep(2 ** (attempt + 1))
+                continue
+            raise FigmaError(0, path, str(getattr(e, "reason", e)))
+
+
+def wait_saved(key, after_iso, tok, max_wait=30):
+    """Wait until Figma reports the file saved at or after `after_iso` (REST reads lag edits slightly).
+    Returns True when saved, False on timeout."""
+    def ts(s):
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    target = ts(after_iso)
+    end = time.time() + max_wait
+    while True:
+        try:
+            lt = get(f"/files/{key}/meta", tok, retries=1, timeout=15)["file"].get("last_touched_at")
+            if lt and ts(lt) >= target:
+                return True
+        except FigmaError:
+            return False
+        if time.time() >= end:
+            return False
+        time.sleep(3)
+
+
+def now_iso():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def parse_url(url):

@@ -14,11 +14,11 @@ Agency/project come from the plugin SOPs (clients/): a project file (<agency>/<p
 "### Job N: <Project>" entry in a task SOP that mentions the file key. Unknown files go to
 _unassigned/<file-key>/ until the agency is known. Folders that already exist are reused as-is.
 """
-import argparse, json, re, sys
+import argparse, json, re, sys, os
 from datetime import date
 from pathlib import Path
 
-FM = Path.home() / ".claude" / "figma-maintainer"
+FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer")
 SUBDIRS = ("snapshots", "comments", "audits", "reports", "assets", "slack", "jobs")
 
 PROJECT_TEMPLATE = """# {agency} › {project} — project context

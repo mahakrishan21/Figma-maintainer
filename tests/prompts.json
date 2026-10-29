@@ -1,0 +1,42 @@
+[
+  {"prompt": "Use figma-maintainer: I got a client comment", "expect": ["route", "qa-note"]},
+  {"prompt": "figma maintainer, new client comments on PIPP horticulture", "expect": ["route"]},
+  {"prompt": "Use figma-maintainer: the client left a comment on the LAUNDRO LAB file", "expect": ["route"]},
+  {"prompt": "I have a new client comment", "session": true, "expect": ["route"]},
+  {"prompt": "got another client comment on kayben", "session": true, "expect": ["route"]},
+
+  {"note": "real misfire 2026-10-29: a QA feature request", "prompt": "Let build agent after who cross check with client comment with wors has done with agent. it kind of QA agent. first plan it from every POV .", "session": true, "expect": ["not:route", "not:gate"]},
+  {"prompt": "Use figma-maintainer: build the new client comment agent feature", "expect": ["not:route"]},
+  {"note": "a long feature spec mentioning the phrase late", "prompt": "## Create a Client Comment Automation Agent\nAdd a new agent to the figma maintainer plugin. It should read Figma notifications, find the file, page and frame, analyse the comment against the SOPs, prepare a plan, ask for approval and hand over to the existing agent. It must store everything in the project folder and keep revision history, and it must never change the design before approval. The workflow starts when the user says they received a client comment.", "expect": ["not:route"]},
+  {"prompt": "Use figma-maintainer: I don't have any client comments yet, just update the footer on https://www.figma.com/design/jUau2sA38TBr0R2HjR75HE/x?node-id=1-2, no new images", "expect": ["not:route", "gate-source"]},
+  {"prompt": "Use figma-maintainer: the qa agent should check against the client comments", "expect": ["not:route"]},
+
+  {"note": "real misfire: background task notification", "prompt": "<task-notification>\n<task-id>x</task-id> figma-maintainer Consistency Audit Contractor Dynamics done</task-notification>", "session": true, "expect": ["silent"]},
+  {"note": "real misfire: system notification", "prompt": "[SYSTEM NOTIFICATION - NOT USER INPUT] background agent figma maintainer finished: an action rooted in many projects", "session": true, "expect": ["silent"]},
+  {"prompt": "Another Claude session sent a message:\n<agent-message from=\"x\">figma-maintainer report: Consistency Audit</agent-message>", "session": true, "expect": ["silent"]},
+  {"prompt": "can you check why the figma maintainer plugin hook fired on that message", "expect": ["not:gate", "not:route"]},
+  {"prompt": "what new added in plugin ?", "session": true, "expect": ["not:gate", "not:route"]},
+  {"prompt": "https://www.figma.com/design/jUau2sA38TBr0R2HjR75HE/x?node-id=1-2 what is this", "expect": ["silent"]},
+
+  {"prompt": "/figma-maintainer:client-comment", "expect": ["silent"]},
+  {"prompt": "/figma-maintainer:qa https://www.figma.com/design/MmrRKaECuipWLapclqXSfy/LAUNDRO-LAB?node-id=525-2288", "expect": ["silent"]},
+  {"prompt": "/figma-maintainer:qa latest", "expect": ["silent"]},
+  {"prompt": "/figma-maintainer:doctor", "expect": ["not:gate", "not:route"]},
+
+  {"prompt": "Use figma-maintainer: update the hero heading on https://www.figma.com/design/jUau2sA38TBr0R2HjR75HE/x?node-id=1-2, no new images", "expect": ["client:lions-share-digital", "gate-source", "qa-note"]},
+  {"prompt": "Use figma-maintainer: apply comments https://www.figma.com/design/jUau2sA38TBr0R2HjR75HE/x?node-id=1-2", "expect": ["client:lions-share-digital", "gate-ask"]},
+  {"prompt": "Use figma-maintainer: Lasso up - update Meeks Electrical homepage hero", "expect": ["client:lasso-up", "sop-image:Adobe Stock"]},
+  {"prompt": "Use figma-maintainer: make the mobile version of https://www.figma.com/design/UOX5VAS8ibgMhAGWGM08Yf/x?node-id=1-2", "expect": ["client:digital-drive", "gate-source"]},
+
+  {"note": "typo suggestions", "prompt": "Use figma-maintainer: update the hero on the Laso up homepage, no new images", "expect": ["suggest:lasso-up"]},
+  {"prompt": "Use figma-maintainer: Rooted Desing about page copy fix, no new images", "expect": ["suggest:rooted-design"]},
+  {"note": "real misfire: everyday phrases suggested clients", "prompt": "Use figma-maintainer: we need an action plan rooted in many projects for the target page, no new images", "expect": ["noclient"]},
+
+  {"prompt": "Use figma-maintainer: consistency audit of https://www.figma.com/design/jUau2sA38TBr0R2HjR75HE/x?node-id=1-2", "expect": ["audit"]},
+  {"prompt": "Use figma-maintainer: content audit and accessibility audit https://www.figma.com/design/jUau2sA38TBr0R2HjR75HE/x?node-id=1-2", "expect": ["audit"]},
+  {"prompt": "give me slack message", "session": true, "expect": ["slack"]},
+
+  {"prompt": "skip QA", "session": true, "expect": ["skipqa"]},
+  {"prompt": "ok, no QA for this one", "session": true, "expect": ["skipqa"]},
+  {"prompt": "skip qa", "expect": ["silent"]}
+]

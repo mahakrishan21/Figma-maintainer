@@ -26,7 +26,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 # figma-maintainer: the team-editable copy wins over the bundled one
-_USER_PRICING = Path.home() / ".claude" / "figma-maintainer" / "pricing.json"
+_USER_PRICING = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer") / "pricing.json"
 PRICING_FILE = _USER_PRICING if _USER_PRICING.exists() else HERE.parent / "seed" / "pricing.json"
 
 

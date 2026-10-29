@@ -29,41 +29,8 @@ MAX_EX = 5
 
 
 # ---------- API ----------
-def token():
-    t = os.environ.get("FIGMA_TOKEN", "").strip()
-    if t:
-        return t
-    try:  # macOS Keychain (preferred over plain-text files): security add-generic-password -s figma-maintainer -a FIGMA_TOKEN -w
-        import subprocess
-        r = subprocess.run(["security", "find-generic-password", "-s", "figma-maintainer", "-a", "FIGMA_TOKEN", "-w"],
-                           capture_output=True, text=True, timeout=10)
-        if r.returncode == 0 and r.stdout.strip():
-            return r.stdout.strip()
-    except Exception:
-        pass
-    home = Path.home()
-    f = home / ".claude/figma-maintainer/figma-token"
-    if f.is_file() and f.read_text().strip():
-        return f.read_text().strip()
-    for rc in (".zshrc", ".zprofile", ".bashrc", ".bash_profile"):
-        p = home / rc
-        if p.is_file():
-            for line in p.read_text(errors="ignore").splitlines():
-                m = re.match(r"""\s*export\s+FIGMA_TOKEN=["']?([^"'\s#]+)""", line)
-                if m:
-                    t = m.group(1)
-    if t:
-        return t
-    sys.exit("No Figma token found. Set FIGMA_TOKEN (Figma > Settings > Security > Personal access tokens; read access to File content).")
-
-
-def get(path, tok):
-    req = urllib.request.Request(API + path, headers={"X-Figma-Token": tok})
-    try:
-        with urllib.request.urlopen(req, timeout=180) as r:
-            return json.load(r)
-    except urllib.error.HTTPError as e:
-        sys.exit(f"Figma API {e.code} for {path.split('?')[0]}: {e.read()[:200].decode(errors='ignore')}")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from figma_common import get, token  # noqa: E402  (shared: retries, clear errors, test fixtures)
 
 
 def parse_url(url):
