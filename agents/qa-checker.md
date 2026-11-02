@@ -74,7 +74,7 @@ You are the QA lead at E2M Solutions. A designer (the figma-maintainer agent) ha
 ## Fix list
 Tag each failing item:
 - **AUTO-FIX:** safe for figma-maintainer to fix in the same output frame, inside the approved plan. For example: planned text missing or wrong, a missing annotation, a wrong or missing link, a message claim to correct. Give the exact node id, the current value, the expected value, and the comment or plan line.
-- **USER:** needs a person. For example: the plan misread the comment, a changed original or scope breach, a missing font (a designer fixes it in the desktop app), a new client reply that changes the request, or anything ambiguous.
+- **USER:** needs a person. For example: the plan misread the comment, a changed original or scope breach, a missing font (the user installs or activates it, then figma-maintainer re-checks and continues), a new client reply that changes the request, or anything ambiguous.
 
 For **message errors**, write the corrected sentence(s) for `client-message.md` and `slack.md`.
 

@@ -1,361 +1,379 @@
 # Figma maintainer (Claude Code plugin)
 
-A Claude Code subagent that works like a senior UI/UX designer making maintenance changes directly in Figma: copy edits, form and field changes, image and video swaps, inner pages built from existing patterns, client-feedback rounds and design audits. It follows each client's SOP notes and remembers your corrections.
+A Claude Code plugin that does Figma maintenance work like a senior UI/UX designer:
+- copy and form changes;
+- image and video swaps;
+- inner pages built from existing patterns;
+- mobile and tablet versions;
+- component and hover changes;
+- client-comment rounds.
 
-## Before you install
-- Claude Code (CLI, desktop app or VS Code extension).
-- A Figma connection. Use either:
-  - the claude.ai Figma connector (claude.ai → Settings → Connectors → Figma), or
-  - the official Figma plugin: `/plugin install figma@claude-plugins-official`
-- Edit access to the Figma files you want it to change.
-- Python 3 (built into macOS), for reading comments and fetching iStock placeholders.
-- To read Figma comments: a Figma personal access token. In Figma, open Settings → Security → Personal access tokens, then create one with read access to **File content** and **Comments**. Add it to your shell profile, and never paste it into chat:
-  ```bash
-  echo 'export FIGMA_TOKEN=your-token-here' >> ~/.zshrc
-  ```
+It follows each client's SOP and keeps a record of every job. An independent QA agent checks the work before anything goes to the client.
 
-## Install
-> **Hooks load when a session starts.** After installing or updating, restart Claude Code (or reload the VS Code window). Until you do, the guard, the image question and usage logging aren't active.
+> **New to it?** Start with [`ONBOARDING.md`](ONBOARDING.md) (15-minute setup). **Visual guide:** open `docs/figma-maintainer-guide.html` in a browser for the same guide with copy-ready prompts. `docs/figma-maintainer-briefing.html` is the management briefing.
 
-1. Unzip `Figma-maintainer.zip` somewhere permanent, for example `~/ClaudeAI/Figma-maintainer`. Claude Code installs from this folder, so don't delete or move it afterwards.
-2. In Claude Code, run:
+**What's inside**
 
+| Agent | Does | Changes Figma? |
+|---|---|---|
+| `figma-maintainer` | The designer: makes the changes | Yes, within strict guardrails |
+| `client-comments` | Reads a new client comment and writes a plan for your approval | No |
+| `qa-checker` | Checks finished work against the client's comments or your request | No |
+| `consistency-auditor` · `content-auditor` · `accessibility-auditor` | Audits | No |
+| `usage-reporter` | Tokens and cost per task (USD + INR) | No |
+
+---
+
+## 1. Quick start
+1. **Install** (details in [Setup](#9-setup-and-troubleshooting)):
+   ```
+   /plugin marketplace add ~/ClaudeAI/Figma-maintainer
+   /plugin install figma-maintainer@e2m-figma
+   ```
+2. **Restart Claude Code** (or run `/reload-plugins`). Hooks only load at the start of a session.
+3. **Run** `/figma-maintainer:doctor`. It checks your token, Figma access, notifications and plugin version, and tells you what to fix.
+4. **Your first job:**
+   ```
+   Use figma-maintainer: Lasso Up — https://www.figma.com/design/<file>/…?node-id=12-345 — change the hero heading to "…", no new images
+   ```
+5. **Read the result:** QA verdict, report, Slack update and client message.
+
+---
+
+## 2. How to prompt
+
+### The pattern
 ```
-/plugin marketplace add ~/ClaudeAI/Figma-maintainer
-/plugin install figma-maintainer@e2m-figma
+Use figma-maintainer: <client> — <Figma link with node-id> — <what to change> — images: <source>
 ```
-
-3. Restart Claude Code, or open a new session.
-
-## Where things live
-**The plugin is the single source of truth.** Every client SOP, task SOP, project note, the playbook and the system files ship inside it, in `knowledge/`. One **SOP manager** maintains them in git and shares new plugin versions. Co-workers get every new and updated SOP just by updating the plugin. There's no separate SOP sync.
-
-| Location | Holds |
+| Part | Why it matters |
 |---|---|
-| `knowledge/clients/` | `_index.md` (every agency and its projects), `<agency>/client.md` (agency SOP), `<agency>/task-*.md` (recurring task SOPs), `<agency>/<project>.md` (project notes), and `_template/` (client, project, task and contribution templates) |
-| `knowledge/playbook.md` · `pricing.json` · `cost-config.json` | Team-wide Figma rules, model prices, currency settings |
-| `agents/` `commands/` `skills/` `scripts/` `hooks/` | The plugin itself |
-| `~/.claude/figma-maintainer/` (per person, never shared) | **Session files**, plus **links** (`clients/`, `playbook.md`…) into the plugin's `knowledge/`, created at each session start |
-| `~/.claude/figma-maintainer/work/<person>/comment-inbox.json` | Which client comments were already found and handled, per Figma file (so they don't come back) |
-| `~/.claude/figma-maintainer/work/<person>/<agency>/<project>/` | **All work for one project:** `job-log.md`, `snapshots/`, `comments/`, `audits/`, `reports/`, `assets/` (downloads), `slack/`, `figma-calls.jsonl`, `usage.jsonl`. Created automatically the first time you work on that project; reused afterwards |
+| `Use figma-maintainer:` | Switches the plugin on. Without it, a Figma link alone does nothing (other plugins use Figma links too). Later prompts in the same session keep using it. |
+| **Client** (agency or project) | Loads that client's SOP automatically: image source, delivery account, naming, rules. A typo gets a quick "Which client is this for?" with the closest names. |
+| **Figma link with `node-id`** | The scope. Only the frame or section in the link is changed, never the rest of the page. Right-click the frame in Figma → Copy link. |
+| **What to change** | Paste the client's exact words or email. Say "don't change the copy" when the copy must stay word for word. |
+| **Images** | `images: iStock` / `Adobe Stock` / `AI-generated` / `client: <link>` / `@assets/folder/` / `no new images`. Naming it skips the image question. If the client's SOP sets a source, it's used automatically and shown to you. |
 
-## When it's active (isolation from other plugins)
-figma-maintainer only acts on **Figma maintenance work**. Its hooks stay silent in website builds, other plugins' sessions and general chat. It's active when:
-- your prompt names it (`Use figma-maintainer: …`, "figma maintainer") or uses a `/figma-maintainer:` command;
-- the session has already used a figma-maintainer agent or command (so "give me slack message" or "Consistency Audit" work later in the same session);
+### Examples
+| You want to… | Prompt |
+|---|---|
+| Edit copy | `Use figma-maintainer: KHL — <url> — replace the hero text with: "…" — no new images` |
+| Apply a client email | `Use figma-maintainer: LSD — <url> — apply this feedback: <paste the email>` |
+| Handle a new Figma comment | `Use figma-maintainer: I got a client comment` (no link needed) |
+| Apply comments on a frame | `/figma-maintainer:apply-comments <url>` |
+| Build an inner page | `Use figma-maintainer: KHL — <url> — build the About page using the Founding Families layout — images: iStock` |
+| Make mobile / tablet | `Use figma-maintainer: <url> — make the mobile version` (or `/figma-maintainer:make-responsive <url> both`) |
+| Change a hover or state | `Use figma-maintainer: <url> — make the primary button hover darker using the existing colour styles` |
+| Use client photos | `… — use these photos: <Dropbox/Drive link>` or `… — hero: @assets/hero.jpg` |
+| Use client copy from a doc | `… — copy is in <Google Doc link>, use it word for word` |
+| Audit, no changes | `Use figma-maintainer: Consistency Audit <url>` (also Content / Accessibility Audit) |
+| Check against a brief | `/figma-maintainer:check-brief <url>`, then paste the brief |
+| Compare two versions | `/figma-maintainer:compare-versions <old url> <new url>` |
+| QA a job again, or a designer's manual work | `/figma-maintainer:qa PIPP` or `/figma-maintainer:qa <link> since 2026-10-29 14:00` |
+| Slack text / cost | `give me slack message` · `/figma-maintainer:cost-report session` |
+| Teach it a rule | `figma-maintainer: next time, KHL buttons are always full width in forms` |
+| Skip QA once | `skip QA` |
 
-It runs only when you name it in your prompt ("Use figma-maintainer: …") or run a `/figma-maintainer:` command; after that, follow-ups in the same session keep using it. Having the plugin installed and enabled is not enough. A Figma link or an audit request on its own doesn't activate it, because other plugins (like the website generator's Figma import) use Figma links too. Its skills and commands can't be picked automatically by Claude, only by you or by its own agents. The Figma write guard and usage logging cover only figma-maintainer agents and sessions.
+`/figma-maintainer:prompts` shows the full cheat sheet in Claude Code.
 
-## Using it
-In any Claude Code session:
+### What it will ask you, and why
+- **"Which client is this for?"** when the client isn't named or recognised. Pick from the closest matches.
+- **"Which image/video source?"** when neither your prompt nor the client SOP says. Answer once; the job starts after that.
+- **Approve this plan?** for client comments: Approve, Approve with changes, or Not now. Nothing changes in Figma before you approve.
+- **Permission prompts from the guard** for risky edits:
+  - deleting layers, editing a main component, a new page or file, variables or styles;
+  - **the file changed while the job was running.**
 
-```
-Use figma-maintainer: <figma URL> — <what to change>
-```
+  Check in Figma, then allow or deny.
+- **"Font needed: Proxima Soft — Regular, Bold (12 layers)"** when the design uses a font Figma can't load. Install or activate it, then say so, and it continues with the real font. It never substitutes a font. You can choose instead to have a designer type it in the desktop app.
+- **Questions in the report** when something is unclear. It never guesses: it finishes the clear parts and asks about the rest.
 
-Examples:
-- `Use figma-maintainer: <url> — apply the client feedback below: …`
-- `Use figma-maintainer: <url> — build the About inner page using the Founding Families layout`
-- `Use figma-maintainer: <url> — audit only, don't change anything`
-- `Use figma-maintainer: <url> — duplicate the latest section as a new version, then …`
+### Tips
+- **Link to the exact frame** (node-id), not the whole file.
+- **One page per prompt**, then run an audit.
+- **Desktop only** unless you say "mobile" or "tablet". "Should be responsive" in a brief isn't a request for frames.
+- **Corrections become rules:** start with `figma-maintainer: next time …`.
 
-### Mobile and tablet versions
-**Desktop only by default.** Tablet and mobile frames are created only when your prompt explicitly asks for them ("make the mobile version", "desktop + mobile"). "Should be responsive" in a brief doesn't create them; the agent offers them at the end instead.
+### What it won't do
+- **No image editing:** no retouching, no removing objects, no new renders. It adds an annotation instead.
+- **No new tablet or mobile frames** unless you ask.
+- **Never edits originals** or the frame the client reviewed; it duplicates them first.
+- **Never edits main components, styles, variables or library pages** unless you ask.
+- **Never substitutes fonts.** A font that won't load is named to you so you can install it.
+- **Never resolves, replies to or deletes Figma comments.**
 
-```
-/figma-maintainer:make-responsive <desktop frame URL> [mobile | tablet | both]
-```
-Or `Use figma-maintainer: <url> — make the mobile and tablet versions`. It follows the team standard in `skills/responsive-from-desktop`:
-- The desktop is the source of truth, and it's never changed.
-- Mobile is 390, tablet is 768, and frames are placed to the right of the desktop.
-- It reuses the file's styles, components and images, and uses Auto Layout.
-- It checks for overflow, overlap, alignment and wrapping afterwards.
+---
 
-Responsive jobs reuse the desktop's images, so the image question is skipped unless you ask for new images.
+## 3. How a job works
+1. **Prompt check.** The hook confirms it's a figma-maintainer job, finds the client and its SOP, and settles the image source (asking if needed).
+2. **Project folder.** `work/<you>/<agency>/<project>/` is found or created. The agent reads `PROJECT.md` (latest frames, client decisions, open items, rounds already applied) and the last job's report, so it continues where the last job ended.
+3. **Inspect.** It takes a screenshot, looks at the structure and takes a **before snapshot** of the page. The snapshot also records the **undo point**: the latest saved Figma version.
+4. **Versioning** (agency rule, every client):
+   - **Work file or blank frame:** edits it directly.
+   - **Current design** (live, approved, or what the client commented on): **duplicates it first** and edits only the copy, named `<Frame> V<n> - <DD Mon YYYY>` and placed below the original.
+   - **Not sure:** asks you.
+5. **Edit.** Every Figma write passes the **guard**. It blocks writes to files you didn't link, network code and page deletion. It asks you before risky edits, or when someone else changed the file mid-job.
+6. **Validate.** It takes screenshots and reads the changes back. An after snapshot shows that nothing outside the target changed. It checks fonts.
+7. **Report.** You get the target, the changes, the protected scope, a checklist (anything unchecked is marked UNVERIFIED), the **Undo** line, questions, a **Slack update**, and a **client message** with prototype links.
+8. **QA (automatic, enforced).** The `qa-checker` agent checks the work independently (see [QA](#5-qa-check)). If it fails, fixable items go back to figma-maintainer **once**, and QA checks again. If it still fails, the client message is **held** and you decide.
+9. **Records and usage.** Everything is saved in the job folder, and `PROJECT.md` is rewritten. A usage line (tokens, cost, time) appears.
 
-### Component, state and interaction changes
-For changes like "the button hover should be darker", "make the dropdown open on click" or "add a disabled state", it reads `skills/components-and-interactions` first. It:
-- maps the component's variants, properties and prototype reactions;
-- counts how many copies of the component the change would affect, and asks whether to change the component everywhere or only these copies when that's unclear;
-- uses the file's existing colour and style tokens, keeps the variant grid complete, and never detaches a copy from its component;
-- reports the before → after for each state and what to click through in Present mode.
+---
 
-You can also use it on its own: `/figma-maintainer:components-and-interactions`.
+## 4. Client comments
 
-### Consistency Audit (read-only)
-Say **"Consistency Audit"**, with a Figma link or after working on a page, or run:
-```
-/figma-maintainer:consistency-audit <figma URL> [all pages | this page | homepage only]
-```
-A separate agent, `consistency-auditor`, compares the homepage, the inner pages and the design system, and **never changes the file**. It checks:
-- **Shared elements:** header, nav and mega menu, footer, buttons, forms, cards and icons.
-- **Styles:** type, colours, spacing, radius, shadows and image treatment.
-- **Layout:** container widths, grids and alignment, plus mobile and tablet frames when they exist.
-- **Design system:** whether text styles, colour styles, variables and components are reused, rather than duplicated or hard-coded.
-
-`scripts/figma_audit.py` collects the evidence through Figma's web API (it needs `FIGMA_TOKEN`). The agent then checks each item visually and leaves out intentional, page-specific differences.
-
-You get a page-by-page report with the element, its current variation, the expected standard, and the recommended correction. It's saved to `~/.claude/figma-maintainer/audits/`. Fixes happen only if you then ask figma-maintainer to apply them. figma-maintainer also offers an audit after it finishes a page.
-
-### Client images and video from your project folder
-Already downloaded them? Put them in the project folder and tag them in your request:
-```
-Use figma-maintainer: <figma URL> — use @assets/khl-photos/ for the hero and "Why Join" images
-Use figma-maintainer: <figma URL> — hero: @assets/hero.jpg, about: @assets/team.jpg
-```
-Tagged files and folders (searched inside, subfolders included) count as the image source, so there's no question. Your originals are never moved or changed; it works from resized copies. Name a slot next to a file and it uses that file there.
-
-### Client copy from Google Docs, Sheets and Slides
-Paste the link to a shared copy document. `scripts/fetch_doc.py` saves:
-- **Docs:** every tab as Markdown (headings and bold kept), plus plain text that the agent uses for word-for-word copy checks;
-- **Sheets:** CSV;
-- **Slides:** text plus PDF.
-
-All of it goes into the project folder. Private files get a clear "not shared publicly" message.
-
-### Name the client in every prompt
-Start with the client: `Use figma-maintainer: Lasso Up — …`. A typo like "Lasso Upp" or "Contracter Dynamix" gets a quick question, *"Which client is this for?"*, with the closest matches. Once the client is confirmed, its image preference (iStock, Adobe Stock, Getty, Shutterstock…) and delivery tool are applied automatically and shown to you.
-
-### Client images and video from links
-Paste a Dropbox (file or folder), Google Drive file, OneDrive or SharePoint, or direct link in your request. That counts as the image source, so there's no question. The agent downloads the files (`scripts/fetch_assets.py`), makes Figma-sized copies (Figma's limit is 4096px) and thumbnails, looks through them, and places the right one in each slot.
-- **Google Drive folders:** public folders are downloaded directly (one subfolder level deep). Private folders need the Google Drive connector.
-- **WeTransfer, Box or private links:** it asks for a public link or a local file instead.
-
-### Client message after every job
-Every job also ends with a **Client message (copy-paste)**, the final comment for the client:
-1. what we've done;
-2. each page: its name, a short note, and the link;
-3. a Note (placeholders, what we need from the client);
-4. "Thank you!".
-
-For Figma work, each page's link is the **Figma prototype link** (`figma.com/proto/…`), built by `scripts/proto_link.py` from the frames that changed, never the design or page link.
-
-Set a client's greeting ("Hi Jesse," / "Dear Sir,") in their `client.md` §8. To write one on demand, run `/figma-maintainer:client-message [extra notes]`.
-
-### Slack update after every job
-Every job and audit ends with a short **Slack update (copy-paste)** block:
-- what changed, as bullets
-- the **Updated: <link>**
-- **Questions for client:** images or video still needed, missing fonts, missing content or links, decisions
-
-### Content Audit and Accessibility Audit (read-only)
-Say **"Content Audit"** or **"Accessibility Audit"** (or "proofread", "WCAG check"), or run `/figma-maintainer:content-audit <url>` or `/figma-maintainer:accessibility-audit <url>`. Like the Consistency Audit, they never change the file.
-- **Content:** spelling, grammar, punctuation, capitalisation, CTA wording, tone and client copy rules, banned words, placeholder text, and facts that must match (names, phone numbers, years, prices). Uses `scripts/figma_content.py`.
-- **Accessibility (WCAG 2.2 AA):** contrast with passing alternative colours, text size, tap and click targets, form labels, focus, hover and disabled states, colour-only meaning, text over images, and alt-text and annotation notes for developers. Uses `scripts/figma_a11y.py`.
-
-You can ask for several audits at once, for example "Consistency Audit and Accessibility Audit"; they run in parallel. Reports are saved to `~/.claude/figma-maintainer/audits/`.
-
-### Token usage and cost (USD + INR)
-Built from the design-cost-report kit. The counting is done by script from Claude Code's own logs, so it costs no tokens.
-- **Automatic:** when any agent task finishes, a usage line appears, for example "KHL — Design KHL Referral page — 255K tokens (+10.1M cached), $3.35, 23 min, 74 tool calls". It's also added to `~/.claude/figma-maintainer/usage-log.jsonl`.
-- **"give me slack message":** you get the Slack update, then a separate **Usage (internal)** block for the session. Token and cost numbers never go in the client-facing message.
-- **Ask** "how many tokens" or "cost report", or run `/figma-maintainer:cost-report [latest | session | client KHL since 2026-10-01 | html]`. The `usage-reporter` agent (Haiku) answers. HTML reports are only made when you ask.
-- **Settings:**
-  - `~/.claude/figma-maintainer/pricing.json`: USD per million tokens, from the kit. Check it against Anthropic's pricing page.
-  - `~/.claude/figma-maintainer/cost-config.json`: currencies and your INR rate (`"fx": {"INR": 84.0}`). The rate is never guessed.
-- "New tokens" means input, cache writes and output. Cached reads are shown separately, because they're cheap re-reads of context. On a Pro or Max plan, the cost is the equivalent API value, not a charge.
-
-### QA check (automatic, after every job)
-When figma-maintainer finishes a job that changed Figma, the read-only **qa-checker** agent checks it before you see the client message. You don't run it; it runs on its own, and it's **enforced**: a hook marks the job "QA pending", and the session can't finish its turn until QA has run (it asks Claude once, then warns). Say **"skip QA"** to waive it for a job.
-- **Independent:** it starts from the client's comments (or your request) and the approved plan, not from the maker's report. It measures Figma with its own evidence: `scripts/figma_qa.py` compares the edited copy with its source layer by layer, takes a pixel diff with before/after crops, and checks protected frames, prototype hovers, links and quoted text in the messages, the job records, and edits by others.
-- **Both ways:** every comment must be done as asked, and every change in Figma must belong to a comment or plan item; anything else is flagged as an unrequested change.
-- **Messages:** the client message may only claim what's true in Figma, with the right prototype links and no internal details.
-- **Verdict:** PASS, PASS WITH NOTES (for example "check the hover in Present mode"), FAIL or INCONCLUSIVE, saved as `jobs/<job>/qa.md` with evidence in `jobs/<job>/qa/`.
-- **On FAIL:** fixable items go back to figma-maintainer **once**, automatically (same frames, no new duplicate), and QA checks again. If it still fails, the client message is **held** and you choose: another fix round, fix it yourself, or accept with an override.
-- **Run it separately, any time:** `/figma-maintainer:qa` checks one task on its own.
-  - `/figma-maintainer:qa` or `latest`: the newest job.
-  - `/figma-maintainer:qa PIPP`: a job by project or name.
-  - `/figma-maintainer:qa <old link> <new link>`: a frame and its new version, against the comments on the old one.
-  - `/figma-maintainer:qa <link> since 2026-10-29 14:00 check: hero says "…"`: work done directly in a frame, including a designer's manual work, compared with Figma's own saved version from before that time.
-
-  Work by figma-maintainer gets the same one automatic fix round. Manual work is only reported; you choose whether figma-maintainer fixes it.
-
-### Client comments, found automatically
-When a client comments, you don't need the link. Just say:
+### Found automatically: "I got a client comment"
 ```
 Use figma-maintainer: I got a client comment
 /figma-maintainer:client-comment [optional: link, file name or client]
 ```
-1. **Find.** `scripts/comment_inbox.py` reads **only Figma's** Mac notifications (read-only): who commented, on which file, the text and the time. It matches the file name to its key from your Figma desktop tabs, our SOPs and project folders, and the team's file list. Then it finds the exact comment thread, its page and frame, and the rest of that file's current round. If there's no notification, it scans recent files, or you give the link.
-2. **Client.** It comes from our SOPs; for new files the Figma project folder suggests it and you confirm.
-3. **Analyse (read-only).** The `client-comments` agent reads `PROJECT.md`, the last job, the client and project SOPs, and the commented frames. It writes `analysis.md` and `plan.md` (every comment, the change, the target frame, the image source, open questions) to `jobs/<date>-client-comment/`.
-4. **Approve.** You see the plan and choose Approve, Approve with changes, or Not now. **Nothing changes in Figma before you approve.**
-5. **Apply.** The approved plan goes to the figma-maintainer agent, which applies it with the usual versioning, guardrails, report, Slack update and client message.
-6. **Records.** Everything stays in the job folder. `PROJECT.md` records the round, and the comments are marked handled, so they don't come back.
+1. **Find.** It reads **only Figma's** Mac notifications (read-only): who commented, the file, the text and the time.
+   - It matches the file name to the file using your Figma desktop tabs, our SOPs and project folders, and the team's file list.
+   - Then it finds the exact comment thread, its page and frame, and the rest of that round.
+   - No notification? It scans recent files, or you give the link or file name.
+2. **Client.** It comes from our SOPs. For a new file, the Figma project folder suggests the client and you confirm.
+3. **Analyse (read-only).** The `client-comments` agent reads the project history, SOPs and frames. It writes `analysis.md` and `plan.md`: each comment, the change, a measurable `Check:` line, the target frame and open questions.
+4. **Approve.** Choose Approve, Approve with changes, or Not now.
+5. **Apply → QA → records.** figma-maintainer applies the approved plan, and QA checks it. The comments are marked handled so they don't come back.
 
-Every commenter counts as the client: our team doesn't comment on its own designs. Finding files by name across the whole team needs a Figma token with the `projects:read` scope. Without it, files you haven't opened recently need the link.
+Every commenter counts as the client: our team doesn't comment on its own designs. To find files you haven't opened recently, the token needs `projects:read` (see [Setup](#9-setup-and-troubleshooting)).
 
-### Client comments in Figma (with a link)
+### With a link
 ```
-/figma-maintainer:read-comments <figma URL>     # list the comments on that frame (read-only)
-/figma-maintainer:apply-comments <figma URL>    # apply them
+/figma-maintainer:read-comments <url>     # list them, matched to their layers (read-only)
+/figma-maintainer:apply-comments <url>    # apply them
 ```
-You can also just say `Use figma-maintainer: apply the comments on <url>`.
+**Latest round only, by default.** Comments are rarely marked resolved, so only the newest round is applied: the latest comment date and up to 2 days before it. If older open comments exist, you're asked: latest only, latest plus older since a date, or all. Image-editing requests are annotated, not done. Approvals are recorded. Unclear comments come back as questions.
 
-It reads the comments pinned to the frame (add `--all-frames` for the whole file) and matches each one to the text or image it points at.
+---
 
-**Latest round only, by default.** Comments are rarely marked resolved, so it applies only the newest round: the latest comment date and up to 2 days before it. When older open comments exist, `/figma-maintainer:apply-comments` asks: latest only (recommended), latest plus older since a date, or all. The report lists older comments it didn't apply.
+## 5. QA check
+**Automatic.** After every figma-maintainer job that changed Figma, `qa-checker` runs before you see the client message, and it's **enforced**:
+- a hook marks the job "QA pending";
+- the session can't finish its turn until QA has run (it nudges once, then only warns);
+- say `skip QA` to waive it for that job.
 
-Then it:
-- applies copy and layout changes in a new version frame when the file works in versions, leaving the commented frame untouched;
-- doesn't do image editing (retouching, removing objects, new renders, mockups that need screenshots the file doesn't have), and annotates it on the image instead;
-- records approvals ("I like this") in the client notes;
-- lists anything unclear as a question.
+**What it checks:**
+- **Independent:** it starts from the client's comments (or your request) and the approved plan, not from the maker's report.
+- **Its own evidence:** `scripts/figma_qa.py` compares the edited copy with its source layer by layer (text, fonts, images, visibility, annotations, interactions, components) and takes a pixel diff with before/after crops. It also checks:
+  - that originals and other frames are unchanged;
+  - prototype hovers;
+  - the links and quoted text in the client message;
+  - the job records;
+  - edits made by other people.
+- **Both ways:** every comment is done as asked, and every change belongs to a comment. Anything extra is flagged.
+- **Messages:** the client message may only claim what's true in Figma: right prototype links, no internal details, nothing unverified described as working.
 
-It reports every comment by number. It never resolves, replies to or deletes comments.
+**Verdict:** PASS · PASS WITH NOTES (e.g. "check the hover in Present mode") · FAIL · INCONCLUSIVE. It's saved as `jobs/<job>/qa.md`, with the evidence in `qa/`.
 
-To correct it, just say so, for example `figma-maintainer: next time, KHL buttons are always full width in forms.` It applies the fix and saves it as a rule.
+**On demand:** `/figma-maintainer:qa` runs QA on one task, separately.
 
-## Client SOPs (automatic)
-Name the agency or project in your prompt, or paste its Figma link, and the agent follows that client's SOP. You never have to say "use the SOP".
-- **Example:** "Lasso up – update Meeks Electrical homepage" follows `clients/lasso-up/client.md`, which says Adobe Stock, always. Images come from Adobe Stock with no question.
-- **Precedence:** your prompt, then the project file, then the agency's `client.md`, then the playbook.
-- **When the SOP has no image source**, the agent asks, with iStock as the suggested default (most agencies use it).
-- **SOPs are never invented.** Rules are added only when you or the client state them, for example "figma-maintainer: Lasso Up always uses Adobe Stock".
-
-### SOP format
-Every agency has `clients/<agency>/client.md`, and every project has a `<project>.md` with the same structure (templates in `clients/_template/`).
-
-| Agency SOP (`client.md`) | Project SOP (`<project>.md`) |
+| Command | Checks |
 |---|---|
-| 1. Overview: teaming name, service lines, team | 1. Project: brand, live site, phase |
-| 2. Contacts and communication | 2. Files and page map, approved originals |
-| 3. Workflow and versioning | 3. **Overrides** of the agency SOP |
-| 4. Design standards: width, breakpoints, fonts, accessibility | 4. Design system: colours, type, components |
-| 5. Content and copy: source, tone, case, CTAs, banned words | 5. Content rules, confirmed form fields |
-| 6. Images and video: **source**, licence, AI, people rules | 6. Asset log |
-| 7. Forms and functionality | 7. Fonts |
-| 8. Handoff and reporting | 8. Open decisions |
-| 9. Hard rules (always / never) | 9. Change log |
-| 10. Rule log (date, rule, source) | |
+| `/figma-maintainer:qa` or `latest` | The newest job |
+| `/figma-maintainer:qa PIPP` | A job by project or name |
+| `/figma-maintainer:qa <old link> <new link>` | The new version against the comments on the old one |
+| `/figma-maintainer:qa <link> since 2026-10-29 14:00 check: hero says "…"` | Work done directly in a frame, including a designer's manual work, compared with Figma's saved version from before that time |
 
-- **Task SOPs** (`clients/<agency>/task-<name>.md`) hold a reusable method for a recurring task type, for example `digital-drive/task-responsive-designs.md`. They apply to every project of that agency and list each job under "Jobs". Template: `clients/_template/task.md`.
-- `<not set>` means unknown: the agent asks, and never guesses.
-- Fill one in by saying it, for example `figma-maintainer: Lasso Up desktop frames are 1920`, or with `/figma-maintainer:sop Lasso up — desktop width 1920`.
-- `/figma-maintainer:sop <name>` on its own shows what's set and what's missing.
+Work done by figma-maintainer gets one automatic fix round. Manual work is only reported; you choose what happens next.
 
-## Security guardrails
-`skills/figma-guardrails` holds the written rules. `scripts/figma_guard.py` **enforces** them on every Figma write:
-| Check | Result |
+---
+
+## 6. Audits and checks (read-only, never change the file)
+| Say or run | Checks |
 |---|---|
-| Write by an auditor, usage-reporter, the client-comments analyst or the QA checker | Blocked |
-| Figma file not linked in this task (your recent messages or the agent's brief) | Blocked |
-| Task instructions can't be read to confirm the file | Blocked (fails closed) |
-| Network or dynamic code in a Figma script (fetch, XHR, eval…) | Blocked |
-| Deleting pages or the document | Blocked |
-| Any node deletion, detaching instances, flattening, editing a main component, new Figma file or page, variable or style edits, plugin data, renaming the document | Asks you first |
-| The file changed after this job's last change (another designer, or you in Figma) | Asks you first: check the frame, then approve |
-| A job changed Figma but QA hasn't run | The turn can't end until QA runs (or you say "skip QA") |
-| Every allowed write | Logged to `~/.claude/figma-maintainer/figma-audit-log.jsonl` (time, file, agent, session, description, node IDs) |
+| `Consistency Audit <url>` · `/figma-maintainer:consistency-audit` | Homepage vs inner pages vs design system: header, footer, buttons, forms, cards, type, colours, spacing, grids, responsive frames |
+| `Content Audit <url>` · `/figma-maintainer:content-audit` | Spelling, grammar, CTAs, tone, banned words, placeholder text, facts (names, phones, prices) |
+| `Accessibility Audit <url>` · `/figma-maintainer:accessibility-audit` | WCAG 2.2 AA: contrast (with passing colours), text size, targets, labels, focus/hover/disabled states, alt-text notes |
+| `/figma-maintainer:check-brief <url>` + brief | What matches the client brief and what doesn't |
+| `/figma-maintainer:compare-versions <old> <new>` | Every change between two frames |
 
-Client comment discovery reads **only Figma's** records from the Mac notification database, read-only. It never reads other apps' notifications, and it never replies to, resolves or deletes comments.
+Ask for several audits at once and they run in parallel. Reports go to the project folder (`audits/`). Fixes happen only when you ask, for example `apply rows 1–5` or `fix all high`.
 
-Every job also follows a **7-step safe procedure**: Identify → Inspect → Confirm → Plan → Back up and execute → Validate → Report.
-- **Back up:** client-reviewed frames are duplicated per the SOP. For big in-place changes, the agent asks first (duplicate, or you save a named version). Figma's version-history API isn't available to the agent.
-- **Validate:** `scripts/figma_snapshot.py` takes a read-only snapshot of the page before and after, and reports **any change outside the authorized frames**.
-- **Report:** Target, Changes, Protected scope, the 9-point validation checklist (anything not checked is marked UNVERIFIED), and pending approvals.
-- **Minimum change:** issues outside the request are reported, not fixed. Fonts are never substituted. When unsure, the agent doesn't guess: it finishes the clear parts and returns the question.
+---
 
-**Token storage:** prefer the macOS Keychain over a plain-text shell profile:
-```bash
-security add-generic-password -s figma-maintainer -a FIGMA_TOKEN -w   # prompts for the token
+## 7. Images, video and client copy
+- **Asked first.** Every client sources media differently. If neither the prompt nor the SOP says, you're asked before anything starts, with the client's usual source marked recommended. This applies to video too.
+- **Links:** Dropbox (file or folder), Google Drive file or public folder, OneDrive or SharePoint, or a direct link. `scripts/fetch_assets.py` downloads them, makes Figma-sized copies (4096 px max) and thumbnails, and places the right one in each slot. Private links: it asks for a public link or local files.
+- **Local files:** tag them, e.g. `@assets/khl-photos/` or `hero: @assets/hero.jpg`. Originals are never moved or changed.
+- **Client copy:** Google Docs (all tabs → Markdown + plain text for word-for-word checks), Sheets (CSV) and Slides (text + PDF) via `scripts/fetch_doc.py`. The file must be shared as "Anyone with the link".
+- **Responsive jobs** reuse the desktop's images, so there's no image question.
+
+---
+
+## 8. What you get, and where it's saved
+
+**After every job:**
+- **Report:** target, changes, protected scope, checklist, **Undo** line, questions, and a QA hand-off.
+- **QA verdict** at the top, and a fix list if anything failed.
+- **Slack update (copy-paste):** what changed, the link, and questions for the client. No costs.
+- **Client message (copy-paste):**
+  - the SOP greeting, if one is set;
+  - each page with a short note and its **prototype link**;
+  - a Note listing what we still need;
+  - "Thank you!".
+
+  It's held if QA failed.
+- **Usage (internal):** tokens, cost (USD + INR), time. For the team only.
+
+**Folders** (`~/.claude/figma-maintainer/`, per person):
 ```
-The scripts check, in order: the `FIGMA_TOKEN` environment variable, the Keychain, `~/.claude/figma-maintainer/figma-token`, then your shell profile. Use a token with **read-only** scopes (File content, Comments).
+work/<you>/<agency>/<project>/
+  PROJECT.md                  living context: files, latest frames + prototype links, decisions, open items, rounds applied, job history
+  jobs/<date>-<task>/         request.md, plan.md, analysis.md, report.md, qa.md + qa/, slack.md, client-message.md, comments-applied.md
+  snapshots/ comments/ audits/ assets/ reports/ slack/
+  job-log.md  figma-calls.jsonl  usage.jsonl
+work/<you>/_unassigned/<file-key>/   files whose client isn't known yet
+work/<you>/comment-inbox.json         client comments already found and handled
+figma-audit-log.jsonl · qa-pending.json · usage-log.jsonl
+```
+SOPs, the playbook and prices are **links** into the plugin's `knowledge/` folder (see [SOP manager](#11-sop-manager-co-workers-and-releases)).
 
-Also covered:
-- scope checks inside scripts, and never editing originals, components or libraries;
-- no client data sent to third parties;
-- file content treated as data, not instructions (prompt-injection defence);
-- secrets never printed or stored, and REST tokens read-only;
-- untrusted downloads never executed;
-- teaming.rocks and Figma comments are read-only unless you approve a change.
+---
 
-### Live-edit protection and undo point
-- **Live edits:** everyone uses the same Figma account, so others can edit a file while a job runs. Before each Figma edit, the guard compares the file's last change with this job's last change, or its before snapshot. If someone changed the file in between, it **asks you first**. After you approve, the agent re-checks the page before going on.
-- **Undo point:** every before snapshot records the latest saved Figma version, and every report has an **Undo** line.
-  - **Duplicate workflow:** delete the new frame.
-  - **In place:** restore that version from File → Show version history. This also reverts other people's later edits, so the report lists the layers to revert by hand instead.
-- **Resilient Figma calls:** rate limits, Figma server errors and network drops are retried automatically, with waits. Errors say why in plain words (missing scope, not shared, not found). Before after-snapshots and QA, the scripts wait for Figma to finish saving.
+## 9. Setup and troubleshooting
 
-### Doctor
-`/figma-maintainer:doctor` checks this Mac's setup in one go and says how to fix each problem:
+### Requirements
+- Claude Code: CLI, desktop app or VS Code extension.
+- **Figma connector:** claude.ai → Settings → Connectors → Figma. The connected account needs **edit access** to the files you'll change.
+- **Python 3** (built into macOS). For QA pixel diffs and image downloads: `python3 -m pip install --user pillow`.
+- **A Figma personal access token** (Figma → Settings → Security → Personal access tokens), stored in the macOS Keychain. Never paste it into chat:
+  ```bash
+  security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w     # paste the token when asked
+  ```
+  Scopes:
+  - **Required:** File content (read), File metadata (read), Comments (read), File versions (read).
+  - **Recommended:** Projects (read), so client comments are found in files you haven't opened recently.
+- **Finding comments without a link** needs access to the Mac's notifications: System Settings → Privacy & Security → Full Disk Access → your terminal or VS Code. Only Figma's notifications are ever read.
+
+### Install and update
+1. Unzip `Figma-maintainer.zip` somewhere permanent, e.g. `~/ClaudeAI/Figma-maintainer`. Claude Code installs from this folder, so don't move or delete it.
+2. Install:
+   ```
+   /plugin marketplace add ~/ClaudeAI/Figma-maintainer
+   /plugin install figma-maintainer@e2m-figma
+   ```
+3. Restart Claude Code (or `/reload-plugins`), then run `/figma-maintainer:doctor`.
+
+**To update:** unzip the new version over the same folder, run `/plugin marketplace update e2m-figma`, and restart. SOPs update with it; your work folders are untouched. The doctor tells you when a newer version is on GitHub.
+
+### When something's wrong
+Run **`/figma-maintainer:doctor`** first. It checks:
 - Python and the image library;
 - the session folder links;
-- the Figma token and each scope (including `projects:read`);
-- access to the Mac's Figma notifications and desktop tabs;
+- the token and every scope;
+- notifications and desktop tabs;
 - the INR rate;
-- the plugin version against the latest on GitHub, and that the plugin is enabled;
+- the plugin version and that it's enabled;
 - jobs waiting for QA;
 - the Figma connector account.
 
-Run it first on a new Mac, or when something stops working.
+| Symptom | Fix |
+|---|---|
+| No image question, no guard, no usage line | The session predates the install or update: restart or `/reload-plugins` |
+| "File … was not linked in this task" | Put the Figma link (with node-id) in your prompt |
+| "Looks like you don't have edit access" | Share the file with edit access to the Figma connector account (doctor shows which one) |
+| "the token lacks the scope …" | Make a new token with the missing scope, then store it with the Keychain command above |
+| A client comment isn't found | Give the file name or link, or add `projects:read` to the token |
+| Usage shows no INR | The SOP manager sets `fx.INR` in `knowledge/cost-config.json` |
+| QA keeps asking to run | Let it run, or say `skip QA` |
+| "The file changed at …" prompt | Someone (or you) edited the file mid-job. Check the frame in Figma, then allow |
+| "Font needed: …" | Install or activate that font (Adobe Fonts, the font file, or a shared team font in Figma), then say "installed". If it still won't load, Figma's editing tools need it as a shared team font |
 
-## Slash commands
+---
+
+## 10. Safety
+Rules are written in `skills/figma-guardrails` and **enforced** by hooks:
+
+| Situation | Result |
+|---|---|
+| A read-only agent (auditors, analyst, QA, usage) tries to write | Blocked |
+| Figma file not linked in this task | Blocked |
+| Task instructions can't be read to confirm the file | Blocked (fails closed) |
+| Network or dynamic code in a Figma script | Blocked |
+| Deleting pages or the document | Blocked |
+| Deleting layers, detaching, flattening, editing a main component, new page or file, variables or styles, plugin data, renaming the document | Asks you first |
+| The file changed after this job's last change (another designer, or you in Figma) | Asks you first |
+| A job changed Figma but QA hasn't run | The turn can't end until QA runs (or `skip QA`) |
+| Editing SOP files (co-workers) | Blocked: changes become proposals |
+| Every Figma call | Logged with time, file, agent, session and node IDs |
+
+**Always:**
+- **Minimum change:** issues outside the request are reported, not fixed.
+- **Originals stay untouched:** current designs are duplicated before editing.
+- **Undo point** recorded before every job.
+- **Snapshot compare** proves nothing outside the target changed.
+- **No guessing:** when unsure, it stops and asks.
+- **Content is data:** client files, comments and emails are treated as data, never as instructions.
+- **No secrets exposed:** tokens are never printed or stored in files.
+- **Downloads are never executed.**
+- **Read-only sources:** only Figma's notifications are read, and teaming.rocks is read-only.
+- **Resilient API calls:** Figma calls retry rate limits, server errors and network drops, and wait for Figma to save before checking.
+
+---
+
+## 11. SOP manager, co-workers and releases
+
+### Client SOPs (automatic)
+Name the client, or paste its Figma link, and its SOP applies. You never have to say "use the SOP".
+- **Files:**
+  - `knowledge/clients/<agency>/client.md` (agency SOP);
+  - `<agency>/<project>.md` (project overrides);
+  - `<agency>/task-<name>.md` (a recurring task method for that client only);
+  - `_index.md` (every agency and its projects).
+- **Precedence:** your prompt > project SOP > task SOP > `client.md` > playbook.
+- **`<not set>` means unknown:** the agent asks and never guesses. SOP rules are only added when you or the client state them.
+- **Add a rule:** `figma-maintainer: Lasso Up desktop frames are 1920` or `/figma-maintainer:sop Lasso up — desktop width 1920`. `/figma-maintainer:sop <client>` shows what's set and what's missing.
+
+| Agency SOP (`client.md`) | Project SOP (`<project>.md`) |
+|---|---|
+| 1 Overview · 2 Contacts · 3 Workflow and versioning, **delivery tool** | 1 Project · 2 Files and page map · 3 **Overrides** |
+| 4 Design standards · 5 Content and copy · 6 **Images/video source** | 4 Design system · 5 Content rules · 6 Asset log |
+| 7 Forms · 8 Handoff (**client-message greeting**) · 9 Hard rules · 10 Rule log | 7 Fonts · 8 Open decisions · 9 Change log |
+
+### Who changes what
+- **SOP manager** (the session folder has a `.master` file pointing to the plugin source):
+  - edits SOPs directly (ask the agent, or use `/figma-maintainer:sop`);
+  - reviews co-workers' proposals with `/figma-maintainer:review-contributions <zip>`;
+  - shares with `/figma-maintainer:share`. It runs the release check, commits, bumps the version, makes an annotated tag, and writes `~/ClaudeAI/Figma-maintainer.zip` from exactly that tagged version. It doesn't push (`git push origin main --tags`) and doesn't touch the plugin install (`/reload-plugins` picks up changes).
+- **Co-workers:** SOPs are read-only. New rules or corrections become proposals in `~/.claude/figma-maintainer/contributions/`. `/figma-maintainer:contribute` zips them for the SOP manager.
+
+### Release check (before every version)
+```bash
+bash scripts/release_check.sh
+```
+It compiles every script with this Mac's Python, runs the offline test suite in `tests/` (no Figma, no token), checks the JSON files and validates the plugin. Tag a version only when it prints **RELEASE CHECK PASSED**. `tests/prompts.json` holds real prompts, including every one the plugin once misrouted: **add a case whenever routing gets something wrong.**
+
+### Task types vs client task configurations
+| Task type (any client) | Generic action | Client configurations |
+|---|---|---|
+| Tablet and mobile from desktop | `/figma-maintainer:make-responsive` | `digital-drive/task-responsive-designs.md` |
+| Client comments | `/figma-maintainer:client-comment` (finds them) · `:apply-comments` (with a link) | none yet |
+| Audits | `/figma-maintainer:*-audit` | none yet |
+| Brief check, version compare | `:check-brief`, `:compare-versions` | none yet |
+
+A client's `task-<name>.md` applies **only to that client**. **Scope is always the frame or section in the link**, never the whole page.
+
+---
+
+## 12. All commands
 | Command | What it does |
 |---|---|
-| `/figma-maintainer:prompts [topic]` | Prompt cheat sheet: responsive, audits, comments, images, components, Slack, cost |
-| `/figma-maintainer:make-responsive <url> [mobile\|tablet\|both]` | Mobile and tablet versions of a desktop frame |
-| `/figma-maintainer:consistency-audit <url>` | Read-only: homepage vs inner pages vs design system |
-| `/figma-maintainer:content-audit <url>` | Read-only: spelling, grammar, CTAs, copy rules |
-| `/figma-maintainer:accessibility-audit <url>` | Read-only: WCAG 2.2 AA |
-| `/figma-maintainer:check-brief <url>` + brief | Read-only: page vs client brief, matches and mismatches |
-| `/figma-maintainer:compare-versions <old> <new>` | Read-only: every change between two frames |
+| `/figma-maintainer:prompts [topic]` | Prompt cheat sheet |
 | `/figma-maintainer:doctor` | Check this Mac's setup and say how to fix each problem |
-| `/figma-maintainer:qa [latest\|job\|links] [since …] [check: …]` | Run the QA check separately on one task, including a designer's manual work |
-| `/figma-maintainer:client-comment [link\|file\|client]` | Find the new client comment, plan the changes, ask you to approve, then apply them |
-| `/figma-maintainer:read-comments <url>` | List the Figma comments, each matched to its layer |
-| `/figma-maintainer:apply-comments <url>` | Apply the comments (except image editing) |
+| `/figma-maintainer:client-comment [link\|file\|client]` | Find a new client comment, plan, ask to approve, apply, QA |
+| `/figma-maintainer:read-comments <url>` | List the comments on a frame, matched to their layers |
+| `/figma-maintainer:apply-comments <url>` | Apply the comments on a frame (latest round) |
+| `/figma-maintainer:qa [latest\|job\|links] [since …] [check: …]` | QA one task on its own, including manual work |
+| `/figma-maintainer:make-responsive <url> [mobile\|tablet\|both]` | Mobile and tablet versions of a desktop frame |
 | `/figma-maintainer:components-and-interactions` | Guide for hover, variant and prototype changes |
-| `/figma-maintainer:slack [task]` | Slack update plus a separate internal usage block |
+| `/figma-maintainer:consistency-audit <url>` | Read-only consistency audit |
+| `/figma-maintainer:content-audit <url>` | Read-only copy audit |
+| `/figma-maintainer:accessibility-audit <url>` | Read-only WCAG 2.2 AA audit |
+| `/figma-maintainer:check-brief <url>` + brief | Page vs client brief |
+| `/figma-maintainer:compare-versions <old> <new>` | Every change between two frames |
+| `/figma-maintainer:client-message [notes]` | Write the client message for the work done |
+| `/figma-maintainer:slack [task]` | Slack update plus an internal usage block |
 | `/figma-maintainer:cost-report [latest\|session\|client X\|html]` | Token usage and cost |
-
-## How it behaves
-- It edits only the frames you point at, or follows the client SOP (for KHL, each revision round goes in a new dated section).
-- It doesn't edit main components, styles, variables or library pages unless you ask.
-- It stops if an original changes unexpectedly, or if the same approach fails twice.
-- It reports what changed (with links), what it checked, what's left and what it learned.
-- **Images and video: asked about first.** Every client sources media differently (iStock, Adobe Stock, AI-generated, client-provided, or existing assets in the file), for video as well as images. If your request doesn't say which to use, Claude asks before starting anything, with the client's usual source marked as recommended, and waits for your answer. To skip the question, say it up front, for example: `… — images: iStock` or `… — copy only, no new images`.
-
-### Project folders (person › client › project)
-At the start of every job the agent runs `scripts/workdir.py` with the Figma link:
-- It finds the agency and project from the SOPs (the project file, or the "Jobs" list in a task SOP).
-- It creates `work/<person>/<agency>/<project>/` **only if it doesn't exist yet**.
-- Snapshots, comment dumps, downloads, audits, reports and Slack text for that job are stored there, along with the project's job log.
-- The Figma call log and usage log also get a per-project copy.
-
-Each project folder also holds:
-- **`PROJECT.md`**, the project's living context: Figma files and latest frames (prototype links), current status, dated client decisions, open items, comment rounds already applied, and job history. The agent **reads it before every job and rewrites it after**, so each new request continues from where the last one ended.
-- **`jobs/<date>-<task>/`**, one folder per job: the exact request (`request.md`), `report.md`, `slack.md`, `client-message.md`, and `comments-applied.md` for comment rounds.
-- **`usage.jsonl`**, which also records each session's ID and transcript location, so an earlier conversation can be found again.
-
-Files the SOPs don't know yet go to `work/<person>/_unassigned/<file-key>/`. The person's name is in `~/.claude/figma-maintainer/.person`, taken from your git name on first run; edit it if you like. `~/.claude/figma-maintainer/job-log.md` is a one-line-per-job index pointing to the project folders.
-
-## SOP manager and co-workers
-**SOP manager** (one person; their session folder has a `.master` file pointing to the plugin source):
-- Adds and updates SOPs directly in the plugin, either by asking the agent or with `/figma-maintainer:sop <client> — <rule>`. Edits land in `knowledge/` in the plugin source.
-- Shares with `/figma-maintainer:share`, which commits, bumps the version, tags it, updates their own install and writes `~/ClaudeAI/Figma-maintainer.zip`.
-- Reviews co-workers' proposals with `/figma-maintainer:review-contributions <zip>`, applies the approved ones, then shares again.
-
-**Co-workers:**
-- **Install or update** from the zip, then restart. All SOPs come with it.
-- **SOPs are read-only for them.** A guard blocks edits to SOP files.
-- **When they learn something new** (a client requirement, a correction, a workflow improvement), the agent writes it as a proposal in `~/.claude/figma-maintainer/contributions/`. `/figma-maintainer:contribute` packs those into a zip to send to the SOP manager.
-
-## Release check (SOP manager, before every new version)
-`bash scripts/release_check.sh` compiles every script with this Mac's Python, runs the test suite in `tests/`, checks the JSON files and validates the plugin. Tag a version only when it prints **RELEASE CHECK PASSED**.
-- The tests run offline: no Figma, no token.
-- `tests/prompts.json` holds real prompts, including every one the plugin once misrouted. **Add a case whenever routing gets something wrong.**
-
-## Updating
-When you get a new zip, unzip it over the same folder, run `/plugin marketplace update e2m-figma`, and restart Claude Code. The new SOPs are live immediately; your session files are untouched.
-
-## Task types (reusable actions) vs client task configurations
-| Task type (works for any client) | Generic action | Client configurations |
-|---|---|---|
-| Create Tablet and Mobile Designs from Desktop Designs | `responsive-from-desktop` skill · `/figma-maintainer:make-responsive` | `digital-drive/task-responsive-designs.md` (Digital Drive only) |
-| Apply client comments | `/figma-maintainer:client-comment` (finds them) · `/figma-maintainer:apply-comments` (with a link) | none yet |
-| Consistency / Content / Accessibility Audit | `/figma-maintainer:*-audit` | none yet |
-| Check against brief, compare versions | `/figma-maintainer:check-brief`, `:compare-versions` | none yet |
-
-- A client's `task-<name>.md` applies **only to that client**. For other clients, the generic action runs with their own SOP.
-- **Scope is always the frame or section in the link (node-id)**, never the whole page it sits on.
+| `/figma-maintainer:sop <client> [— rule]` | Show or add client SOP rules |
+| `/figma-maintainer:contribute` · `:review-contributions` · `:share` | SOP proposals and releases |

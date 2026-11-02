@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Figma-maintainer Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: same single-column briefing style as figma-maintainer-briefing.html; prompt cards, step lists and tables read top-down. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --ink:#151a24; --muted:#5b6475; --line:#dde1e8;
+  --accent:#2f54c8; --accent-soft:#e8edfb; --code:#eef1f6; --good:#1f7a4d; --warn:#9a5b00; --warn-soft:#fdf1df;
+  --font-sans:"Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10141c; --surface:#171c26; --ink:#e7eaf0; --muted:#9aa3b4; --line:#2a3140;
+  --accent:#8ea8ff; --accent-soft:#1f2a47; --code:#1c2330; --good:#6fd29d; --warn:#f0b35a; --warn-soft:#33270f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10141c; --surface:#171c26; --ink:#e7eaf0; --muted:#9aa3b4; --line:#2a3140;
+  --accent:#8ea8ff; --accent-soft:#1f2a47; --code:#1c2330; --good:#6fd29d; --warn:#f0b35a; --warn-soft:#33270f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--font-sans);margin:0}
+.wrap{max-width:900px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:40px 64px;display:flex;flex-direction:column;gap:48px}
+header{display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line);padding-bottom:28px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-size:clamp(30px,5vw,42px);line-height:1.12;margin:0;text-wrap:balance;font-weight:700}
+h2{font-size:24px;line-height:1.25;margin:0;text-wrap:balance}
+h3{font-size:16px;margin:0;font-weight:600}
+p{margin:0;max-width:68ch}
+.lead{font-size:18px;color:var(--muted);max-width:66ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+nav.toc a{color:var(--accent);text-decoration:none}
+nav.toc a:hover{text-decoration:underline}
+section{display:flex;flex-direction:column;gap:18px;scroll-margin-top:16px}
+.sub{color:var(--muted);max-width:68ch}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
+.kpi .l{font-size:13px;color:var(--muted)}
+.jobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.job{border-top:2px solid var(--accent);padding-top:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.job p{font-size:14px;color:var(--muted)}
+.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:2px}
+.tag.rw{background:var(--warn-soft);color:var(--warn)}
+.tag.ro{background:var(--accent-soft);color:var(--accent)}
+.pattern{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.pattern code.big{font:14.5px/1.6 var(--font-mono);background:var(--code);border-radius:6px;padding:10px 12px;display:block;white-space:pre-wrap;word-break:break-word}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px 22px}
+.parts div{font-size:14px;color:var(--muted)}
+.parts b{color:var(--ink)}
+.prompts{display:flex;flex-direction:column;gap:10px}
+.prompt{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:start}
+.prompt .when{font-size:13px;font-weight:600;color:var(--muted);grid-column:1 / -1}
+.prompt code{font:13.5px/1.55 var(--font-mono);background:var(--code);border-radius:6px;padding:8px 10px;display:block;white-space:pre-wrap;word-break:break-word;min-width:0}
+.copy{font:600 12px var(--font-sans);border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:6px;padding:6px 10px;cursor:pointer;align-self:center}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px 24px;padding:16px 18px;background:var(--accent-soft);border-radius:10px}
+.tips div{font-size:14px}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+ol.steps li::before{content:counter(s);font:600 13px var(--font-mono);color:var(--accent);background:var(--accent-soft);width:28px;height:28px;border-radius:50%;display:grid;place-items:center}
+ol.steps li span{color:var(--muted);font-size:15px}
+.benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px 28px}
+.benefit{display:flex;flex-direction:column;gap:6px;min-width:0}
+.benefit p{font-size:15px;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td code,li code,p code,.parts code{font:12.5px var(--font-mono);background:var(--code);border-radius:4px;padding:1px 5px;word-break:break-word}
+.note{font-size:13px;color:var(--muted);max-width:76ch}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+ul.plain li{font-size:15px}
+pre.tree{font:13px/1.6 var(--font-mono);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0;overflow-x:auto;color:var(--ink)}
+pre.tree span{color:var(--muted)}
+.callout{border-left:3px solid var(--good);padding:4px 0 4px 14px}
+.callout.warn{border-left-color:var(--warn)}
+.verdicts{display:flex;flex-wrap:wrap;gap:8px}
+.verdicts span{font:600 12px var(--font-sans);padding:4px 10px;border-radius:999px;background:var(--code)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">E2M design team · Claude Code plugin</div>
+    <h1>Figma-maintainer Guide</h1>
+    <p class="lead">How to ask for Figma work, what the plugin does on every job, and what you get back. For designers using it day to day, and for anyone who wants to know how it keeps client files safe.</p>
+    <div class="meta"><span>Version <b>1.32</b></span><span>Updated <b>2 Nov 2026</b></span><span>Full reference: <b>README.md</b> · in Claude Code: <b>/figma-maintainer:prompts</b></span></div>
+    <nav class="toc" aria-label="Contents">
+      <a href="#start">Quick start</a><a href="#prompt">How to prompt</a><a href="#examples">Prompts by task</a><a href="#job">Every job</a>
+      <a href="#comments">Client comments</a><a href="#qa">QA check</a><a href="#output">What you get</a><a href="#safety">Safety</a>
+      <a href="#trouble">Troubleshooting</a><a href="#commands">All commands</a>
+    </nav>
+  </header>
+
+  <section aria-labelledby="glance">
+    <h2 id="glance">At a glance</h2>
+    <div class="kpis">
+      <div class="kpi"><span class="v">178</span><span class="l">agency SOPs applied automatically when you name the client</span></div>
+      <div class="kpi"><span class="v">7</span><span class="l">agents: 1 that edits Figma, 6 that only read (analyst, QA, audits, usage)</span></div>
+      <div class="kpi"><span class="v">19</span><span class="l">slash commands, from comments to audits to setup checks</span></div>
+      <div class="kpi"><span class="v">38</span><span class="l">automated tests run before every release</span></div>
+    </div>
+    <div class="jobs">
+      <div class="job"><h3>figma-maintainer <span class="tag rw">edits Figma</span></h3><p>The designer: copy, forms, images, inner pages, mobile and tablet, components and states, comment rounds.</p></div>
+      <div class="job"><h3>client-comments <span class="tag ro">read-only</span></h3><p>Reads a new client comment, checks history and SOPs, and writes a plan for your approval.</p></div>
+      <div class="job"><h3>qa-checker <span class="tag ro">read-only</span></h3><p>Independently checks finished work against the client's comments or your request, before the client sees it.</p></div>
+      <div class="job"><h3>Auditors <span class="tag ro">read-only</span></h3><p>Consistency, Content and Accessibility (WCAG 2.2 AA) audits, page by page.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="start">
+    <h2 id="start">Quick start</h2>
+    <ol class="steps">
+      <li><div><h3>Install the plugin</h3><span>Unzip it to a permanent folder (e.g. <code>~/ClaudeAI/Figma-maintainer</code>), then in Claude Code run <code>/plugin marketplace add ~/ClaudeAI/Figma-maintainer</code> and <code>/plugin install figma-maintainer@e2m-figma</code>.</span></div></li>
+      <li><div><h3>Restart Claude Code</h3><span>Or run <code>/reload-plugins</code>. The safety hooks only load when a session starts.</span></div></li>
+      <li><div><h3>Run the doctor</h3><span><code>/figma-maintainer:doctor</code> checks the Figma token and its scopes, Figma access, notifications, the image library and the plugin version, and tells you how to fix anything missing.</span></div></li>
+      <li><div><h3>Ask for your first job</h3><span>One line: <code>Use figma-maintainer:</code>, the client, the frame link and the change (see below).</span></div></li>
+      <li><div><h3>Read the result</h3><span>QA verdict on top, then the report, the Slack update and the client message, ready to copy.</span></div></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="prompt">
+    <h2 id="prompt">How to prompt</h2>
+    <p class="sub">One line. The plugin works out the rest from the client's SOP and the project's history.</p>
+    <div class="pattern">
+      <code class="big">Use figma-maintainer: &lt;client&gt; — &lt;Figma link with node-id&gt; — &lt;what to change&gt; — images: &lt;source&gt;</code>
+      <div class="parts">
+        <div><b>Use figma-maintainer:</b> switches the plugin on. A Figma link alone does nothing, because other plugins use Figma links too. Follow-ups in the same session keep using it.</div>
+        <div><b>Client</b> (agency or project) loads its SOP: image source, delivery account, naming and rules. A typo gets a quick "Which client is this for?".</div>
+        <div><b>Link with node-id</b> is the boundary. Only that frame or section changes. In Figma: right-click the frame → Copy link.</div>
+        <div><b>What to change:</b> paste the client's exact words. Add "don't change the copy" when it must stay word for word.</div>
+        <div><b>images:</b> <code>iStock</code> · <code>Adobe Stock</code> · <code>AI-generated</code> · <code>client: &lt;link&gt;</code> · <code>@assets/folder/</code> · <code>no new images</code>. Naming it skips the image question.</div>
+      </div>
+    </div>
+    <div class="two">
+      <div class="benefit"><h3>It will ask you, when needed</h3>
+        <ul class="plain">
+          <li><b>Which client?</b> if it isn't named or recognised.</li>
+          <li><b>Which image/video source?</b> if neither you nor the SOP says.</li>
+          <li><b>Approve this plan?</b> for client comments. Nothing changes before you approve.</li>
+          <li><b>Permission prompts</b> before risky edits, or when the file changed while the job was running.</li>
+          <li><b>Font needed</b> when the design uses a font Figma can't load. Install it, say so, and it continues with the real font.</li>
+          <li><b>Questions in the report</b> for anything unclear. It never guesses.</li>
+        </ul>
+      </div>
+      <div class="benefit"><h3>It won't</h3>
+        <ul class="plain">
+          <li>edit images (retouching, removing objects, new renders): it annotates instead;</li>
+          <li>create tablet or mobile frames unless you ask;</li>
+          <li>touch originals: a current design is duplicated as <code>&lt;Frame&gt; V&lt;n&gt; - &lt;date&gt;</code> first;</li>
+          <li>edit main components, styles, variables or library pages unless you ask;</li>
+          <li>substitute fonts (it names the missing font so you can install it), or resolve, reply to or delete Figma comments.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="examples">
+    <h2 id="examples">Prompts by task</h2>
+    <div class="prompts">
+      <div class="prompt"><span class="when">Copy change</span><code>Use figma-maintainer: KHL — &lt;Figma frame link&gt; — replace the hero heading with "Request a Consultation" and remove the notes field — no new images</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Client feedback by email (paste it)</span><code>Use figma-maintainer: LSD — &lt;Figma frame link&gt; — apply the client feedback below. Copy must stay word for word.
+&lt;paste client email&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">A new comment in Figma (no link needed)</span><code>Use figma-maintainer: I got a client comment</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Comments on a specific frame</span><code>/figma-maintainer:apply-comments &lt;Figma frame link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">New inner page from a copy document</span><code>Use figma-maintainer: KHL — &lt;Figma link&gt; — design the Referral page using this copy doc &lt;Google Doc link&gt;. Don't change any wording. images: iStock</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Mobile and tablet (desktop only unless you ask)</span><code>Use figma-maintainer: &lt;desktop frame link&gt; — make the mobile and tablet versions</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">A client's recurring task (follows that client's own rules)</span><code>Use figma-maintainer: Digital Drive — Create Tablet and Mobile Designs from Desktop Designs. Work file: &lt;Figma section link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Hover, state or prototype change</span><code>Use figma-maintainer: &lt;Figma link&gt; — make the primary button hover darker using the existing colour styles</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Client photos</span><code>Use figma-maintainer: &lt;Figma link&gt; — swap the hero image; images: these client photos &lt;Dropbox or Drive link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Audits (read-only)</span><code>Use figma-maintainer: Consistency Audit &lt;Figma link&gt; — all pages
+Use figma-maintainer: Accessibility Audit &lt;Figma link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Check against the brief, or compare two versions (read-only)</span><code>/figma-maintainer:check-brief &lt;Figma link&gt;   + paste the brief
+/figma-maintainer:compare-versions &lt;old link&gt; &lt;new link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">QA a job again, or a designer's manual work</span><code>/figma-maintainer:qa PIPP
+/figma-maintainer:qa &lt;Figma frame link&gt; since 2026-10-29 14:00 check: hero says "…"</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Messages for the team and the client</span><code>give me slack message
+/figma-maintainer:client-message</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">Teach it a rule (saved to the client's SOP)</span><code>figma-maintainer: next time, Lasso Up images always come from Adobe Stock.</code><button class="copy" type="button">Copy</button></div>
+    </div>
+    <div class="tips">
+      <div><b>Link the exact frame.</b> The link is the boundary: only that frame or section changes.</div>
+      <div><b>Paste the client's exact copy.</b> It's checked line by line against the design.</div>
+      <div><b>One page per prompt.</b> Then review, and run an audit if needed.</div>
+      <div><b>Say the image source</b> if you know it; otherwise the client's SOP decides, or it asks.</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="job">
+    <h2 id="job">What happens on every job</h2>
+    <ol class="steps">
+      <li><div><h3>Finds the client and their SOP</h3><span>From the name or the link. It loads the rules (image source, delivery account, versioning, copy rules) and reminds you of the important ones, e.g. "Lasso Up image preference: Adobe Stock".</span></div></li>
+      <li><div><h3>Picks up the project's history</h3><span>Reads <code>PROJECT.md</code>: latest frames, client decisions, open items and comment rounds already done. It also reads the last job's report, so it continues where the last job ended.</span></div></li>
+      <li><div><h3>Takes a before snapshot and an undo point</h3><span>Records the page so it can prove nothing else changed, plus the latest saved Figma version to go back to.</span></div></li>
+      <li><div><h3>Chooses where to work</h3><span>A work file or blank frame is edited directly. A current design (live, approved, or what the client commented on) is duplicated first as <code>&lt;Frame&gt; V&lt;n&gt; - &lt;date&gt;</code>. If it isn't sure, it asks.</span></div></li>
+      <li><div><h3>Makes only the requested change</h3><span>Uses the file's own components, styles and variables. Every Figma edit passes the guard, which asks you before risky changes, or if someone else changed the file mid-job.</span></div></li>
+      <li><div><h3>Verifies its own work</h3><span>Screenshots, a read-back of the changed text, a missing-font check, and a before/after comparison proving nothing outside the target moved.</span></div></li>
+      <li><div><h3>Reports</h3><span>A designer report with a checklist and an Undo line, a Slack update for the team, and a client message with Figma prototype links.</span></div></li>
+      <li><div><h3>QA checks it independently</h3><span>Automatic and enforced: the session can't finish until QA has run. If it fails, the fixable items go back once, and QA checks again. If it still fails, the client message is held for you.</span></div></li>
+      <li><div><h3>Files everything</h3><span>Request, plan, report, QA, messages and snapshots go into the project folder. <code>PROJECT.md</code> is updated, and a usage line shows the time and cost.</span></div></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="comments">
+    <h2 id="comments">Client comments: "I got a client comment"</h2>
+    <p class="sub">You don't need the link. Say <b>Use figma-maintainer: I got a client comment</b>, or run <code>/figma-maintainer:client-comment</code> with a file name or client if you like.</p>
+    <ol class="steps">
+      <li><div><h3>Finds the comment</h3><span>Reads only Figma's notifications on your Mac (read-only): who commented, which file, the text and the time. It matches them to the exact comment, page and frame, and picks up the rest of that round. No notification? It scans recent files, or asks you for the link.</span></div></li>
+      <li><div><h3>Confirms the client</h3><span>From our SOPs. For a file we don't know yet, it suggests one from the Figma project folder and you confirm.</span></div></li>
+      <li><div><h3>Analyses and plans (read-only)</h3><span>Reads the history, SOPs and frames, and writes a plan: each comment, the change, a measurable check, the target frame and open questions. It also notices when something is already done.</span></div></li>
+      <li><div><h3>Asks you to approve</h3><span>Approve, Approve with changes, or Not now. Nothing changes in Figma before you approve.</span></div></li>
+      <li><div><h3>Applies, checks, records</h3><span>figma-maintainer applies the approved plan, and QA checks it. The comments are then marked handled, so they don't come back.</span></div></li>
+    </ol>
+    <p class="note">Latest round only, by default: the newest comment date and up to 2 days before it. Older open comments are listed, and you can include them. Image-editing requests are annotated, not done.</p>
+  </section>
+
+  <section aria-labelledby="qa">
+    <h2 id="qa">QA check</h2>
+    <p class="sub">Runs on its own after every job that changed Figma, before you see the client message. Say <b>skip QA</b> to waive it once.</p>
+    <div class="benefits">
+      <div class="benefit"><h3>Independent</h3><p>Starts from the client's comments (or your request) and the approved plan, not from the maker's report. Then it measures Figma with its own evidence.</p></div>
+      <div class="benefit"><h3>Both ways</h3><p>Every comment is done as asked, and every change belongs to a comment. Anything extra is flagged as unrequested.</p></div>
+      <div class="benefit"><h3>Real evidence</h3><p>A layer-by-layer comparison of the new version with its source, before/after image crops, untouched originals, hover settings, and edits by other people.</p></div>
+      <div class="benefit"><h3>Honest client messages</h3><p>The client message may only claim what's true in Figma: the right prototype links, no internal details, nothing unverified described as working.</p></div>
+    </div>
+    <div class="verdicts" aria-label="Verdicts"><span>PASS</span><span>PASS WITH NOTES</span><span>FAIL → one automatic fix round</span><span>INCONCLUSIVE</span></div>
+    <p class="note">Run it yourself on any task with <code>/figma-maintainer:qa</code>. That works for the newest job, a job by name, two links (old and new), or a frame edited by hand since a given time. Manual work is only reported; you decide what happens next.</p>
+  </section>
+
+  <section aria-labelledby="output">
+    <h2 id="output">What you get, and where it's saved</h2>
+    <div class="jobs">
+      <div class="job"><h3>Report</h3><p>Target, changes, protected scope, checklist, an Undo line, questions, and a QA hand-off.</p></div>
+      <div class="job"><h3>QA verdict</h3><p>At the top of the report, with a fix list if anything failed.</p></div>
+      <div class="job"><h3>Slack update</h3><p>What changed, the link, and questions for the client. Copy-paste ready, no costs.</p></div>
+      <div class="job"><h3>Client message</h3><p>Our house format: what we did, each page with its prototype link, a note on what we still need, and thank you. Held if QA failed.</p></div>
+      <div class="job"><h3>Usage (internal)</h3><p>Tokens, cost in USD and INR, and time per task. For the team only.</p></div>
+      <div class="job"><h3>Project records</h3><p>Every job in its own folder. <code>PROJECT.md</code> keeps the living context for the next job.</p></div>
+    </div>
+<pre class="tree">~/.claude/figma-maintainer/work/&lt;you&gt;/&lt;agency&gt;/&lt;project&gt;/
+  PROJECT.md              <span>files, latest frames + prototype links, decisions, open items, rounds applied</span>
+  jobs/&lt;date&gt;-&lt;task&gt;/     <span>request · plan · analysis · report · qa.md + qa/ · slack · client-message · comments-applied</span>
+  snapshots/  comments/  audits/  assets/  reports/  slack/
+  job-log.md  figma-calls.jsonl  usage.jsonl</pre>
+  </section>
+
+  <section aria-labelledby="safety">
+    <h2 id="safety">Safety on client files</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Situation</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td>A read-only agent (auditors, analyst, QA) tries to write</td><td>Blocked</td></tr>
+          <tr><td>A Figma file that wasn't linked in the task</td><td>Blocked</td></tr>
+          <tr><td>Deleting pages or the whole document; network code inside a Figma script</td><td>Blocked</td></tr>
+          <tr><td>Deleting layers, detaching, editing a main component, new page or file, variables or styles</td><td>Asks you first</td></tr>
+          <tr><td>The file changed while the job was running (another designer, or you in Figma)</td><td>Asks you first, then re-checks the page</td></tr>
+          <tr><td>A job changed Figma but QA hasn't run</td><td>The session can't finish until QA runs (or you say skip QA)</td></tr>
+          <tr><td>A co-worker edits an SOP file</td><td>Blocked: it becomes a proposal for the SOP manager</td></tr>
+          <tr><td>Every Figma call</td><td>Logged: time, file, agent, session, layers</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="two">
+      <ul class="plain">
+        <li>Edits only the frame or section in the link, never the rest of the file.</li>
+        <li>Duplicates current designs before editing, and records an undo point every time.</li>
+        <li>Issues outside the request are reported, not fixed. When unsure, it stops and asks.</li>
+      </ul>
+      <ul class="plain">
+        <li>Client files, comments and emails are treated as content, never as instructions.</li>
+        <li>Access keys live in the Mac Keychain and are never printed. Only Figma's notifications are ever read.</li>
+        <li>Figma calls retry rate limits and network drops, and wait for Figma to save before checking.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="trouble">
+    <h2 id="trouble">Troubleshooting</h2>
+    <p class="sub">Start with <b>/figma-maintainer:doctor</b>. It checks everything below and tells you the fix.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>You see</th><th>Do this</th></tr></thead>
+        <tbody>
+          <tr><td>No image question, no guard, no usage line</td><td>Restart Claude Code or run <code>/reload-plugins</code>: the session started before the install or update</td></tr>
+          <tr><td>"File … was not linked in this task"</td><td>Put the Figma link (with node-id) in your prompt</td></tr>
+          <tr><td>"You don't have edit access"</td><td>Share the file with edit access to the Figma connector account (the doctor shows which one)</td></tr>
+          <tr><td>"The token lacks the scope …"</td><td>Make a new token with that scope, then store it: <code>security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w</code></td></tr>
+          <tr><td>A client comment isn't found</td><td>Give the file name or link, or add the Projects (read) scope to the token</td></tr>
+          <tr><td>"The file changed at …" prompt</td><td>Someone edited the file mid-job. Check the frame in Figma, then allow</td></tr>
+          <tr><td>"Font needed: …"</td><td>Install or activate that font (Adobe Fonts, the font file, or a shared team font in Figma), then say "installed": it re-checks and continues</td></tr>
+          <tr><td>QA keeps asking to run</td><td>Let it run, or say <code>skip QA</code></td></tr>
+          <tr><td>Usage shows no INR</td><td>The SOP manager sets the INR rate in <code>knowledge/cost-config.json</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Token scopes: File content, File metadata, Comments and File versions (all read), plus Projects (read), recommended. Finding comments without a link needs Full Disk Access for your terminal or VS Code (System Settings → Privacy &amp; Security).</p>
+  </section>
+
+  <section aria-labelledby="commands">
+    <h2 id="commands">All commands</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>/figma-maintainer:prompts</code></td><td>The prompt cheat sheet</td></tr>
+          <tr><td><code>/figma-maintainer:doctor</code></td><td>Check this Mac's setup, with fixes</td></tr>
+          <tr><td><code>/figma-maintainer:client-comment</code></td><td>Find a new client comment, plan, approve, apply, QA</td></tr>
+          <tr><td><code>/figma-maintainer:read-comments &lt;url&gt;</code></td><td>List a frame's comments, matched to their layers</td></tr>
+          <tr><td><code>/figma-maintainer:apply-comments &lt;url&gt;</code></td><td>Apply a frame's comments (latest round)</td></tr>
+          <tr><td><code>/figma-maintainer:qa</code></td><td>QA one task on its own, including manual work</td></tr>
+          <tr><td><code>/figma-maintainer:make-responsive &lt;url&gt;</code></td><td>Mobile and tablet from a desktop frame</td></tr>
+          <tr><td><code>/figma-maintainer:consistency-audit</code> · <code>:content-audit</code> · <code>:accessibility-audit</code></td><td>Read-only audits</td></tr>
+          <tr><td><code>/figma-maintainer:check-brief</code> · <code>:compare-versions</code></td><td>Page vs brief; changes between two frames</td></tr>
+          <tr><td><code>/figma-maintainer:client-message</code> · <code>:slack</code> · <code>:cost-report</code></td><td>Client message, Slack update, tokens and cost</td></tr>
+          <tr><td><code>/figma-maintainer:sop &lt;client&gt;</code></td><td>Show or add client SOP rules</td></tr>
+          <tr><td><code>/figma-maintainer:contribute</code> · <code>:review-contributions</code> · <code>:share</code></td><td>SOP proposals and releases (SOP manager)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="human">
+    <h2 id="human">What still needs a designer</h2>
+    <div class="callout">
+      <p>The agent does the repetitive production work; designers keep the judgement. They approve plans and review each round before it goes to the client. They also handle image editing and retouching, buy the approved stock images, install fonts the agent asks for, check prototype hovers in Present mode when QA asks, and own the client relationship.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var code = btn.parentElement.querySelector('code');
+    var text = code.innerText;
+    function done(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }
+    function fallback(){ var r = document.createRange(); r.selectNodeContents(code); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Selected'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+});
+</script>
+
+</body>
+</html>

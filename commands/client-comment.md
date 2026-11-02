@@ -61,6 +61,8 @@ Project folder: <project folder>
 ```
 It runs in client comments mode: versioning per the SOP, before and after snapshots, guardrails, and the report, Slack update and client message (prototype links). It saves `report.md`, `slack.md`, `client-message.md` and `comments-applied.md` to the job folder, and updates `PROJECT.md`, including "Comment rounds applied".
 
+**If figma-maintainer returns "Font needed: …"**, ask me with AskUserQuestion, naming the font, styles and layers. Options: "I'll install the font now (Recommended)" / "A designer will type it in the desktop app" / "Skip the text changes". When I say it's installed, resume the same agent to re-check the font and continue with the real font. Don't run QA until the text work is done or I've chosen another option.
+
 ## 6. QA check (automatic, read-only)
 First save any job files figma-maintainer returned as text instead of saving them (`report.md`, `slack.md`, `client-message.md`, `comments-applied.md`). Then, **without asking me**, launch **figma-maintainer:qa-checker** in the foreground:
 ```

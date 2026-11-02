@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""SOP manager: package the plugin (with all SOPs in knowledge/) for co-workers.
+"""SOP manager: release the plugin (with all SOPs in knowledge/) for co-workers.
 
-Requires the .master file. Commits any pending changes (SOPs, scripts, agents), bumps the patch
-version, tags it, updates the local install and writes ~/ClaudeAI/Figma-maintainer.zip.
-Session files (logs, audits, reports, contributions) live outside the plugin and are never shared.
+  share_plugin.py [--version X.Y.Z | --bump patch|minor] [--message "what changed"]
+
+1. Runs scripts/release_check.sh (compile, offline tests, manifests) and stops if it fails.
+2. If anything changed (or --version is given): bumps the version (patch by default), commits everything
+   with your git name, and makes an annotated tag vX.Y.Z.
+3. Builds ~/ClaudeAI/Figma-maintainer.zip from exactly that tagged commit (git archive): no session files,
+   no untracked or ignored files, no .git.
+It never pushes, and never changes your Claude Code plugin install: yours reads this folder, so
+/reload-plugins picks up changes. Publish with: git push origin main --tags
+Session files (work folders, logs, audits, contributions) live outside the plugin and are never shared.
 """
-import json, subprocess, sys, os
+import argparse, json, os, subprocess, sys
 from pathlib import Path
 
 PLUGIN = Path(__file__).resolve().parent.parent
@@ -13,35 +20,64 @@ FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "
 ZIP = PLUGIN.parent / "Figma-maintainer.zip"
 
 
-def run(*cmd):
-    return subprocess.run(cmd, cwd=PLUGIN, capture_output=True, text=True)
+def git(*args, check=True):
+    r = subprocess.run(["git", *args], cwd=PLUGIN, capture_output=True, text=True)
+    if check and r.returncode != 0:
+        sys.exit(f"git {' '.join(args)} failed: {r.stderr.strip()}")
+    return r.stdout.strip()
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--version", help="exact new version, e.g. 1.32.0")
+    ap.add_argument("--bump", choices=["patch", "minor"], default="patch")
+    ap.add_argument("--message", help="commit and tag message")
+    a = ap.parse_args()
     if not (FM / ".master").exists():
         sys.exit("Only the SOP manager shares the plugin. Co-workers: send proposals with /figma-maintainer:contribute.")
-    changed = run("git", "status", "--porcelain").stdout.strip()
+
+    print("Release check …")
+    rc = subprocess.run(["bash", str(PLUGIN / "scripts" / "release_check.sh")], cwd=PLUGIN, capture_output=True, text=True)
+    if rc.returncode != 0:
+        print(rc.stdout[-3000:] + rc.stderr[-1000:])
+        sys.exit("Release check FAILED: nothing was committed or packaged. Fix the items above and share again.")
+    print("  passed")
+
     pj = PLUGIN / ".claude-plugin" / "plugin.json"
     d = json.loads(pj.read_text())
-    if changed:
-        major, minor, patch = (int(x) for x in d["version"].split("."))
-        d["version"] = f"{major}.{minor}.{patch + 1}"
-        pj.write_text(json.dumps(d, indent=2))
-        files = [l[3:] for l in changed.splitlines()]
+    changed = git("status", "--porcelain")
+    if changed or a.version:
+        if a.version:
+            new = a.version
+        else:
+            major, minor, patch = (int(x) for x in d["version"].split("."))
+            new = f"{major}.{minor + 1}.0" if a.bump == "minor" else f"{major}.{minor}.{patch + 1}"
+        if git("tag", "-l", f"v{new}"):
+            sys.exit(f"Tag v{new} already exists: choose another --version.")
+        d["version"] = new
+        pj.write_text(json.dumps(d, indent=2, ensure_ascii=False) + "\n")
+        files = [l[3:] for l in git("status", "--porcelain").splitlines()]
         sops = sum(1 for f in files if f.startswith("knowledge/"))
-        run("git", "add", "-A")
-        run("git", "-c", "user.name=SOP manager", "-c", "user.email=sop@localhost", "commit", "-q", "-m",
-            f"Share v{d['version']}: {sops} SOP/knowledge file(s), {len(files) - sops} other file(s) changed")
-        run("git", "tag", f"v{d['version']}")
-    subprocess.run(["claude", "plugin", "marketplace", "update", "e2m-figma"], capture_output=True)
-    subprocess.run(["claude", "plugin", "update", "figma-maintainer@e2m-figma"], capture_output=True)
+        msg = a.message or f"v{new}: share with the team ({sops} SOP/knowledge file(s), {len(files) - sops} other file(s))"
+        git("add", "-A")
+        git("commit", "-q", "-m", msg)
+        git("tag", "-a", f"v{new}", "-m", msg.splitlines()[0])
+    else:
+        new = d["version"]
+        if not git("tag", "-l", f"v{new}"):
+            git("tag", "-a", f"v{new}", "-m", f"v{new}")
     if ZIP.exists():
         ZIP.unlink()
-    subprocess.run(["zip", "-rq", str(ZIP), PLUGIN.name, "-x", "*.DS_Store", "-x", "*__pycache__*", "-x", f"{PLUGIN.name}/.git/*"],
-                   cwd=PLUGIN.parent, check=True)
-    n = sum(1 for _ in (PLUGIN / "knowledge" / "clients").rglob("*.md"))
-    print(f"figma-maintainer v{d['version']} ready to share: {n} SOP files · {ZIP}"
-          + ("" if changed else " (nothing changed since the last share)"))
+    git("archive", "--format=zip", f"--prefix={PLUGIN.name}/", "-o", str(ZIP), f"v{new}")
+    tracked = git("ls-tree", "-r", "--name-only", f"v{new}").splitlines()
+    sop_files = sum(1 for f in tracked if f.startswith("knowledge/clients/") and f.endswith(".md"))
+    ahead = git("rev-list", "--count", "origin/main..HEAD", check=False) or "?"
+    print(f"\nfigma-maintainer v{new} ready to share: {len(tracked)} files, {sop_files} SOP files · {ZIP} "
+          f"({ZIP.stat().st_size // 1024} KB)" + ("" if changed or a.version else "  (nothing changed since the last share)"))
+    print(f"Not pushed ({ahead} commit(s) ahead of GitHub). Publish with: git push origin main --tags")
+    print("Co-workers: unzip over their plugin folder (first time: ~/ClaudeAI/Figma-maintainer), run "
+          "/plugin marketplace update e2m-figma (first time: /plugin marketplace add … and /plugin install figma-maintainer@e2m-figma), "
+          "restart Claude Code, then /figma-maintainer:doctor.")
 
 
 if __name__ == "__main__":

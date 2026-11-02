@@ -9,6 +9,7 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - A link to the originals doesn't mean edit them: check for later revision rounds first and build on the latest one (they may already hold part of the feedback).
 - Check every task-supplied node ID with `getNodeByIdAsync` first; frames can be deleted between rounds. Report missing ones instead of rebuilding them unasked.
 - A quick version diff: gather `{kind, visible, characters | imageHash}` for every node in both frames and compare them as sets. That shows exactly what the designer changed.
+- "Not edited since version X?": compare REST `GET /files/<key>/nodes?ids=<id>` with the same call plus `&version=<X>`, node by node with figma_snapshot's `node_sig`. 0 diffs and an unchanged file `version` mean untouched. (2026-10-29)
 - `node.screenshot()` across several nodes in one script may return only some images. Use `get_screenshot` for each node you need to see.
 - Tall full-page frames (~5000px) can time out in `get_screenshot`; screenshot section by section instead.
 
@@ -34,7 +35,7 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - `figma.saveVersionHistoryAsync` throws "not a supported API" in the use_figma runtime: no in-script checkpoint. Report it; duplicate first only if the change is substantial and approved. (2026-10-14)
 - Text layers whose name equals their content auto-rename on a `characters` change ("Heading" became "Test passed"). Set `autoRename=false` first if the layer name must stay. (2026-10-14)
 - No tool duplicates a whole Figma file: `create_new_file` makes a blank file, REST has no copy endpoint, and `use_figma` can't move nodes between files. For "work in a copy", stop before editing. Ask the user to duplicate the file in Figma, give the MCP account (`whoami`) edit access, and send the new link. (2026-10-27)
-- Before a comment or copy round, count `hasMissingFont` in the target. If the text font can't load, swap images only, and annotate each text layer with the exact new copy ("Client comment #N - new copy: …"). A designer with the font applies it in the desktop app. (2026-10-27)
+- Before a comment or copy round, check that every font in the target text loads (`loadFontAsync`). If one doesn't, stop before editing text and tell the user the font name, styles and layers, so they can install or activate it; then re-check and continue with the real font. Annotate the new copy for a designer to type in the desktop app only when the user chooses that. (correction from the user, 2026-10-29; replaces the 27 Oct annotate-first workaround)
 - `upload_assets` with `nodeIds` replaces the whole fills array. On stacked fills (photo + gradients + cutout), rebuild the stack afterwards with only the photo hash swapped. In a same-file copy, read the stack from the untouched source node. `figma_snapshot` doesn't cover annotations, so verify them by read-back. (2026-10-27)
 - The guard asks before any deletion. It reports "deletes N node(s)" for single deletes; loops over nodes with `.remove()` count as bulk deletes. Ancestor-walk scope checks are ignored. (rule, 2026-10-14)
 
@@ -59,7 +60,8 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Fonts missing from the plugin runtime (local-only families): text can be cloned, moved, `rescale()`d and `resize()`d, but its characters, fontSize and textAutoResize can't be changed. A resized text box doesn't reflow (height stays). Check `hasMissingFont` counts before any responsive job; if most text is affected, get a font decision first.
 - Reaction actions take `resetScrollPosition`, not `preserveScrollPosition`. Use `SCROLL_ANIMATE` for SCROLL_TO.
 - `getRangeFontName(0,1)` can return mixed on variable fonts. Read fonts from `getStyledTextSegments(['fontName'])`.
-- Size and visibility counts from `findAll` change with `figma.skipInvisibleInstanceChildren`. Compare guard signatures inside the same run, or set the flag explicitly.
+- Size and visibility counts from `findAll` change with `figma.skipInvisibleInstanceChildren`. Compare guard signatures inside the same run, or set the flag explicitly. Even in one run a fresh section clone counted 4191 nodes against the source's 4347 until the flag was set to false; then compare per frame as multisets. (2026-10-29)
+- Annotation `label` reads back HTML-escaped (`&amp;`, `&#39;`, `&quot;`) even when written plain. Unescape before comparing; check long labels by checksum. (2026-10-29)
 - Nested instances (a Logo inside a nav instance) can't be resized or rescaled. Build a breakpoint bar from fresh top-level instances instead.
 
 ## Responsive builds (2026-10-14)
