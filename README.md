@@ -235,9 +235,13 @@ SOPs, the playbook and prices are **links** into the plugin's `knowledge/` folde
 
 ### Requirements
 - Claude Code: CLI, desktop app or VS Code extension.
-- **Figma connector:** claude.ai → Settings → Connectors → Figma. The connected account needs **edit access** to the files you'll change.
+- **Figma access for edits**, one of:
+  - the **Figma MCP** in Claude Code: `/plugin install figma@claude-plugins-official`, then sign in to Figma;
+  - the **claude.ai connector** (Claude on the web): claude.ai → Settings → Connectors → Figma. It also works in Claude Code with the same claude.ai account.
+
+  Sign in with the team Figma account (Design Studio). It needs **edit access** to the files you'll change.
 - **Python 3** (built into macOS). For QA pixel diffs and image downloads: `python3 -m pip install --user pillow`.
-- **A Figma personal access token** (Figma → Settings → Security → Personal access tokens), stored in the macOS Keychain. Never paste it into chat:
+- **The team Figma token:** one personal access token for the whole team (Design Studio account), shared privately by the SOP manager. Store it in the macOS Keychain, and never paste it into chat or a Slack channel:
   ```bash
   security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w     # paste the token when asked
   ```
@@ -272,8 +276,8 @@ Run **`/figma-maintainer:doctor`** first. It checks:
 |---|---|
 | No image question, no guard, no usage line | The session predates the install or update: restart or `/reload-plugins` |
 | "File … was not linked in this task" | Put the Figma link (with node-id) in your prompt |
-| "Looks like you don't have edit access" | Share the file with edit access to the Figma connector account (doctor shows which one) |
-| "the token lacks the scope …" | Make a new token with the missing scope, then store it with the Keychain command above |
+| "Looks like you don't have edit access" | Connect the Figma MCP or connector with the team account (Design Studio), or share the file with edit access to the account the doctor shows |
+| "the token lacks the scope …" | The SOP manager updates the team token with that scope and shares it; store it again with the Keychain command above |
 | A client comment isn't found | Give the file name or link, or add `projects:read` to the token |
 | Usage shows no INR | The SOP manager sets `fx.INR` in `knowledge/cost-config.json` |
 | QA keeps asking to run | Let it run, or say `skip QA` |

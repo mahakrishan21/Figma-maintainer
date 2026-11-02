@@ -59,13 +59,13 @@ def main():
         check("Figma token", "ok", "found (Keychain or FIGMA_TOKEN)")
     except SystemExit:
         check("Figma token", "fail", "not found",
-              "Figma → Settings → Security → Personal access tokens, then: security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w")
+              "Ask the SOP manager for the team Figma token (private message), then run: security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w")
     if tok:
         try:
             me = get("/me", tok, retries=1, timeout=20)
             check("Token works (/me)", "ok", f"{me.get('handle')} ({me.get('email', '')})")
         except FigmaError as e:
-            check("Token works (/me)", "fail", str(e)[:120], "Make a new token and store it in the Keychain (see above).")
+            check("Token works (/me)", "fail", str(e)[:120], "The team token may have been replaced: ask the SOP manager for the current one and store it again with the Keychain command.")
             tok = None
     if tok:
         key = TEST_FILE
@@ -85,7 +85,7 @@ def main():
                 get(path, tok, retries=1, timeout=30)
                 check(f"Scope: {name}", "ok", f"on file {key}")
             except FigmaError as e:
-                check(f"Scope: {name}", "fail", str(e)[:120], "Make a new token with this scope (keep all the others).")
+                check(f"Scope: {name}", "fail", str(e)[:120], "The team token lacks this scope: the SOP manager makes a new team token with it (keeping the others) and shares it.")
         teams = []
         try:
             raw = (Path.home() / "Library/Application Support/Figma/settings.json").read_text()
@@ -98,7 +98,7 @@ def main():
                 check("Scope: projects:read", "ok", "files can be found by name across the team")
             except FigmaError as e:
                 check("Scope: projects:read", "warn", "missing" if e.status == 403 else str(e)[:100],
-                      "Optional but recommended: new token with the same scopes + projects:read, so client comments are found "
+                      "Recommended: the SOP manager adds projects:read to the team token, so client comments are found "
                       "in files you haven't opened recently.")
         else:
             check("Scope: projects:read", "skip", "no Figma team id in the desktop app's settings")

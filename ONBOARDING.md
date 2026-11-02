@@ -19,13 +19,18 @@ It follows each agency's SOP automatically. Every finished job gets an independe
 3. Restart Claude Code.
 
 ## 2. Connect Figma (once)
-- **Figma connector:** claude.ai → Settings → Connectors → Figma. Sign in with the account that has edit access to our client files.
-- **Figma token**, for reading comments and checking work. Ask the SOP manager for it privately, or create one in Figma → Settings → Security → Personal access tokens.
-  - **Scopes:** File content, File metadata, Comments, File versions and Projects, all *read*.
-  - **Store it in your Mac's Keychain.** Run this in Terminal and paste the token when asked. **Never paste it into chat or Slack.**
-    ```bash
-    security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w
-    ```
+**a) Figma access for edits.** Choose one, and sign in with our team Figma account (Design Studio):
+- **Figma MCP in Claude Code** (desktop app, VS Code or terminal): run `/plugin install figma@claude-plugins-official`, restart Claude Code, and sign in to Figma when it asks.
+- **claude.ai connector** (if you use Claude on the web): claude.ai → Settings → Connectors → Figma → Connect. It also works in Claude Code when you're signed in with the same claude.ai account.
+
+You only need one of the two.
+
+**b) The team Figma token**, for reading comments and checking work. **Everyone uses the same token.** Ask the SOP manager for it in a private message, and never post it in a Slack channel or paste it into chat. Store it in your Mac's Keychain: run this in Terminal and paste the token when asked.
+```bash
+security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w
+```
+If the team token is ever replaced, the SOP manager sends the new one: run the same command again.
+
 - **Optional but recommended:**
   - `python3 -m pip install --user pillow`, used for QA's before/after image comparisons;
   - System Settings → Privacy & Security → **Full Disk Access** for Claude Code / VS Code / Terminal, so it can find new client comments from Figma's notifications without a link. Only Figma's notifications are read.

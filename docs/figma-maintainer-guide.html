@@ -123,6 +123,7 @@ pre.tree span{color:var(--muted)}
     <ol class="steps">
       <li><div><h3>Install the plugin</h3><span>Unzip it to a permanent folder (e.g. <code>~/ClaudeAI/Figma-maintainer</code>), then in Claude Code run <code>/plugin marketplace add ~/ClaudeAI/Figma-maintainer</code> and <code>/plugin install figma-maintainer@e2m-figma</code>.</span></div></li>
       <li><div><h3>Restart Claude Code</h3><span>Or run <code>/reload-plugins</code>. The safety hooks only load when a session starts.</span></div></li>
+      <li><div><h3>Connect Figma and add the team token</h3><span>For edits, use the Figma MCP in Claude Code (<code>/plugin install figma@claude-plugins-official</code>, then sign in) or, on the web, the claude.ai Figma connector. Sign in with the team account (Design Studio). The team token is the same for everyone: get it from the SOP manager privately and store it with <code>security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w</code>.</span></div></li>
       <li><div><h3>Run the doctor</h3><span><code>/figma-maintainer:doctor</code> checks the Figma token and its scopes, Figma access, notifications, the image library and the plugin version, and tells you how to fix anything missing.</span></div></li>
       <li><div><h3>Ask for your first job</h3><span>One line: <code>Use figma-maintainer:</code>, the client, the frame link and the change (see below).</span></div></li>
       <li><div><h3>Read the result</h3><span>QA verdict on top, then the report, the Slack update and the client message, ready to copy.</span></div></li>
@@ -294,9 +295,9 @@ Use figma-maintainer: Accessibility Audit &lt;Figma link&gt;</code><button class
         <tbody>
           <tr><td>No image question, no guard, no usage line</td><td>Restart Claude Code or run <code>/reload-plugins</code>: the session started before the install or update</td></tr>
           <tr><td>"File … was not linked in this task"</td><td>Put the Figma link (with node-id) in your prompt</td></tr>
-          <tr><td>"You don't have edit access"</td><td>Share the file with edit access to the Figma connector account (the doctor shows which one)</td></tr>
-          <tr><td>"The token lacks the scope …"</td><td>Make a new token with that scope, then store it: <code>security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w</code></td></tr>
-          <tr><td>A client comment isn't found</td><td>Give the file name or link, or add the Projects (read) scope to the token</td></tr>
+          <tr><td>"You don't have edit access"</td><td>Connect the Figma MCP or connector with the team account (Design Studio), or share the file with edit access to the account the doctor shows</td></tr>
+          <tr><td>"The token lacks the scope …"</td><td>The SOP manager updates the team token and shares it; store it again: <code>security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w</code></td></tr>
+          <tr><td>A client comment isn't found</td><td>Give the file name or link (the SOP manager can add Projects (read) to the team token)</td></tr>
           <tr><td>"The file changed at …" prompt</td><td>Someone edited the file mid-job. Check the frame in Figma, then allow</td></tr>
           <tr><td>"Font needed: …"</td><td>Install or activate that font (Adobe Fonts, the font file, or a shared team font in Figma), then say "installed": it re-checks and continues</td></tr>
           <tr><td>QA keeps asking to run</td><td>Let it run, or say <code>skip QA</code></td></tr>
