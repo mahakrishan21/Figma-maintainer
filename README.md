@@ -251,7 +251,16 @@ SOPs, the playbook and prices are **links** into the plugin's `knowledge/` folde
 - **Finding comments without a link** needs access to the Mac's notifications: System Settings → Privacy & Security → Full Disk Access → your terminal or VS Code. Only Figma's notifications are ever read.
 
 ### Install and update
-1. Unzip `Figma-maintainer.zip` somewhere permanent, e.g. `~/ClaudeAI/Figma-maintainer`. Claude Code installs from this folder, so don't move or delete it.
+Use the zip exactly as shared. **Re-zipping the folder in Finder breaks uploads**, because it adds a hidden `__MACOSX` folder. Choose one route:
+
+**A) Upload in the Claude app:** Customize → Plugins → Add → Upload plugin → `Figma-maintainer.zip`.
+- It syncs into Claude Code at the next session start, signed in with the same account (or run `/reload-plugins`).
+- It runs in **Claude Code**. Claude's regular Chat ignores plugin agents and hooks.
+- An organization owner can also upload it once for everyone: Organization settings → Plugins & skills.
+- **To update:** upload the new zip.
+
+**B) From a folder:**
+1. Double-click the zip. It makes a `Figma-maintainer` folder, because the plugin's files sit at the top of the zip. Put that folder somewhere permanent, e.g. `~/ClaudeAI/Figma-maintainer`. Claude Code installs from this folder, so don't move or delete it.
 2. Install:
    ```
    /plugin marketplace add ~/ClaudeAI/Figma-maintainer
@@ -259,7 +268,9 @@ SOPs, the playbook and prices are **links** into the plugin's `knowledge/` folde
    ```
 3. Restart Claude Code (or `/reload-plugins`), then run `/figma-maintainer:doctor`.
 
-**To update:** unzip the new version over the same folder, run `/plugin marketplace update e2m-figma`, and restart. SOPs update with it; your work folders are untouched. The doctor tells you when a newer version is on GitHub.
+**To update:** replace the folder with the new zip's `Figma-maintainer` folder, run `/plugin marketplace update e2m-figma`, and restart.
+
+SOPs update with either route; your work folders are untouched.
 
 ### When something's wrong
 Run **`/figma-maintainer:doctor`** first. It checks:

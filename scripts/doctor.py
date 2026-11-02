@@ -156,7 +156,8 @@ def main():
         check("Plugin version", "skip" if latest is None else "ok", f"installed {local}" + ("" if latest else ", latest unknown (offline or private repo)"))
     try:
         r = subprocess.run(["claude", "plugin", "list"], capture_output=True, text=True, timeout=30)
-        block = r.stdout.split("figma-maintainer@", 1)[1] if "figma-maintainer@" in r.stdout else ""
+        m = re.search(r"figma-maintainer(@\S*)?", r.stdout)  # local marketplace install or a plugin synced from an upload
+        block = r.stdout[m.end():] if m else ""
         block = re.split(r"\n\s*\n|❯", block)[0]  # only this plugin's entry
         status = (re.search(r"Status:\s*(.+)", block) or [None, ""])[1].lower()
         enabled = "enabled" in status and "disabled" not in status

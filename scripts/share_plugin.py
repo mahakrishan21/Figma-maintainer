@@ -7,7 +7,8 @@
 2. If anything changed (or --version is given): bumps the version (patch by default), commits everything
    with your git name, and makes an annotated tag vX.Y.Z.
 3. Builds ~/ClaudeAI/Figma-maintainer.zip from exactly that tagged commit (git archive): no session files,
-   no untracked or ignored files, no .git.
+   no untracked or ignored files, no .git. The plugin's files sit at the ROOT of the zip (.claude-plugin/plugin.json
+   at the top), which plugin uploads require; double-clicking it on a Mac still gives a "Figma-maintainer" folder.
 It never pushes, and never changes your Claude Code plugin install: yours reads this folder, so
 /reload-plugins picks up changes. Publish with: git push origin main --tags
 Session files (work folders, logs, audits, contributions) live outside the plugin and are never shared.
@@ -68,16 +69,25 @@ def main():
             git("tag", "-a", f"v{new}", "-m", f"v{new}")
     if ZIP.exists():
         ZIP.unlink()
-    git("archive", "--format=zip", f"--prefix={PLUGIN.name}/", "-o", str(ZIP), f"v{new}")
+    git("archive", "--format=zip", "-o", str(ZIP), f"v{new}")
+    import zipfile
+    with zipfile.ZipFile(ZIP) as z:  # what plugin uploads check: manifest at the root, description within limits
+        names = set(z.namelist())
+        if ".claude-plugin/plugin.json" not in names:
+            sys.exit("The zip has no .claude-plugin/plugin.json at its root: not shareable.")
+        desc = json.loads(z.read(".claude-plugin/plugin.json")).get("description", "")
+        if len(desc) > 500:
+            sys.exit(f"plugin.json description is {len(desc)} characters (max 500): shorten it and share again.")
     tracked = git("ls-tree", "-r", "--name-only", f"v{new}").splitlines()
     sop_files = sum(1 for f in tracked if f.startswith("knowledge/clients/") and f.endswith(".md"))
     ahead = git("rev-list", "--count", "origin/main..HEAD", check=False) or "?"
     print(f"\nfigma-maintainer v{new} ready to share: {len(tracked)} files, {sop_files} SOP files · {ZIP} "
           f"({ZIP.stat().st_size // 1024} KB)" + ("" if changed or a.version else "  (nothing changed since the last share)"))
     print(f"Not pushed ({ahead} commit(s) ahead of GitHub). Publish with: git push origin main --tags")
-    print("Co-workers: unzip over their plugin folder (first time: ~/ClaudeAI/Figma-maintainer), run "
-          "/plugin marketplace update e2m-figma (first time: /plugin marketplace add … and /plugin install figma-maintainer@e2m-figma), "
-          "restart Claude Code, then /figma-maintainer:doctor.")
+    print("Co-workers: double-click the zip (it makes a Figma-maintainer folder) and put that folder at ~/ClaudeAI/Figma-maintainer "
+          "(replacing the old one), or upload the zip as is where the Claude app asks for a plugin zip. Then: "
+          "/plugin marketplace update e2m-figma (first time: /plugin marketplace add ~/ClaudeAI/Figma-maintainer and "
+          "/plugin install figma-maintainer@e2m-figma), restart Claude Code, run /figma-maintainer:doctor.")
 
 
 if __name__ == "__main__":
