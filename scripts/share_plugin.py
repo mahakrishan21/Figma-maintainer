@@ -9,11 +9,15 @@
 3. Builds ~/ClaudeAI/Figma-maintainer.zip from exactly that tagged commit (git archive): no session files,
    no untracked or ignored files, no .git. The plugin's files sit at the ROOT of the zip (.claude-plugin/plugin.json
    at the top), which plugin uploads require; double-clicking it on a Mac still gives a "Figma-maintainer" folder.
+4. Refreshes the team marketplace repo (the "marketplace: <folder>" line in ~/.claude/figma-maintainer/.master):
+   replaces plugins/figma-maintainer/ with the same tagged build, copies the version and description into its
+   marketplace.json, validates it, commits and tags vX.Y.Z there.
+Paths marked export-ignore in .gitattributes (tests, release tools, the management briefing) are left out of both.
 It never pushes, and never changes your Claude Code plugin install: yours reads this folder, so
-/reload-plugins picks up changes. Publish with: git push origin main --tags
+/reload-plugins picks up changes. Publish with: git push origin main --tags (both repos)
 Session files (work folders, logs, audits, contributions) live outside the plugin and are never shared.
 """
-import argparse, json, os, subprocess, sys
+import argparse, json, os, re, shutil, subprocess, sys, zipfile
 from pathlib import Path
 
 PLUGIN = Path(__file__).resolve().parent.parent
@@ -21,11 +25,47 @@ FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "
 ZIP = PLUGIN.parent / "Figma-maintainer.zip"
 
 
-def git(*args, check=True):
-    r = subprocess.run(["git", *args], cwd=PLUGIN, capture_output=True, text=True)
+def git(*args, check=True, cwd=PLUGIN):
+    r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
     if check and r.returncode != 0:
         sys.exit(f"git {' '.join(args)} failed: {r.stderr.strip()}")
     return r.stdout.strip()
+
+
+def marketplace_dir():
+    m = re.search(r"^marketplace:\s*(.+)$", (FM / ".master").read_text(), re.M)
+    return Path(m.group(1).strip()).expanduser() if m else None
+
+
+def refresh_marketplace(market, version, plugin_json):
+    """Put the tagged build into the team marketplace repo, commit and tag it there. Never pushes."""
+    if not (market / ".git").exists() or not (market / ".claude-plugin" / "marketplace.json").exists():
+        sys.exit(f"Marketplace folder {market} is not set up (no .git or .claude-plugin/marketplace.json).")
+    dest = market / "plugins" / plugin_json["name"]
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir(parents=True)
+    with zipfile.ZipFile(ZIP) as z:
+        z.extractall(dest)
+    (dest / ".claude-plugin" / "marketplace.json").unlink(missing_ok=True)  # the dev marketplace; the repo root has the real one
+    mj = market / ".claude-plugin" / "marketplace.json"
+    cat = json.loads(mj.read_text())
+    for e in cat.get("plugins", []):
+        if e.get("name") == plugin_json["name"]:
+            e["version"], e["description"] = version, plugin_json["description"]
+    mj.write_text(json.dumps(cat, indent=2, ensure_ascii=False) + "\n")
+    if shutil.which("claude"):
+        v = subprocess.run(["claude", "plugin", "validate", str(market)], capture_output=True, text=True, timeout=120)
+        if v.returncode != 0:
+            sys.exit(f"claude plugin validate failed for {market}:\n{v.stdout[-2000:]}{v.stderr[-1000:]}")
+    git("add", "-A", cwd=market)
+    if git("status", "--porcelain", cwd=market):
+        git("commit", "-q", "-m", f"figma-maintainer v{version}", cwd=market)
+    if not git("tag", "-l", f"v{version}", cwd=market):
+        git("tag", "-a", f"v{version}", "-m", f"figma-maintainer v{version}", cwd=market)
+    files = sum(1 for _ in dest.rglob("*") if _.is_file())
+    print(f"Marketplace {market}: figma-maintainer v{version} ({files} files), committed and tagged. "
+          f"Publish with: git -C {market} push origin main --tags")
 
 
 def main():
@@ -70,7 +110,6 @@ def main():
     if ZIP.exists():
         ZIP.unlink()
     git("archive", "--format=zip", "-o", str(ZIP), f"v{new}")
-    import zipfile
     with zipfile.ZipFile(ZIP) as z:  # what plugin uploads check: manifest at the root, description within limits
         names = set(z.namelist())
         if ".claude-plugin/plugin.json" not in names:
@@ -84,10 +123,13 @@ def main():
     print(f"\nfigma-maintainer v{new} ready to share: {len(tracked)} files, {sop_files} SOP files · {ZIP} "
           f"({ZIP.stat().st_size // 1024} KB)" + ("" if changed or a.version else "  (nothing changed since the last share)"))
     print(f"Not pushed ({ahead} commit(s) ahead of GitHub). Publish with: git push origin main --tags")
-    print("Co-workers: double-click the zip (it makes a Figma-maintainer folder) and put that folder at ~/ClaudeAI/Figma-maintainer "
-          "(replacing the old one), or upload the zip as is where the Claude app asks for a plugin zip. Then: "
-          "/plugin marketplace update e2m-figma (first time: /plugin marketplace add ~/ClaudeAI/Figma-maintainer and "
-          "/plugin install figma-maintainer@e2m-figma), restart Claude Code, run /figma-maintainer:doctor.")
+    market = marketplace_dir()
+    if market:
+        refresh_marketplace(market, new, json.loads(git("show", f"v{new}:.claude-plugin/plugin.json")))
+        print("Co-workers (after both pushes): /plugin marketplace update e2m-figma, then /reload-plugins. "
+              "First time: /plugin marketplace add mahakrishan21/e2m-figma-marketplace and /plugin install figma-maintainer@e2m-figma.")
+    else:
+        print("No team marketplace set up (no 'marketplace:' line in .master): only the zip was built.")
 
 
 if __name__ == "__main__":

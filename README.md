@@ -27,9 +27,10 @@ It follows each client's SOP and keeps a record of every job. An independent QA 
 ## 1. Quick start
 1. **Install** (details in [Setup](#9-setup-and-troubleshooting)):
    ```
-   /plugin marketplace add ~/ClaudeAI/Figma-maintainer
+   /plugin marketplace add mahakrishan21/e2m-figma-marketplace
    /plugin install figma-maintainer@e2m-figma
    ```
+   The repo is private: you need read access and GitHub signed in on your Mac.
 2. **Restart Claude Code** (or run `/reload-plugins`). Hooks only load at the start of a session.
 3. **Run** `/figma-maintainer:doctor`. It checks your token, Figma access, notifications and plugin version, and tells you what to fix.
 4. **Your first job:**
@@ -258,26 +259,28 @@ SOPs, the playbook and prices are **links** into the plugin's `knowledge/` folde
 - **Finding comments without a link** needs access to the Mac's notifications: System Settings → Privacy & Security → Full Disk Access → your terminal or VS Code. Only Figma's notifications are ever read.
 
 ### Install and update
-Use the zip exactly as shared. **Re-zipping the folder in Finder breaks uploads**, because it adds a hidden `__MACOSX` folder. Choose one route:
-
-**A) Upload in the Claude app:** Customize → Plugins → Add → Upload plugin → `Figma-maintainer.zip`.
-- It syncs into Claude Code at the next session start, signed in with the same account (or run `/reload-plugins`).
-- It runs in **Claude Code**. Claude's regular Chat ignores plugin agents and hooks.
-- An organization owner can also upload it once for everyone: Organization settings → Plugins & skills.
-- **To update:** upload the new zip.
-
-**B) From a folder:**
-1. Double-click the zip. It makes a `Figma-maintainer` folder, because the plugin's files sit at the top of the zip. Put that folder somewhere permanent, e.g. `~/ClaudeAI/Figma-maintainer`. Claude Code installs from this folder, so don't move or delete it.
-2. Install:
+**Team marketplace (recommended).** The team installs from the private repo `mahakrishan21/e2m-figma-marketplace`. That repo holds only the released plugin: no tests, no release tools, no git history of the source.
+1. **Access:** the SOP manager adds your GitHub account to the repo (Read).
+2. **GitHub sign-in on your Mac:** use GitHub Desktop, or run `gh auth login`.
+3. **Install:**
    ```
-   /plugin marketplace add ~/ClaudeAI/Figma-maintainer
+   /plugin marketplace add mahakrishan21/e2m-figma-marketplace
    /plugin install figma-maintainer@e2m-figma
    ```
-3. Restart Claude Code (or `/reload-plugins`), then run `/figma-maintainer:doctor`.
+4. **Finish:** restart Claude Code (or `/reload-plugins`), then run `/figma-maintainer:doctor`.
 
-**To update:** replace the folder with the new zip's `Figma-maintainer` folder, run `/plugin marketplace update e2m-figma`, and restart.
+**To update:** `/plugin marketplace update e2m-figma`, then `/reload-plugins`, or turn on auto-update under `/plugin` → Marketplaces. The doctor warns you when you're behind.
 
-SOPs update with either route; your work folders are untouched.
+**Switching from a zip install:** remove it first, so the agents don't load twice:
+- **Uploaded zip:** Customize → Plugins → remove figma-maintainer.
+- **Folder install:** `/plugin marketplace remove e2m-figma`.
+
+**Fallback without GitHub: the zip.** Use it exactly as shared; re-zipping in Finder breaks uploads.
+- **Install:** upload it under Customize → Plugins → Add → Upload plugin. It syncs into Claude Code at the next session start.
+- **Update:** upload the new zip.
+- **Where it runs:** Claude Code only. Regular Chat ignores plugin agents and hooks.
+
+SOPs update with every version; your work folders are untouched.
 
 ### When something's wrong
 Run **`/figma-maintainer:doctor`** first. It checks:
@@ -357,7 +360,9 @@ Name the client, or paste its Figma link, and its SOP applies. You never have to
 - **SOP manager** (the session folder has a `.master` file pointing to the plugin source):
   - edits SOPs directly (ask the agent, or use `/figma-maintainer:sop`);
   - reviews co-workers' proposals with `/figma-maintainer:review-contributions <zip>`;
-  - shares with `/figma-maintainer:share`. It runs the release check, commits, bumps the version, makes an annotated tag, and writes `~/ClaudeAI/Figma-maintainer.zip` from exactly that tagged version. It doesn't push (`git push origin main --tags`) and doesn't touch the plugin install (`/reload-plugins` picks up changes).
+  - shares with `/figma-maintainer:share`. It runs the release check, commits, bumps the version, makes an annotated tag, and writes `~/ClaudeAI/Figma-maintainer.zip` from exactly that tagged version. It then refreshes the team marketplace repo with the same build (set by the `marketplace:` line in `.master`), then commits and tags it there.
+    - Paths marked `export-ignore` in `.gitattributes` (tests, release tools, the management briefing) never reach the team.
+    - It doesn't push: run `git push origin main --tags` in both repos. It doesn't touch your own plugin install either (`/reload-plugins` picks up changes).
 - **Co-workers:** SOPs are read-only. New rules or corrections become proposals in `~/.claude/figma-maintainer/contributions/`. `/figma-maintainer:contribute` zips them for the SOP manager.
 
 ### Release check (before every version)

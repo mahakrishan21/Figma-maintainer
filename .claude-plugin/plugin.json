@@ -1,6 +1,6 @@
 {
   "name": "figma-maintainer",
-  "version": "1.33.2",
+  "version": "1.33.3",
   "description": "Figma maintenance agent for the E2M design team: copy and form edits, image swaps, inner pages, mobile and tablet versions, component states and client-comment rounds, following each agency's SOP. Finds new client comments, plans changes for your approval, checks every job with an independent QA agent, and ends with a Slack update and a client message. Also read-only Consistency, Content and Accessibility audits, and usage and cost reports.",
   "author": {
     "name": "E2M:Mack"

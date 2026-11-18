@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE))
 from figma_common import FM, FigmaError, get  # noqa: E402
 
 ROOT = HERE.parent  # plugin root
-REPO = "mahakrishan21/Figma-maintainer"
+REPO = "mahakrishan21/e2m-figma-marketplace"  # team marketplace; private, so unauthenticated checks skip
 TEST_FILE = "lQHhvuMvDB1t4C4k3Fl5VF"
 RESULTS = []
 
@@ -162,8 +162,11 @@ def main():
         local = "?"
     latest = None
     try:
-        if (ROOT / ".git").exists():
-            r = subprocess.run(["git", "-C", str(ROOT), "ls-remote", "--tags", "origin"], capture_output=True, text=True, timeout=15)
+        # The source folder (SOP manager) or the team marketplace clone: ls-remote uses this Mac's GitHub sign-in.
+        market = Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude") / "plugins" / "marketplaces" / "e2m-figma"
+        repo = ROOT if (ROOT / ".git").exists() else market if (market / ".git").exists() else None
+        if repo:
+            r = subprocess.run(["git", "-C", str(repo), "ls-remote", "--tags", "origin"], capture_output=True, text=True, timeout=15)
             tags = re.findall(r"refs/tags/v(\d+\.\d+\.\d+)$", r.stdout, re.M)
         else:
             req = urllib.request.Request(f"https://api.github.com/repos/{REPO}/tags?per_page=100", headers={"User-Agent": "figma-maintainer"})
@@ -175,7 +178,7 @@ def main():
     if latest and local != "?":
         newer = semver(latest) > semver(local)
         check("Plugin version", "warn" if newer else "ok", f"installed {local}, latest {latest}",
-              "Update: download the latest version, unzip over the plugin folder, run /plugin marketplace update e2m-figma, restart.")
+              "Update: /plugin marketplace update e2m-figma, then /reload-plugins.")
     else:
         check("Plugin version", "skip" if latest is None else "ok", f"installed {local}" + ("" if latest else ", latest unknown (offline or private repo)"))
     try:

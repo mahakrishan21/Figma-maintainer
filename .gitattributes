@@ -1,0 +1,9 @@
+# Left out of every team build (git archive: the zip and the marketplace build). The SOP manager's
+# own install reads this folder, so these stay available here.
+tests/ export-ignore
+scripts/release_check.sh export-ignore
+scripts/share_plugin.py export-ignore
+commands/share.md export-ignore
+commands/review-contributions.md export-ignore
+docs/figma-maintainer-briefing.html export-ignore
+.gitattributes export-ignore

@@ -10,21 +10,21 @@ It follows each agency's SOP automatically. Every finished job gets an independe
 **About 15 minutes to set up, once.** After that, you just ask in plain words.
 
 ## 1. Install (once)
-Get `Figma-maintainer.zip` from the SOP manager (Mahakrishan). **Use the zip exactly as you received it: don't unzip it and zip it again** (that breaks the upload). Then choose one route:
-
-**A) Upload it in the Claude app (easiest)**
-1. In the Claude app or claude.ai: **Customize → Plugins → Add → Upload plugin**, then choose `Figma-maintainer.zip`.
-2. Open **Claude Code** (the desktop app's Code tab, VS Code or terminal), signed in with the same Claude account. The plugin syncs at the start of the next session (or run `/reload-plugins`).
-3. Use it in **Claude Code**. In regular Chat its agents and safety checks don't run.
-
-**B) Install from a folder**
-1. Double-click the zip. Your Mac makes a `Figma-maintainer` folder. Move it into `~/ClaudeAI/`, so it's `~/ClaudeAI/Figma-maintainer`, and keep it there.
-2. In Claude Code, run:
+**From the team marketplace (recommended).** You get updates with one command.
+1. **Get access:** ask the SOP manager (Mahakrishan) to add your GitHub account to the private repo `mahakrishan21/e2m-figma-marketplace`.
+2. **Sign in to GitHub on your Mac:** install GitHub Desktop and sign in, or run `gh auth login` in Terminal.
+3. **Install:** in Claude Code, run:
    ```
-   /plugin marketplace add ~/ClaudeAI/Figma-maintainer
+   /plugin marketplace add mahakrishan21/e2m-figma-marketplace
    /plugin install figma-maintainer@e2m-figma
    ```
-3. Restart Claude Code.
+4. **Restart Claude Code.**
+
+**Already have the zip version?** Remove it first, so the agents don't load twice:
+- **Uploaded zip:** Customize → Plugins → remove figma-maintainer.
+- **Folder install:** run `/plugin marketplace remove e2m-figma`.
+
+**No GitHub account?** Get `Figma-maintainer.zip` from the SOP manager and use it exactly as received (don't unzip it and zip it again). In the Claude app, upload it under **Customize → Plugins → Add → Upload plugin**. Then use it in **Claude Code**; in regular Chat its agents and safety checks don't run.
 
 ## 2. Connect Figma (once)
 **a) Figma access for edits.** Choose one, and sign in with our team Figma account (Design Studio):
@@ -91,11 +91,15 @@ More examples: `/figma-maintainer:prompts`.
 - **Send proposals** with `/figma-maintainer:contribute`, which makes a zip, to the SOP manager. Approved rules reach everyone in the next version.
 
 ## 7. Updates
-When you get a new zip:
-- **Route A:** upload the new zip the same way (Customize → Plugins → Upload plugin) and replace the old figma-maintainer if asked. Then restart Claude Code or run `/reload-plugins`.
-- **Route B:** double-click it, replace `~/ClaudeAI/Figma-maintainer` with the new `Figma-maintainer` folder, run `/plugin marketplace update e2m-figma`, and restart Claude Code.
+When a new version is announced, run:
+```
+/plugin marketplace update e2m-figma
+/reload-plugins
+```
+- **To update automatically:** turn on auto-update under `/plugin` → Marketplaces → e2m-figma.
+- **Zip users:** upload the new zip the same way and replace the old one.
 
-Then run `/figma-maintainer:doctor`. Your work folders aren't touched.
+Then run `/figma-maintainer:doctor`. It also tells you when you're behind. Your work folders aren't touched.
 
 ## Help
 - **`/figma-maintainer:doctor`:** setup problems.
