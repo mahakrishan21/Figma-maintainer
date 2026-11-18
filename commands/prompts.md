@@ -64,7 +64,8 @@ Examples:
 - Every job ends with a report (including an **Undo** line), a Slack update and a client message with prototype links.
 - `give me slack message` or `/figma-maintainer:slack` gives the Slack text plus an internal usage block.
 - `/figma-maintainer:client-message` writes the client message.
-- `/figma-maintainer:cost-report session` · `latest` · `client KHL since 2026-10-01` · `html`
+- `/figma-maintainer:cost-report` (this conversation) · `latest` (last task) · `html`
+- `/figma-maintainer:cost-report-all` · `since 2026-11-01` · `client KHL` · `html`: your whole cost history on this Mac, only when you ask
 
 ### Setup, rules and help
 - `/figma-maintainer:doctor` checks the token, scopes, Figma access, notifications and version, with fixes.
@@ -76,7 +77,7 @@ Examples:
 - **One job per conversation:** start a new conversation or type `/clear` after each job (the plugin reminds you).
 - **Opus or Sonnet, not Fable,** for routine work: `/model opus`.
 - **Small text jobs** (up to 3 plain text edits in one frame) get a lighter plan and QA automatically.
-- `/figma-maintainer:cost-report` shows the average per agent and the model mix.
+- `/figma-maintainer:cost-report-all` shows the average per agent and the model mix across your history.
 
 ### Tips
 - **Link to the exact frame**, not the whole file.

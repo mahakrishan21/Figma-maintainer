@@ -70,7 +70,8 @@ Use figma-maintainer: <client> — <Figma link with node-id> — <what to change
 | Check against a brief | `/figma-maintainer:check-brief <url>`, then paste the brief |
 | Compare two versions | `/figma-maintainer:compare-versions <old url> <new url>` |
 | QA a job again, or a designer's manual work | `/figma-maintainer:qa PIPP` or `/figma-maintainer:qa <link> since 2026-10-29 14:00` |
-| Slack text / cost | `give me slack message` · `/figma-maintainer:cost-report session` |
+| Slack text / cost | `give me slack message` · `/figma-maintainer:cost-report` (this conversation) · `latest` (last task) |
+| Cost history on this Mac | `/figma-maintainer:cost-report-all [since 2026-11-01] [client PIPP] [html]` (only when you ask) |
 | Teach it a rule | `figma-maintainer: next time, KHL buttons are always full width in forms` |
 | Skip QA once | `skip QA` |
 
@@ -98,7 +99,7 @@ Use figma-maintainer: <client> — <Figma link with node-id> — <what to change
 - **One job per conversation.** When a job is done, start a new conversation or type `/clear`. A long conversation re-reads everything on every message: one two-week conversation cost about $134 on its own. The plugin reminds you after each job.
 - **Use Opus or Sonnet for routine work** (`/model opus`). Fable costs 2.5–5× more, and `/figma-maintainer:doctor` warns if it's your default. The plugin's own agents always use their own models: the editor on Opus; analysis, QA and audits on Sonnet; usage on Haiku.
 - **Link the exact frame, one page per prompt.** Small text jobs (up to 3 plain text edits in one frame) automatically get a lighter plan and QA.
-- **Check where it goes:** usage lines flag tasks over budget and say why (Fable, many tool calls, heavy re-reading). `/figma-maintainer:cost-report` shows the average per agent and the model mix.
+- **Check where it goes:** usage lines flag tasks over budget and say why (Fable, many tool calls, heavy re-reading). `/figma-maintainer:cost-report` shows this conversation or one task; `/figma-maintainer:cost-report-all` shows your whole history on this Mac (sessions, clients, averages per agent and model mix), only when you ask.
 
 ### What it won't do
 - **No image editing:** no retouching, no removing objects, no new renders. It adds an annotation instead.
@@ -395,6 +396,7 @@ A client's `task-<name>.md` applies **only to that client**. **Scope is always t
 | `/figma-maintainer:compare-versions <old> <new>` | Every change between two frames |
 | `/figma-maintainer:client-message [notes]` | Write the client message for the work done |
 | `/figma-maintainer:slack [task]` | Slack update plus an internal usage block |
-| `/figma-maintainer:cost-report [latest\|session\|client X\|html]` | Token usage and cost |
+| `/figma-maintainer:cost-report [latest\|"task"\|html]` | Tokens and cost of this conversation or one task |
+| `/figma-maintainer:cost-report-all [since …] [client …] [html]` | Consolidated cost history on this Mac (only when asked) |
 | `/figma-maintainer:sop <client> [— rule]` | Show or add client SOP rules |
 | `/figma-maintainer:contribute` · `:review-contributions` · `:share` | SOP proposals and releases |

@@ -11,8 +11,11 @@ Usage:
   usage_report.py [--session <id|path>] [--cwd <project>]          # session summary, all tasks
   usage_report.py --task latest|<agent id>|"<description text>"     # one task
   usage_report.py --slack [--task …]                                # Slack 'Usage (internal)' block
-  usage_report.py --ledger [--client KHL] [--since 2026-10-01]      # totals from the usage log
-  usage_report.py --hook-subagent-stop                              # hook: log + show the task that just finished
+  usage_report.py --all [--client KHL] [--since 2026-10-01] [--html]  # consolidated report of this Mac's history
+                                                                    # (only via /figma-maintainer:cost-report-all; --ledger = alias)
+  usage_report.py --hook-subagent-stop                              # hook: log the task + this session's totals, show the task line
+History on this Mac: usage-log.jsonl (one row per plugin task) and usage-sessions.jsonl (one row per session that ran
+a plugin agent: main-conversation cost, refreshed each time a plugin agent finishes).
 Currency: ~/.claude/figma-maintainer/cost-config.json, e.g. {"currencies": ["USD","INR"], "fx": {"INR": 84.0}}
 """
 import argparse, json, os, re, sys
@@ -24,6 +27,7 @@ import cost_report as cr  # noqa: E402
 
 FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer")
 LEDGER = FM / "usage-log.jsonl"
+SESSIONS = FM / "usage-sessions.jsonl"
 SKIP_AGENTS = {"figma-maintainer:usage-reporter", "usage-reporter"}
 
 
@@ -237,11 +241,113 @@ def log_task(t, session_id):
     return True
 
 
+def update_session_row(sf, tasks, pricing):
+    """Upsert this session's totals (main conversation + plugin tasks) into usage-sessions.jsonl."""
+    rows = cr.read_jsonl(sf)
+    m = measure(rows, pricing, sidechain_only=False)
+    fm = [t for t in tasks if str(t["agent"]).startswith("figma-maintainer:") and t["agent"] not in SKIP_AGENTS]
+    folder = next((r.get("cwd") for r in rows if r.get("cwd")), "")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    row = {"session": sf.stem, "first": m["start"].strftime("%Y-%m-%d") if m["start"] else today,
+           "last": m["end"].strftime("%Y-%m-%d") if m["end"] else today, "folder": folder,
+           "main_new_tokens": m["new"], "main_cache_read": m["cache_read"], "main_usd": round(m["usd"], 4),
+           "main_models": sorted(m["models"]), "tasks": len(fm), "tasks_usd": round(sum(t["usd"] for t in fm), 4),
+           "clients": sorted({t["client"] for t in fm if t["client"]}),
+           "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"), "transcript": str(sf)}
+    keep = []
+    if SESSIONS.exists():
+        for line in SESSIONS.read_text().splitlines():
+            try:
+                r = json.loads(line)
+            except Exception:
+                continue
+            if r.get("session") != row["session"]:
+                keep.append(r)
+    keep.append(row)
+    FM.mkdir(parents=True, exist_ok=True)
+    SESSIONS.write_text("".join(json.dumps(r) + "\n" for r in keep))
+    return row
+
+
+def load_jsonl(path):
+    out = []
+    if Path(path).exists():
+        for line in Path(path).read_text().splitlines():
+            try:
+                out.append(json.loads(line))
+            except Exception:
+                pass
+    return out
+
+
+def report_all(a, cfg):
+    """Consolidated report of this Mac's plugin history (tasks + sessions). Only on explicit request."""
+    tasks = [r for r in load_jsonl(LEDGER) if str(r.get("agent", "")).startswith("figma-maintainer:")]  # other plugins' old rows out
+    sessions = load_jsonl(SESSIONS)
+    if a.since:
+        tasks = [r for r in tasks if r.get("date", "") >= a.since]
+        sessions = [r for r in sessions if r.get("last", "") >= a.since]
+    if a.client:
+        c = a.client.lower()
+        tasks = [r for r in tasks if c in (r.get("client") or "").lower()]
+        sessions = [r for r in sessions if any(c in x.lower() for x in r.get("clients") or [])]
+    t_usd = sum(r["usd"] for r in tasks)
+    m_usd = sum(r.get("main_usd", 0) for r in sessions)
+    scope = (f" · client {a.client}" if a.client else "") + (f" · since {a.since}" if a.since else "")
+    out = [f"Consolidated usage on this Mac{scope}: {len(sessions)} session(s), {len(tasks)} plugin task(s)",
+           f"Total {money(t_usd + m_usd, cfg)} = main conversations {money(m_usd, cfg)} + plugin tasks {money(t_usd, cfg)}"]
+    if sessions:
+        out.append("\nPer session (newest first):")
+        for r in sorted(sessions, key=lambda r: r.get("last", ""), reverse=True):
+            out.append(f"• {r.get('last')} · {', '.join(r.get('clients') or []) or '(no client)'} · main {money(r.get('main_usd', 0), cfg)}"
+                       f" · {r.get('tasks', 0)} task(s) {money(r.get('tasks_usd', 0), cfg)} · session {str(r.get('session', ''))[:8]}")
+    by = defaultdict(lambda: [0, 0.0])
+    for r in tasks:
+        b = by[r.get("client") or "(no client)"]; b[0] += 1; b[1] += r["usd"]
+    if by:
+        out.append("\nPer client (plugin tasks):")
+        for k, (n, usd) in sorted(by.items(), key=lambda kv: -kv[1][1]):
+            out.append(f"• {k}: {n} task(s), {money(usd, cfg)}")
+    ag = defaultdict(lambda: {"n": 0, "usd": 0.0, "calls": 0, "cached": 0, "models": defaultdict(float)})
+    for r in tasks:
+        g = ag[r["agent"].split(":", 1)[1]]
+        g["n"] += 1; g["usd"] += r["usd"]; g["calls"] += r.get("tool_calls", 0); g["cached"] += r.get("cache_read", 0)
+        ms = r.get("models") or ["?"]
+        for mm in ms:
+            g["models"][mm.replace("claude-", "")] += r["usd"] / len(ms)
+    if ag:
+        out.append("\nPer agent (average per task):")
+        for k, g in sorted(ag.items(), key=lambda kv: -kv[1]["usd"]):
+            mix = ", ".join(f"{mm} {v / g['usd']:.0%}" for mm, v in sorted(g["models"].items(), key=lambda kv: -kv[1])) if g["usd"] else ""
+            out.append(f"• {k}: {g['n']} task(s), avg {money(g['usd'] / g['n'], cfg)}, {g['calls'] // g['n']} tool calls, "
+                       f"{short(g['cached'] // g['n'])} re-read tokens · cost by model: {mix}")
+    out.append("\nNote: each session's main-conversation cost is recorded when a plugin agent finishes, so the part after its last agent "
+               "isn't included; sessions from before the session history started (v1.33.1) show only their plugin tasks.")
+    text = "\n".join(out)
+    print(text)
+    if a.html:
+        import html as h
+        rep = FM / "reports"; rep.mkdir(parents=True, exist_ok=True)
+        f = rep / f"cost-all-{datetime.now().strftime('%Y-%m-%d')}.html"
+        body = "".join(f"<li>{h.escape(l[2:])}</li>" if l.startswith("• ") else
+                       (f"<h2>{h.escape(l.strip())}</h2>" if l.strip().endswith(":") else f"<p>{h.escape(l)}</p>") for l in out if l.strip())
+        f.write_text("<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>"
+                     "<title>Plugin cost history</title><style>body{font:15px/1.6 system-ui,sans-serif;max-width:860px;margin:32px auto;padding:0 16px;"
+                     "color:#151a24;background:#f6f7f9}h1{font-size:26px}h2{font-size:17px;margin-top:24px}li{margin:4px 0}"
+                     "@media(prefers-color-scheme:dark){body{color:#e7eaf0;background:#10141c}}</style></head><body>"
+                     f"<h1>figma-maintainer cost history</h1>{body}</body></html>")
+        print(f"\nHTML: {f}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--session"); ap.add_argument("--cwd")
     ap.add_argument("--task"); ap.add_argument("--slack", action="store_true")
-    ap.add_argument("--ledger", action="store_true"); ap.add_argument("--client"); ap.add_argument("--since")
+    ap.add_argument("--all", action="store_true", help="consolidated report of this Mac's history (cost-report-all only)")
+    ap.add_argument("--ledger", action="store_true", help="alias of --all")
+    ap.add_argument("--client"); ap.add_argument("--since"); ap.add_argument("--html", action="store_true")
+    ap.add_argument("--rebuild-sessions", action="store_true",
+                    help="one-time: rebuild usage-sessions.jsonl from the transcripts the task log points to")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--hook-subagent-stop", action="store_true")
     a = ap.parse_args()
@@ -262,36 +368,29 @@ def main():
         if not cand or cand[0]["agent"] in SKIP_AGENTS or not cand[0]["agent"].startswith("figma-maintainer:"):
             sys.exit(0)  # only figma-maintainer agents are logged
         t = cand[0]
-        if log_task(t, sf.stem):
+        logged = log_task(t, sf.stem)
+        try:  # this session's totals (main conversation + plugin tasks) for the consolidated history
+            update_session_row(sf, tasks, pricing)
+        except Exception as e:
+            print(f"usage_report: session row not saved: {e}", file=sys.stderr)
+        if logged:
             print(json.dumps({"systemMessage": "Usage: " + task_line(t, cfg, pricing)}))
         sys.exit(0)
 
-    if a.ledger:
-        rows = [json.loads(l) for l in LEDGER.read_text().splitlines() if l.strip()] if LEDGER.exists() else []
-        if a.client:
-            rows = [r for r in rows if a.client.lower() in (r.get("client") or "").lower()]
-        if a.since:
-            rows = [r for r in rows if r["date"] >= a.since]
-        rows = [r for r in rows if str(r.get("agent", "")).startswith("figma-maintainer:")]  # other plugins' old rows
-        by = defaultdict(lambda: {"tasks": 0, "new": 0, "cached": 0, "usd": 0.0})
-        for r in rows:
-            b = by[r.get("client") or "(no client)"]
-            b["tasks"] += 1; b["new"] += r["new_tokens"]; b["cached"] += r["cache_read"]; b["usd"] += r["usd"]
-        print(f"Usage log{' — ' + a.client if a.client else ''}{' since ' + a.since if a.since else ''}: {len(rows)} task(s)")
-        for k, b in sorted(by.items(), key=lambda kv: -kv[1]["usd"]):
-            print(f"• {k}: {b['tasks']} tasks — {short(b['new'])} tokens (+{short(b['cached'])} cached), {money(b['usd'], cfg)}")
-        ag = defaultdict(lambda: {"n": 0, "usd": 0.0, "calls": 0, "cached": 0, "models": defaultdict(float)})
-        for r in rows:
-            g = ag[r["agent"].split(":", 1)[1]]
-            g["n"] += 1; g["usd"] += r["usd"]; g["calls"] += r.get("tool_calls", 0); g["cached"] += r["cache_read"]
-            for m in r.get("models") or ["?"]:
-                g["models"][m.replace("claude-", "")] += r["usd"] / max(len(r.get("models") or ["?"]), 1)
-        if ag:
-            print("\nPer agent (average per task):")
-            for k, g in sorted(ag.items(), key=lambda kv: -kv[1]["usd"]):
-                mix = ", ".join(f"{m} {v / g['usd']:.0%}" for m, v in sorted(g["models"].items(), key=lambda kv: -kv[1]) if g["usd"])
-                print(f"• {k}: {g['n']} tasks, avg {money(g['usd'] / g['n'], cfg)}, {g['calls'] // g['n']} tool calls, "
-                      f"{short(g['cached'] // g['n'])} re-read tokens · cost by model: {mix}")
+    if a.rebuild_sessions:
+        seen, n = set(), 0
+        for r in load_jsonl(LEDGER):
+            tp = Path(r.get("transcript") or "")
+            sf = tp.parent.parent.with_suffix(".jsonl") if tp.parent.name == "subagents" else None
+            if not sf or sf in seen or not sf.exists() or not str(r.get("agent", "")).startswith("figma-maintainer:"):
+                continue
+            seen.add(sf)
+            update_session_row(sf, tasks_of(sf, pricing), pricing); n += 1
+        print(f"Session history rebuilt: {n} session(s) → {SESSIONS}")
+        return
+
+    if a.all or a.ledger:
+        report_all(a, cfg)
         return
 
     sf = find_session(a)

@@ -1,11 +1,17 @@
 ---
 disable-model-invocation: true
-description: Token usage and API cost (USD + INR) — per task, this session, a client, or the full HTML report
-argument-hint: [latest | session | "<task words>" | client <name> [since YYYY-MM-DD] | html [all-sessions]]
+description: Token usage and API cost (USD + INR) for this conversation or one task
+argument-hint: [latest | "<task words>" | html]
 ---
 
 Use the usage-reporter agent (figma-maintainer:usage-reporter) for: $ARGUMENTS
 
-If no argument is given, report this session (every task plus the main conversation). Show its "Usage (internal)" block as it is. Write the HTML report only when I said "html".
+This report covers **one conversation or one task only**:
+- **no argument:** this conversation (every plugin task plus the main conversation);
+- **`latest`:** the task that just finished;
+- **`"<task words>"`:** the one task whose description matches;
+- **`html`:** an HTML report of this conversation only.
 
-Store every file this produces in the project folder from `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --url "<figma url>"` (person › agency › project; created only if missing).
+Show its "Usage (internal)" block as it is.
+
+If I ask here for a client, a period or all jobs, don't run anything. Answer: "This report covers one conversation or one task. For everything on this Mac, run `/figma-maintainer:cost-report-all`."

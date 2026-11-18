@@ -91,5 +91,66 @@ class Budget(unittest.TestCase):
         self.assertEqual(u.budget_flag(dict(base, agent="figma-maintainer:usage-reporter", usd=9)), "")
 
 
+class CostReports(unittest.TestCase):
+    def _home(self):
+        td, home = temp_home()
+        (home / "pricing.json").symlink_to(ROOT / "knowledge" / "pricing.json")
+        return td, home
+
+    def _transcript(self, home, n_main):
+        main = home / "sessX.jsonl"
+        rows = [{"type": "user", "cwd": "/tmp/work", "timestamp": "2026-11-18T10:00:00Z", "message": {"content": "Use figma-maintainer: x"}}]
+        for i in range(n_main):
+            rows.append({"type": "assistant", "timestamp": f"2026-11-18T10:0{i + 1}:00Z", "isSidechain": False,
+                         "message": {"id": f"m{i}", "model": "claude-opus-5-5", "content": [],
+                                     "usage": {"input_tokens": 1000, "output_tokens": 500, "cache_read_input_tokens": 10000}}})
+        main.write_text("".join(json.dumps(r) + "\n" for r in rows))
+        sub = home / "sessX" / "subagents"; sub.mkdir(parents=True, exist_ok=True)
+        (sub / "agent-a1.jsonl").write_text(json.dumps({"type": "assistant", "timestamp": "2026-11-18T10:05:00Z", "isSidechain": True,
+            "message": {"id": "s1", "model": "claude-sonnet-5-5", "content": [], "usage": {"input_tokens": 2000, "output_tokens": 800}}}) + "\n")
+        (sub / "agent-a1.meta.json").write_text(json.dumps({"agentType": "figma-maintainer:qa-checker", "description": "QA test"}))
+        return main
+
+    def test_session_row_upsert(self):
+        td, home = self._home()
+        try:
+            main = self._transcript(home, 2)
+            hook = {"transcript_path": str(main), "agent_id": "a1", "agent_type": "figma-maintainer:qa-checker"}
+            run("usage_report.py", hook, home, args=["--hook-subagent-stop"])
+            rows = [json.loads(l) for l in (home / "usage-sessions.jsonl").read_text().splitlines()]
+            self.assertEqual(len(rows), 1); self.assertEqual(rows[0]["session"], "sessX"); self.assertEqual(rows[0]["tasks"], 1)
+            first = rows[0]["main_usd"]
+            self._transcript(home, 4)  # the conversation grew: same session, updated row
+            run("usage_report.py", hook, home, args=["--hook-subagent-stop"])
+            rows = [json.loads(l) for l in (home / "usage-sessions.jsonl").read_text().splitlines()]
+            self.assertEqual(len(rows), 1); self.assertGreater(rows[0]["main_usd"], first)
+        finally:
+            td.cleanup()
+
+    def test_consolidated_report_sums_and_filters(self):
+        td, home = self._home()
+        try:
+            (home / "usage-log.jsonl").write_text("".join(json.dumps(r) + "\n" for r in [
+                {"date": "2026-11-10", "agent": "figma-maintainer:figma-maintainer", "client": "Acme › Site", "usd": 2.0, "new_tokens": 1, "cache_read": 1, "tool_calls": 10, "models": ["claude-opus-5-5"]},
+                {"date": "2026-11-12", "agent": "figma-maintainer:qa-checker", "client": "Acme › Site", "usd": 1.0, "new_tokens": 1, "cache_read": 1, "tool_calls": 5, "models": ["claude-sonnet-5-5"]},
+                {"date": "2026-11-12", "agent": "other-plugin:builder", "client": "", "usd": 50.0, "new_tokens": 1, "cache_read": 1, "tool_calls": 5, "models": []}]))
+            (home / "usage-sessions.jsonl").write_text(json.dumps({"session": "s1", "first": "2026-11-10", "last": "2026-11-12", "main_usd": 4.0,
+                                                                  "tasks": 2, "tasks_usd": 3.0, "clients": ["Acme › Site"]}) + "\n")
+            out = run("usage_report.py", {}, home, args=["--all"])[0]
+            self.assertIn("1 session(s), 2 plugin task(s)", out)
+            self.assertIn("Total $7.00", out)  # 4 main + 3 tasks; the other plugin's $50 is left out
+            out2 = run("usage_report.py", {}, home, args=["--all", "--since", "2026-11-11"])[0]
+            self.assertIn("1 plugin task(s)", out2)
+        finally:
+            td.cleanup()
+
+    def test_default_report_is_one_conversation_or_task(self):
+        cmd = (ROOT / "commands" / "cost-report.md").read_text()
+        self.assertNotIn("client <name>", cmd); self.assertNotIn("all-sessions", cmd)
+        allc = (ROOT / "commands" / "cost-report-all.md").read_text()
+        self.assertIn("disable-model-invocation: true", allc); self.assertIn("--all", allc)
+        self.assertIn("Consolidated:", (ROOT / "agents" / "usage-reporter.md").read_text())
+
+
 if __name__ == "__main__":
     unittest.main()
