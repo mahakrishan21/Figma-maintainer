@@ -94,6 +94,12 @@ Use figma-maintainer: <client> — <Figma link with node-id> — <what to change
 - **Desktop only** unless you say "mobile" or "tablet". "Should be responsive" in a brief isn't a request for frames.
 - **Corrections become rules:** start with `figma-maintainer: next time …`.
 
+### Keep costs down
+- **One job per conversation.** When a job is done, start a new conversation or type `/clear`. A long conversation re-reads everything on every message: one two-week conversation cost about $134 on its own. The plugin reminds you after each job.
+- **Use Opus or Sonnet for routine work** (`/model opus`). Fable costs 2.5–5× more, and `/figma-maintainer:doctor` warns if it's your default. The plugin's own agents always use their own models: the editor on Opus; analysis, QA and audits on Sonnet; usage on Haiku.
+- **Link the exact frame, one page per prompt.** Small text jobs (up to 3 plain text edits in one frame) automatically get a lighter plan and QA.
+- **Check where it goes:** usage lines flag tasks over budget and say why (Fable, many tool calls, heavy re-reading). `/figma-maintainer:cost-report` shows the average per agent and the model mix.
+
 ### What it won't do
 - **No image editing:** no retouching, no removing objects, no new renders. It adds an annotation instead.
 - **No new tablet or mobile frames** unless you ask.

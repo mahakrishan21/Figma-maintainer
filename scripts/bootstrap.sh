@@ -6,6 +6,7 @@
 # It gets links into the plugin so agents read SOPs at fixed paths:
 #   clients/, playbook.md, pricing.json, cost-config.json -> <plugin>/knowledge/...
 #   scripts/ -> <plugin>/scripts      guides/<skill>.md -> <plugin>/skills/<skill>/SKILL.md
+#   guides/<name>.md -> <plugin>/guides/<name>.md (on-demand agent guides)
 # On the SOP manager's machine (.master file: "source: <plugin source folder>") the links point to
 # the plugin SOURCE, so SOP edits land in git. Everyone else reads their installed copy.
 set -u
@@ -40,6 +41,10 @@ for f in playbook.md pricing.json cost-config.json; do link "$K/$f" "$f"; done
 link "$src/scripts" scripts
 for d in "$src"/skills/*/; do
   n="$(basename "$d")"; [ -f "$d/SKILL.md" ] && ln -sfn "$d/SKILL.md" "$dest/guides/$n.md"
+done
+# on-demand guides (plain files, not skills, so they don't add to every session's skill list)
+for f in "$src"/guides/*.md; do
+  [ -f "$f" ] && ln -sfn "$f" "$dest/guides/$(basename "$f")"
 done
 # Per person -> per client -> per project work folders live under work/<person>/ (created on demand by workdir.py)
 if [ ! -s "$dest/.person" ]; then

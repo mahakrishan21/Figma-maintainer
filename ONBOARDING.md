@@ -79,6 +79,10 @@ More examples: `/figma-maintainer:prompts`.
   - the report, including an **Undo** line;
   - a **Slack update** and a **client message** (with prototype links), ready to copy;
   - an internal usage line (time and cost).
+- **Keep costs down:**
+  - **one job per conversation:** start a new conversation or type `/clear` when a job is done, and the plugin reminds you;
+  - **Opus or Sonnet, not Fable,** for routine work (`/model opus`);
+  - **link the exact frame.**
 - **Your work is saved** in `~/.claude/figma-maintainer/work/<you>/<agency>/<project>/`, one folder per job, plus a `PROJECT.md` that remembers the project for next time.
 
 ## 6. Rules and corrections

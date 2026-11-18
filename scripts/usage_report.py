@@ -175,10 +175,34 @@ def pick_task(tasks, sel):
     sys.exit(f"No task matching '{sel}'")
 
 
+BUDGET = {"figma-maintainer:figma-maintainer": 3.0}  # USD per task; every other figma-maintainer agent: 1.5
+
+
+def budget_flag(t):
+    """' ⚠ over budget: <likely cause>' when a task costs more than expected (empty otherwise)."""
+    agent = t.get("agent", "")
+    if not agent.startswith("figma-maintainer:") or agent.endswith("usage-reporter"):
+        return ""
+    limit = BUDGET.get(agent, 1.5)
+    models = " ".join(t.get("models") or []).lower()
+    causes = []
+    if "fable" in models or "mythos" in models:
+        causes.append("ran on Fable (2.5–5× Opus): pin the model or /model opus")
+    if t.get("tool_calls", 0) > 50:
+        causes.append(f"{t['tool_calls']} tool calls")
+    if t.get("cache_read", 0) > 5_000_000:
+        causes.append(f"{short(t['cache_read'])} re-read tokens (big screenshots or dumps, long context)")
+    fable = "fable" in models or "mythos" in models
+    if t.get("usd", 0) <= limit and not fable:  # within budget on a normal model: no flag
+        return ""
+    return f" ⚠ over budget (${limit:.2f}): " + ("; ".join(causes) or "long job")
+
+
 def task_line(t, cfg, pricing):
     who = f"{t['client']} — " if t["client"] else ""
     return (f"{who}{t['description']} — {short(t['new'])} tokens (+{short(t['cache_read'])} cached), "
-            f"{money(t['usd'], cfg)}, {t['minutes']} min, {t['tool_calls']} tool calls · {model_label(t['models'], pricing)}")
+            f"{money(t['usd'], cfg)}, {t['minutes']} min, {t['tool_calls']} tool calls · {model_label(t['models'], pricing)}"
+            + budget_flag(t))
 
 
 def log_task(t, session_id):
@@ -248,6 +272,7 @@ def main():
             rows = [r for r in rows if a.client.lower() in (r.get("client") or "").lower()]
         if a.since:
             rows = [r for r in rows if r["date"] >= a.since]
+        rows = [r for r in rows if str(r.get("agent", "")).startswith("figma-maintainer:")]  # other plugins' old rows
         by = defaultdict(lambda: {"tasks": 0, "new": 0, "cached": 0, "usd": 0.0})
         for r in rows:
             b = by[r.get("client") or "(no client)"]
@@ -255,6 +280,18 @@ def main():
         print(f"Usage log{' — ' + a.client if a.client else ''}{' since ' + a.since if a.since else ''}: {len(rows)} task(s)")
         for k, b in sorted(by.items(), key=lambda kv: -kv[1]["usd"]):
             print(f"• {k}: {b['tasks']} tasks — {short(b['new'])} tokens (+{short(b['cached'])} cached), {money(b['usd'], cfg)}")
+        ag = defaultdict(lambda: {"n": 0, "usd": 0.0, "calls": 0, "cached": 0, "models": defaultdict(float)})
+        for r in rows:
+            g = ag[r["agent"].split(":", 1)[1]]
+            g["n"] += 1; g["usd"] += r["usd"]; g["calls"] += r.get("tool_calls", 0); g["cached"] += r["cache_read"]
+            for m in r.get("models") or ["?"]:
+                g["models"][m.replace("claude-", "")] += r["usd"] / max(len(r.get("models") or ["?"]), 1)
+        if ag:
+            print("\nPer agent (average per task):")
+            for k, g in sorted(ag.items(), key=lambda kv: -kv[1]["usd"]):
+                mix = ", ".join(f"{m} {v / g['usd']:.0%}" for m, v in sorted(g["models"].items(), key=lambda kv: -kv[1]) if g["usd"])
+                print(f"• {k}: {g['n']} tasks, avg {money(g['usd'] / g['n'], cfg)}, {g['calls'] // g['n']} tool calls, "
+                      f"{short(g['cached'] // g['n'])} re-read tokens · cost by model: {mix}")
         return
 
     sf = find_session(a)

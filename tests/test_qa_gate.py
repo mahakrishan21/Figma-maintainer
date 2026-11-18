@@ -60,6 +60,8 @@ class QAGate(unittest.TestCase):
         qa.write_text(json.dumps({"type": "user", "message": {"content": f"Job folder: {self.job}\nFile: {KEY}"}}) + "\n")
         self.sub_stop(QA, agent_id="q1", sub=qa)
         self.assertEqual(self.pending(), [])
+        o = self.stop()  # no block; just the one-time "start a new conversation" reminder
+        self.assertNotIn("decision", o); self.assertIn("new conversation", o.get("systemMessage", ""))
         self.assertEqual(self.stop(), {})
 
     def test_qa_for_another_job_doesnt_clear(self):

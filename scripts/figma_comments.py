@@ -94,6 +94,8 @@ def main():
                     help="latest round = comments up to this many days before the newest one (default 2)")
     ap.add_argument("--since", help="YYYY-MM-DD: treat every comment from this date on as the current round")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--brief", action="store_true",
+                    help="print only the round summary and one line per comment (full detail still goes to comments.md)")
     a = ap.parse_args()
 
     key, node = (parse_url(a.url) if a.url else (a.file, None))
@@ -232,7 +234,14 @@ def main():
             for c in g["older"]:
                 md.append(f"- {c['created']} · {c['author']}: {flat(c['message'])[:140]}")
     (out / "comments.md").write_text("\n".join(md) + "\n")
-    print("\n".join(md))
+    if a.brief:  # keep the caller's context small: details are in the file
+        print(md[0]); print(md[1])
+        for g in groups:
+            for c in g["comments"]:
+                print(f"- {g['frame_name'][:40]} `{g['frame_id']}` · {c['comment_id']} · {c['author']}, {c['created']}: {flat(c['message'])[:140]}")
+        print(f"Details (nearest layers, replies, older comments): {out / 'comments.md'}")
+    else:
+        print("\n".join(md))
 
 
 if __name__ == "__main__":

@@ -197,7 +197,7 @@ if CLIENT:
                   + deliv_ctx)
 
 QA_NOTE = (" AFTER the figma-maintainer agent finishes a job that changed Figma: launch figma-maintainer:qa-checker with the job folder "
-           "and file key BEFORE showing the client message. On FAIL with AUTO-FIX items, send only those items back to figma-maintainer "
+           "and file key (add 'Level: light' when the job was at most 3 plain text edits in one frame) BEFORE showing the client message. On FAIL with AUTO-FIX items, send only those items back to figma-maintainer "
            "once as a 'QA fix round' (same job folder and output frames, no new duplicate), then run qa-checker again; if it still "
            "fails, hold the client message and ask the user (send another fix round / I'll fix it / accept with an override).")
 

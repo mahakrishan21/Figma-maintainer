@@ -94,7 +94,7 @@ pre.tree span{color:var(--muted)}
     <div class="eyebrow">E2M design team · Claude Code plugin</div>
     <h1>Figma-maintainer Guide</h1>
     <p class="lead">How to ask for Figma work, what the plugin does on every job, and what you get back. For designers using it day to day, and for anyone who wants to know how it keeps client files safe.</p>
-    <div class="meta"><span>Version <b>1.32</b></span><span>Updated <b>2 Nov 2026</b></span><span>Full reference: <b>README.md</b> · in Claude Code: <b>/figma-maintainer:prompts</b></span></div>
+    <div class="meta"><span>Version <b>1.33</b></span><span>Updated <b>18 Nov 2026</b></span><span>Full reference: <b>README.md</b> · in Claude Code: <b>/figma-maintainer:prompts</b></span></div>
     <nav class="toc" aria-label="Contents">
       <a href="#start">Quick start</a><a href="#prompt">How to prompt</a><a href="#examples">Prompts by task</a><a href="#job">Every job</a>
       <a href="#comments">Client comments</a><a href="#qa">QA check</a><a href="#output">What you get</a><a href="#safety">Safety</a>
@@ -194,6 +194,8 @@ Use figma-maintainer: Accessibility Audit &lt;Figma link&gt;</code><button class
       <div><b>Paste the client's exact copy.</b> It's checked line by line against the design.</div>
       <div><b>One page per prompt.</b> Then review, and run an audit if needed.</div>
       <div><b>Say the image source</b> if you know it; otherwise the client's SOP decides, or it asks.</div>
+      <div><b>One job per conversation.</b> Start a new one (or <code>/clear</code>) after each job: long conversations re-read everything and cost much more.</div>
+      <div><b>Opus or Sonnet, not Fable,</b> for routine work (<code>/model opus</code>). The plugin's agents use their own models anyway.</div>
     </div>
   </section>
 

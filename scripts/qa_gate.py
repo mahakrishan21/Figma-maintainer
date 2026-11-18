@@ -7,6 +7,8 @@
                                the turn once and tell Claude to run figma-maintainer:qa-checker. Never blocks twice in a
                                row (stop_hook_active); then it only warns.
 The user can skip it for a job by saying "skip QA" (image_gate.py calls clear()).
+After QA clears the session's last pending job, the next Stop shows one reminder to start a new conversation
+for the next job (long conversations cost much more), never blocking.
 State: ~/.claude/figma-maintainer/qa-pending.json · log: qa-gate-log.jsonl. Only sessions where figma-maintainer
 wrote to Figma ever get a mark, so other plugins and sessions are never affected.
 """
@@ -16,6 +18,7 @@ from pathlib import Path
 
 FM = Path(os.environ.get("FIGMA_MAINTAINER_HOME") or Path.home() / ".claude" / "figma-maintainer")
 STATE = FM / "qa-pending.json"
+REMIND = FM / "qa-remind.json"   # sessions whose job just passed QA: one "start a new conversation" note
 GATE_LOG = FM / "qa-gate-log.jsonl"
 MAKER, QA = "figma-maintainer:figma-maintainer", "figma-maintainer:qa-checker"
 JOB_RX = re.compile(r"(/[^\s\"'`]*?/work/[^\s\"'`]+?/jobs/\d{4}-\d{2}-\d{2}-[a-z0-9-]+)")
@@ -47,6 +50,13 @@ def load():
         st = {}
     cutoff = now() - timedelta(days=3)  # stale marks expire
     return {s: [m for m in ms if ts(m["at"]) > cutoff] for s, ms in st.items() if ms}
+
+
+def load_json(path):
+    try:
+        return json.loads(Path(path).read_text())
+    except Exception:
+        return {}
 
 
 def save(st):
@@ -132,6 +142,9 @@ def subagent_stop(hook):
             st[sess] = keep
             save(st)
             gate_log({"event": "qa-done", "session": sess, "cleared": [c.get("job") or c["files"] for c in cleared]})
+            if not keep:  # the session's jobs are all checked: remind once to start fresh (cost)
+                REMIND.parent.mkdir(parents=True, exist_ok=True)
+                rem = load_json(REMIND); rem[sess] = iso(now()); REMIND.write_text(json.dumps(rem))
 
 
 def qa_started_since(transcript, since):
@@ -152,10 +165,20 @@ def qa_started_since(transcript, since):
     return False
 
 
+REMINDER = ("figma-maintainer: job done and QA has run. For the next job, start a new conversation (or /clear): "
+            "a long conversation re-reads everything on every message and costs much more.")
+
+
 def stop(hook):
     sess = session_of(hook)
     marks = load().get(sess, [])
     if not marks:
+        rem = load_json(REMIND)
+        if sess in rem:  # once per job, never blocking
+            rem.pop(sess)
+            REMIND.write_text(json.dumps(rem))
+            gate_log({"event": "reminded", "session": sess})
+            return {"systemMessage": REMINDER}
         return None
     pending = [m for m in marks if not qa_started_since(hook.get("transcript_path") or "", m["at"])]
     if not pending:

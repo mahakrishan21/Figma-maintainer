@@ -22,6 +22,22 @@ def check(name, status, detail="", fix=""):
     RESULTS.append({"check": name, "status": status, "detail": detail, "fix": fix})
 
 
+def default_model():
+    """(model, where): ANTHROPIC_MODEL, else the model in Claude Code's user settings.json, else ("", "")."""
+    m = os.environ.get("ANTHROPIC_MODEL", "")
+    if m:
+        return m, "ANTHROPIC_MODEL"
+    cfg_dir = Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude")
+    try:
+        return str(json.loads((cfg_dir / "settings.json").read_text()).get("model") or ""), "settings.json"
+    except Exception:
+        return "", ""
+
+
+def expensive_model(model):
+    return any(k in (model or "").lower() for k in ("fable", "mythos"))
+
+
 def semver(v):
     return tuple(int(x) for x in re.findall(r"\d+", v)[:3])
 
@@ -121,6 +137,14 @@ def main():
         check("Figma desktop tabs", "ok", f"{tabs} recent tab(s) readable")
     except Exception:
         check("Figma desktop tabs", "warn", "settings.json not readable", "Install/open the Figma desktop app once.")
+
+    # ---- default model (drives the main conversation's cost; agents are pinned to their own models)
+    model, where = default_model()
+    if expensive_model(model):
+        check("Default model", "warn", f"{model} ({where})",
+              "Fable costs 2.5–5× Opus. For routine Figma work run /model opus or /model sonnet (the plugin's agents use their own models anyway).")
+    else:
+        check("Default model", "ok", model or "Claude Code default (not set)")
 
     # ---- cost settings
     try:

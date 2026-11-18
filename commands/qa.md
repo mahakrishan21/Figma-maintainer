@@ -29,6 +29,7 @@ File: <fileKey>
 Mode: <job | pair <source>=<output> | in place <frame> since <date time>>
 Check against: <the comments (ids) | request.md | plan.md | my check: text>
 Done by: <figma-maintainer (job report exists) | a designer, by hand>
+Level: light       (only when the job was at most 3 plain text edits in one frame)
 ```
 Save its text as `<job folder>/qa.md` (if this job already has a `qa.md`, save it as `qa-<date>-<time>.md` and keep both).
 

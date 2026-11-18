@@ -1,7 +1,7 @@
 ---
 disable-model-invocation: true
 description: Show the figma-maintainer prompt cheat sheet (how to prompt, comments, QA, responsive, components, audits, images, Slack, setup)
-argument-hint: [topic: basics | comments | qa | responsive | components | audits | images | outputs | setup | all]
+argument-hint: [topic: basics | comments | qa | responsive | components | audits | images | outputs | setup | costs | all]
 ---
 
 Show me the cheat sheet below. If I named a topic ($ARGUMENTS), show only that section; otherwise show all of it. Print it as is: no tools, no extra commentary.
@@ -71,6 +71,12 @@ Examples:
 - `figma-maintainer: next time, <rule>` saves a correction as a rule.
 - `/figma-maintainer:sop Lasso up — desktop width 1920` adds an SOP rule · `/figma-maintainer:sop Lasso up` shows what's set.
 - **"The file changed at …" prompt:** someone edited the file mid-job. Check the frame in Figma, then allow.
+
+### Keep costs down
+- **One job per conversation:** start a new conversation or type `/clear` after each job (the plugin reminds you).
+- **Opus or Sonnet, not Fable,** for routine work: `/model opus`.
+- **Small text jobs** (up to 3 plain text edits in one frame) get a lighter plan and QA automatically.
+- `/figma-maintainer:cost-report` shows the average per agent and the model mix.
 
 ### Tips
 - **Link to the exact frame**, not the whole file.

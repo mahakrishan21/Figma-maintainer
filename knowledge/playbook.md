@@ -2,6 +2,8 @@
 
 General rules for any client's file. One line each. Client-specific rules go in `clients/<client>.md`.
 
+**Read for every job:** Inspecting, all three Editing sections, Quality checks and Plugin API gotchas. **Read only when the task needs it:** Images (placing media), Responsive builds (mobile/tablet), Copy docs and scripts (Google Docs, script quirks).
+
 ## Inspecting
 - `get_metadata` on a whole page can come back empty or too large. Use a read-only `use_figma` script that lists `page.children` (id, name, x/y/w/h) and get the page from `node.parent` chains.
 - Large `get_metadata` results get saved to a file. Pull out what you need with `jq`; don't read the whole thing.
@@ -14,33 +16,35 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - `node.screenshot()` across several nodes in one script may return only some images. Use `get_screenshot` for each node you need to see.
 - Tall full-page frames (~5000px) can time out in `get_screenshot`; screenshot section by section instead.
 
-## Editing
+## Editing: scope, versions, safety
 - Client feedback and revisions (default, every client): always duplicate the current design frame first and make the changes only in the duplicate. The previous version stays untouched as the backup. Don't ask and don't look for a client SOP first; this is the standard behaviour. (correction from the user, 2026-10-29)
 - Name the new frame with the version and the date, e.g. "Homepage V2 - 29 Oct 2026"; the next round is "Homepage V3 - <date>". (correction from the user, 2026-10-29)
 - "Looks like you don't have edit access to this file" from `create_session`/`get_metadata`/`use_figma` means the Figma MCP account (check `whoami`) isn't an editor, even if the REST token can read. Stop, do read-only prep via REST, and ask the file owner to share edit access with that account. (2026-10-23)
 - Scope = the frame or section in the link's node-id, never the page it sits on. Other frames on the same page are read-only. If there's no node-id, ask. (correction, 2026-10-14)
 - A client's task configuration (`task-<name>.md`) applies only to that client. Reuse the task type, not another client's rules. (rule, 2026-10-14)
 - Design desktop only unless the prompt explicitly asks for tablet/mobile frames; "should be responsive" isn't a request. Offer them at the end. (correction, 2026-10-14)
+- Put new top-level nodes below the bottom-most existing node (max of y+height) plus about 600px of spacing.
+- `figma.saveVersionHistoryAsync` throws "not a supported API" in the use_figma runtime: no in-script checkpoint. Report it; duplicate first only if the change is substantial and approved. (2026-10-14)
+- No tool duplicates a whole Figma file: `create_new_file` makes a blank file, REST has no copy endpoint, and `use_figma` can't move nodes between files. For "work in a copy", stop before editing. Ask the user to duplicate the file in Figma, give the MCP account (`whoami`) edit access, and send the new link. (2026-10-27)
+- The guard asks before any deletion. It reports "deletes N node(s)" for single deletes; loops over nodes with `.remove()` count as bulk deletes. Ancestor-walk scope checks are ignored. (rule, 2026-10-14)
+
+## Editing: text and fonts
 - Before setting `characters`, load every font the text currently uses (`getStyledTextSegments(['fontName'])`), including text inside instances.
 - Change instance text as an override. Don't detach the instance.
-- Reorder Auto Layout children with `parent.insertChild(index, node)`. Fields keep their component link.
-- Put new top-level nodes below the bottom-most existing node (max of y+height) plus about 600px of spacing.
-- Comment-matched node IDs point at the commented version. After duplicating, find the copies by text content; don't map by findAll index.
 - Text with line separators: a regex literal containing U+2028 breaks the script (use `String.fromCharCode(0x2028)`), and deleting a paragraph can leave a leading `\n`. Check char codes after the edit.
 - Annotations (`node.annotations = [{label}]`) work on instances. Use them for specs the canvas can't show, such as dropdown options and states.
-- In a fresh `frame.clone()`, find copied nodes by the source's child-index path, and instance sublayers as `'I' + copiedInstanceId + ';' + <original sublayer suffix>`. This avoids `getMainComponentAsync`, which the guard flags near writes. Annotations also work on instance sublayers. (2026-10-27)
+- Text layers whose name equals their content auto-rename on a `characters` change ("Heading" became "Test passed"). Set `autoRename=false` first if the layer name must stay. (2026-10-14)
+- Before a comment or copy round, check that every font in the target text loads (`loadFontAsync`). If one doesn't, stop before editing text and tell the user the font name, styles and layers, so they can install or activate it; then re-check and continue with the real font. Annotate the new copy for a designer to type in the desktop app only when the user chooses that. (correction from the user, 2026-10-29; replaces the 27 Oct annotate-first workaround)
 
+## Editing: layout, frames, clones and fills
+- Reorder Auto Layout children with `parent.insertChild(index, node)`. Fields keep their component link.
+- Comment-matched node IDs point at the commented version. After duplicating, find the copies by text content; don't map by findAll index.
+- In a fresh `frame.clone()`, find copied nodes by the source's child-index path, and instance sublayers as `'I' + copiedInstanceId + ';' + <original sublayer suffix>`. This avoids `getMainComponentAsync`, which the guard flags near writes. Annotations also work on instance sublayers. (2026-10-27)
 - Wireframes can carry a locked full-page "Overlay" (white fill, COLOR blend) that greys out everything under it. When a revision changes the page height, resize it with the frame, or the new area shows in colour. (2026-10-29)
 - Page frames without Auto Layout (sections stacked by y): after a section height change, resize the frame first (resize applies child constraints), then re-set each section's y from the original's gaps, keeping its 1px overlaps. (2026-10-29)
 - Growing a frame whose children have SCALE or CENTER constraints (video poster with a play button and overlay): use `resizeWithoutConstraints`, then move or resize by hand only the children that must follow. (2026-11-17)
 - `resize()` on a layer with a CROP image fill keeps `imageTransform`, so the photo stretches. Recompute the crop from the image's pixel size (`figma.getImageByHash(hash).getSizeAsync()`) so the visible region has the box's aspect ratio, keeping the crop centre. (2026-11-17)
-
-- `figma.saveVersionHistoryAsync` throws "not a supported API" in the use_figma runtime: no in-script checkpoint. Report it; duplicate first only if the change is substantial and approved. (2026-10-14)
-- Text layers whose name equals their content auto-rename on a `characters` change ("Heading" became "Test passed"). Set `autoRename=false` first if the layer name must stay. (2026-10-14)
-- No tool duplicates a whole Figma file: `create_new_file` makes a blank file, REST has no copy endpoint, and `use_figma` can't move nodes between files. For "work in a copy", stop before editing. Ask the user to duplicate the file in Figma, give the MCP account (`whoami`) edit access, and send the new link. (2026-10-27)
-- Before a comment or copy round, check that every font in the target text loads (`loadFontAsync`). If one doesn't, stop before editing text and tell the user the font name, styles and layers, so they can install or activate it; then re-check and continue with the real font. Annotate the new copy for a designer to type in the desktop app only when the user chooses that. (correction from the user, 2026-10-29; replaces the 27 Oct annotate-first workaround)
 - `upload_assets` with `nodeIds` replaces the whole fills array. On stacked fills (photo + gradients + cutout), rebuild the stack afterwards with only the photo hash swapped. In a same-file copy, read the stack from the untouched source node. `figma_snapshot` doesn't cover annotations, so verify them by read-back. (2026-10-27)
-- The guard asks before any deletion. It reports "deletes N node(s)" for single deletes; loops over nodes with `.remove()` count as bulk deletes. Ancestor-walk scope checks are ignored. (rule, 2026-10-14)
 
 ## Images
 - Image and video sources differ by client (iStock, Adobe Stock, AI, client-provided, existing assets). Always ask which one per slot before placing media; the client's preferred source is only the recommended option. (rule, 2026-10-13)

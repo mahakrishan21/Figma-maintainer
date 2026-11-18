@@ -26,8 +26,15 @@ If my note named a client, it must match the file's client; if it doesn't, ask.
 - Create the folders: `python3 -I ~/.claude/figma-maintainer/scripts/workdir.py --file-key <key> --job "client comment" --json` when confirmed, otherwise `… workdir.py --agency "<agency>" --project "<project>" --job "client comment" --json`. For a client I just confirmed, add the file (name, fileKey, link) under "Figma files and latest frames" in that project's `PROJECT.md`, so it's recognised next time.
 - Save the chosen file's entry from step 1 as `<job folder>/inbox.json`.
 
-## 3. Analyse (read-only agent)
-Launch **figma-maintainer:client-comments** in the foreground with:
+## 3. Analyse (read-only agent), or the small-job path
+**Small job?** If the round is **at most 3 comments, all plain text edits** (copy, punctuation, case) **in one frame**, with no images, layout, components or interactions and no SOP rule flagged for them, skip the analysis agent to save cost:
+- write `plan.md` yourself from `inbox.json`: each comment, the exact new text, the target (per the versioning rule), and a `Check:` line per change, with `Status: PENDING APPROVAL`;
+- also write a short `context.json` (file, page, frame ids, versioning target);
+- then go to step 4, and mark the job **small** for QA (step 6).
+
+If you're unsure whether a comment is a plain text edit, it isn't small: use the analysis agent.
+
+**Otherwise,** launch **figma-maintainer:client-comments** in the foreground with:
 ```
 Client: <agency> › <project>
 Project folder: <path>
@@ -35,7 +42,7 @@ Job folder: <path> (inbox.json is there)
 File: <file name> (<fileKey>)
 Comments: <all threads in inbox.json, or the ids I picked>
 ```
-It writes `analysis.md` and `plan.md` (Status: PENDING APPROVAL) to the job folder and returns a plan summary, the decisions needed and the hand-off fields. Claude Code may block subagents from writing report files: then the agent returns both files' full text at the end of its reply, and you save them to the job folder verbatim before step 4. Check its key claims (for example "already done in frame X") with a quick read-only REST call before you show the plan.
+It writes `analysis.md`, `plan.md` (Status: PENDING APPROVAL) and `context.json` to the job folder and returns a plan summary, the decisions needed and the hand-off fields. Claude Code may block subagents from writing report files: then the agent returns both files' full text at the end of its reply, and you save them to the job folder verbatim before step 4. Check its key claims (for example "already done in frame X") with a quick read-only REST call before you show the plan.
 
 ## 4. My approval
 Show me the plan summary and the path of `plan.md`. Then ask with AskUserQuestion, in one call:
@@ -68,8 +75,9 @@ First save any job files figma-maintainer returned as text instead of saving the
 ```
 Job folder: <job folder>
 File: <fileKey>
+Level: light       (only for a job marked small in step 3)
 ```
-It checks every comment against Figma (its own layer diff, pixel diff and crops), traces every change back to the plan, checks the report, Slack update and client message against the evidence, and returns `qa.md` with a verdict and a fix list. Save its text as `<job folder>/qa.md`.
+In light mode it skips crops and screenshots, and switches to the full check by itself if anything doesn't match the plan. It checks every comment against Figma (its own layer diff, pixel diff and crops), traces every change back to the plan, checks the report, Slack update and client message against the evidence, and returns `qa.md` with a verdict and a fix list. Save its text as `<job folder>/qa.md`.
 
 - **PASS or PASS WITH NOTES:** go to step 7.
 - **FAIL with AUTO-FIX items (one automatic fix round, don't ask me):**
@@ -91,3 +99,4 @@ It checks every comment against Figma (its own layer diff, pixel diff and crops)
 - Add " · QA: <verdict>" to this job's line under "Job history" in `PROJECT.md`.
 - Run figma-maintainer:usage-reporter for **every** agent of this job: the analysis, the apply step, QA, and any fix round and re-QA (`--task "<task description>"` for each). Add one "Usage (internal)" block with one line each and their total after the Slack update.
 - Offer a Consistency Audit of the changed page.
+- End with one line: "Job done. Start a new conversation (or /clear) for the next job: long conversations re-read everything and cost much more."
