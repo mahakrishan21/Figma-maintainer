@@ -17,7 +17,7 @@ It never pushes, and never changes your Claude Code plugin install: yours reads 
 /reload-plugins picks up changes. Publish with: git push origin main --tags (both repos)
 Session files (work folders, logs, audits, contributions) live outside the plugin and are never shared.
 """
-import argparse, json, os, re, shutil, subprocess, sys, zipfile
+import argparse, io, json, os, re, shutil, subprocess, sys, tarfile, zipfile
 from pathlib import Path
 
 PLUGIN = Path(__file__).resolve().parent.parent
@@ -45,8 +45,9 @@ def refresh_marketplace(market, version, plugin_json):
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
-    with zipfile.ZipFile(ZIP) as z:
-        z.extractall(dest)
+    tar = subprocess.run(["git", "archive", "--format=tar", f"v{version}"], cwd=PLUGIN, capture_output=True, check=True).stdout
+    with tarfile.open(fileobj=io.BytesIO(tar)) as t:  # tar keeps the scripts' executable bits (a zip extract doesn't)
+        t.extractall(dest)
     (dest / ".claude-plugin" / "marketplace.json").unlink(missing_ok=True)  # the dev marketplace; the repo root has the real one
     mj = market / ".claude-plugin" / "marketplace.json"
     cat = json.loads(mj.read_text())
