@@ -70,7 +70,7 @@ Agency = our client. Each teaming project = the agency's client. Folder = client
 - **Growth Squad** → `growth-squad/` (Web): certifiedpayrolladvisors.com; Feel First, Live Free Ltd.; The Feldman Companies; www.compassindinc.com - Compass Industrial Sales
 - **Hawthorn Creative** → `hawthorn-creative/` (Web): NYIT de Seversky Mansion
 - **HeroLanders** → `herolanders/` (-): Abundance Property; AI Real Estate; Dotaire; Down to Earth Pilates; Every Solar 2.0; Frme Fest; George Yang; Golfers Paradise; Gomani Projects; Mclaws Property; Opal Dental; Skin Wellness Hub; Sunnycare
-- **Hey Mr Media** → `hey-mr-media/` (Web): Alan Bradley Windows & Doors; Comfort Zone Web Tasks E2M; Denver ETA; LaundroLab; OIS; S&S Roofing; SCM Architects
+- **Hey Mr Media** → `hey-mr-media/` (Web): Alan Bradley Windows & Doors; Comfort Zone Web Tasks E2M; Denver ETA; LaundroLab; OIS; S&S Roofing; SCM Architects; Sunward Steel New
 - **Inbound Studios** → `inbound-studios/` (Web): Anderson Race Management; Art Partners Group; Calliope Technology LLC; David Gregory Books - WordPress Redesign; Generate 360 Consulting; GleasonDale - Zoho Recruit; Gunstop.com BigCommerce Website Development; His workmanship; Inbound Task List; Innovize Website Redesign; LCHS - Website Updates; Plush Perfect Events; The Pause Gals; ToneWorks MN – Core Website Redesign; Trident Service Group - Website & Marketing
 - **Inspire media** → `inspire-media/` (SEO): Inspire Media Web Tasks
 - **Interhyve - Cote Magazine** → `interhyve-cote-magazine/` (Web): Five Diamonds Arbitration Chambers
