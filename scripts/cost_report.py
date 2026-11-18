@@ -155,8 +155,9 @@ def price_request(model, u, pricing):
         cost = (inp * rates["input"] + out * rates["output"] + cw5 * rates["cache_write_5m"]
                 + cw1h * rates["cache_write_1h"] + cr * rates["cache_read"]) / 1_000_000
     cost += ws * pricing.get("web_search_per_1000", 10.0) / 1000
+    think = (u.get("output_tokens_details") or {}).get("thinking_tokens", 0) or 0  # part of output_tokens
     return key, {"input": inp, "output": out, "cw5": cw5, "cw1h": cw1h,
-                 "cache_read": cr, "web_search": ws, "cost": cost}
+                 "cache_read": cr, "web_search": ws, "thinking": think, "cost": cost}
 
 
 def collect_usage(rows):

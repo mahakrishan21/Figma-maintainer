@@ -69,19 +69,24 @@ def model_label(models, pricing):
 def measure(rows, pricing, sidechain_only=None):
     """Totals for one transcript's rows."""
     usage = cr.collect_usage(rows)
-    t = {"new": 0, "cache_read": 0, "output": 0, "usd": 0.0, "requests": 0, "models": set(), "unknown": set()}
+    t = {"new": 0, "input": 0, "cache_write": 0, "cache_read": 0, "output": 0, "thinking": 0, "usd": 0.0, "requests": 0,
+         "models": set(), "unknown": set(), "per_model": {}}
     for (model, u, ts, side) in usage.values():
         if sidechain_only is not None and side != sidechain_only:
             continue
         key, c = cr.price_request(model, u, pricing)
         if key is None:
             t["unknown"].add(model)
-        t["new"] += c["input"] + c["cw5"] + c["cw1h"] + c["output"]
-        t["cache_read"] += c["cache_read"]
-        t["output"] += c["output"]
+        cw = c["cw5"] + c["cw1h"]
+        t["new"] += c["input"] + cw + c["output"]
+        t["input"] += c["input"]; t["cache_write"] += cw; t["cache_read"] += c["cache_read"]
+        t["output"] += c["output"]; t["thinking"] += c.get("thinking", 0)
         t["usd"] += c["cost"]
         t["requests"] += 1
         t["models"].add(model)
+        pm = t["per_model"].setdefault(model, {"input": 0, "cache_write": 0, "cache_read": 0, "output": 0, "thinking": 0})
+        pm["input"] += c["input"]; pm["cache_write"] += cw; pm["cache_read"] += c["cache_read"]
+        pm["output"] += c["output"]; pm["thinking"] += c.get("thinking", 0)
     stamps = [cr.parse_ts(r.get("timestamp")) for r in rows]
     stamps = [s for s in stamps if s]
     t["start"] = min(stamps) if stamps else None
@@ -179,33 +184,52 @@ def pick_task(tasks, sel):
     sys.exit(f"No task matching '{sel}'")
 
 
-BUDGET = {"figma-maintainer:figma-maintainer": 3.0}  # USD per task; every other figma-maintainer agent: 1.5
+def n(x):
+    return f"{int(x or 0):,}"
+
+
+def tokens_text(d):
+    """'input X (uncached a, cache write b, cache read c) · output Y (reasoning r) · total T' for one token bucket."""
+    inp = d.get("input", 0) + d.get("cache_write", 0) + d.get("cache_read", 0)
+    out = d.get("output", 0)
+    reason = f" (reasoning {n(d['thinking'])})" if d.get("thinking") else ""
+    return (f"input {n(inp)} (uncached {n(d.get('input'))}, cache write {n(d.get('cache_write'))}, cache read {n(d.get('cache_read'))})"
+            f" · output {n(out)}{reason} · total {n(inp + out)}")
+
+
+def models_tokens(t, pricing):
+    """One segment per model: '<Model>: <tokens>' (most tasks use one model)."""
+    pm = t.get("per_model") or {}
+    if len(pm) <= 1:
+        return f"{model_label(t['models'], pricing)} — {tokens_text(t)}"
+    return "; ".join(f"{model_label({m}, pricing)}: {tokens_text(v)}" for m, v in sorted(pm.items()))
+
+
+HEAVY = {"figma-maintainer:figma-maintainer": (6_000_000, 60)}  # input tokens incl. cache, tool calls; others: (3M, 50)
 
 
 def budget_flag(t):
-    """' ⚠ over budget: <likely cause>' when a task costs more than expected (empty otherwise)."""
+    """' ⚠ heavy task: <why>' when a task used far more tokens or calls than usual, or ran on Fable (no prices: they change)."""
     agent = t.get("agent", "")
     if not agent.startswith("figma-maintainer:") or agent.endswith("usage-reporter"):
         return ""
-    limit = BUDGET.get(agent, 1.5)
+    tok_limit, call_limit = HEAVY.get(agent, (3_000_000, 50))
     models = " ".join(t.get("models") or []).lower()
+    inp = t.get("input", 0) + t.get("cache_write", 0) + t.get("cache_read", 0)
     causes = []
     if "fable" in models or "mythos" in models:
-        causes.append("ran on Fable (2.5–5× Opus): pin the model or /model opus")
-    if t.get("tool_calls", 0) > 50:
+        causes.append("ran on Fable, the most expensive model: pin the model or /model opus")
+    if t.get("tool_calls", 0) > call_limit:
         causes.append(f"{t['tool_calls']} tool calls")
-    if t.get("cache_read", 0) > 5_000_000:
-        causes.append(f"{short(t['cache_read'])} re-read tokens (big screenshots or dumps, long context)")
-    fable = "fable" in models or "mythos" in models
-    if t.get("usd", 0) <= limit and not fable:  # within budget on a normal model: no flag
-        return ""
-    return f" ⚠ over budget (${limit:.2f}): " + ("; ".join(causes) or "long job")
+    if inp > tok_limit:
+        causes.append(f"{short(inp)} input tokens (big screenshots or dumps, long context)")
+    return (" ⚠ heavy task: " + "; ".join(causes)) if causes else ""
 
 
 def task_line(t, cfg, pricing):
+    """One task, tokens only (no prices: they change)."""
     who = f"{t['client']} — " if t["client"] else ""
-    return (f"{who}{t['description']} — {short(t['new'])} tokens (+{short(t['cache_read'])} cached), "
-            f"{money(t['usd'], cfg)}, {t['minutes']} min, {t['tool_calls']} tool calls · {model_label(t['models'], pricing)}"
+    return (f"{who}{t['description']} · {models_tokens(t, pricing)} · {t['tool_calls']} tool calls · {t['minutes']} min"
             + budget_flag(t))
 
 
@@ -222,7 +246,9 @@ def log_task(t, session_id):
         return False
     rec = {"date": (t["end"] or datetime.now(timezone.utc)).strftime("%Y-%m-%d"), "session": session_id, "task_id": t["id"],
            "agent": t["agent"], "description": t["description"], "client": t["client"], "new_tokens": t["new"],
-           "cache_read": t["cache_read"], "usd": round(t["usd"], 4), "minutes": t["minutes"], "tool_calls": t["tool_calls"],
+           "input_tokens": t.get("input", 0), "cache_write_tokens": t.get("cache_write", 0), "cache_read": t["cache_read"],
+           "output_tokens": t.get("output", 0), "thinking_tokens": t.get("thinking", 0),
+           "usd": round(t["usd"], 4), "minutes": t["minutes"], "tool_calls": t["tool_calls"],
            "models": sorted(t["models"]), "transcript": t.get("file", "")}
     with open(LEDGER, "a") as f:
         f.write(json.dumps(rec) + "\n")
@@ -250,7 +276,8 @@ def update_session_row(sf, tasks, pricing):
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     row = {"session": sf.stem, "first": m["start"].strftime("%Y-%m-%d") if m["start"] else today,
            "last": m["end"].strftime("%Y-%m-%d") if m["end"] else today, "folder": folder,
-           "main_new_tokens": m["new"], "main_cache_read": m["cache_read"], "main_usd": round(m["usd"], 4),
+           "main_new_tokens": m["new"], "main_input": m["input"], "main_cache_write": m["cache_write"],
+           "main_cache_read": m["cache_read"], "main_output": m["output"], "main_thinking": m["thinking"], "main_usd": round(m["usd"], 4),
            "main_models": sorted(m["models"]), "tasks": len(fm), "tasks_usd": round(sum(t["usd"] for t in fm), 4),
            "clients": sorted({t["client"] for t in fm if t["client"]}),
            "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"), "transcript": str(sf)}
@@ -293,25 +320,53 @@ def report_all(a, cfg):
         sessions = [r for r in sessions if any(c in x.lower() for x in r.get("clients") or [])]
     t_usd = sum(r["usd"] for r in tasks)
     m_usd = sum(r.get("main_usd", 0) for r in sessions)
+
+    def task_tok(r):
+        return {"input": r.get("input_tokens", 0), "cache_write": r.get("cache_write_tokens", 0), "cache_read": r.get("cache_read", 0),
+                "output": r.get("output_tokens", 0), "thinking": r.get("thinking_tokens", 0)}
+
+    def sess_tok(r):
+        return {"input": r.get("main_input", 0), "cache_write": r.get("main_cache_write", 0), "cache_read": r.get("main_cache_read", 0),
+                "output": r.get("main_output", 0), "thinking": r.get("main_thinking", 0)}
+
+    def add(acc, d):
+        for k, v in d.items():
+            acc[k] = acc.get(k, 0) + v
+        return acc
+    tt = {}; [add(tt, task_tok(r)) for r in tasks]
+    mt = {}; [add(mt, sess_tok(r)) for r in sessions]
+    allt = add(add({}, tt), mt)
+    old_rows = sum(1 for r in tasks if "input_tokens" not in r) + sum(1 for r in sessions if "main_input" not in r)
     scope = (f" · client {a.client}" if a.client else "") + (f" · since {a.since}" if a.since else "")
     out = [f"Consolidated usage on this Mac{scope}: {len(sessions)} session(s), {len(tasks)} plugin task(s)",
-           f"Total {money(t_usd + m_usd, cfg)} = main conversations {money(m_usd, cfg)} + plugin tasks {money(t_usd, cfg)}"]
+           f"Tokens: {tokens_text(allt)}",
+           f"  main conversations: {tokens_text(mt)}",
+           f"  plugin tasks: {tokens_text(tt)}",
+           f"Estimated cost (list prices in pricing.json, which change): {money(t_usd + m_usd, cfg)} = main conversations "
+           f"{money(m_usd, cfg)} + plugin tasks {money(t_usd, cfg)}"]
+    if old_rows:
+        out.append(f"({old_rows} older row(s) have no token breakdown (their transcripts are gone); they count in the estimated cost, "
+                   "and only their cache reads count in the token totals.)")
     if sessions:
         out.append("\nPer session (newest first):")
         for r in sorted(sessions, key=lambda r: r.get("last", ""), reverse=True):
-            out.append(f"• {r.get('last')} · {', '.join(r.get('clients') or []) or '(no client)'} · main {money(r.get('main_usd', 0), cfg)}"
-                       f" · {r.get('tasks', 0)} task(s) {money(r.get('tasks_usd', 0), cfg)} · session {str(r.get('session', ''))[:8]}")
-    by = defaultdict(lambda: [0, 0.0])
+            mtk = sess_tok(r)
+            out.append(f"• {r.get('last')} · {', '.join(r.get('clients') or []) or '(no client)'} · main conversation "
+                       f"{n(mtk['input'] + mtk['cache_write'] + mtk['cache_read'] + mtk['output'])} tokens, est. {money(r.get('main_usd', 0), cfg)}"
+                       f" · {r.get('tasks', 0)} task(s) est. {money(r.get('tasks_usd', 0), cfg)} · session {str(r.get('session', ''))[:8]}")
+    by = defaultdict(lambda: [0, 0.0, 0])
     for r in tasks:
         b = by[r.get("client") or "(no client)"]; b[0] += 1; b[1] += r["usd"]
+        tk = task_tok(r); b[2] += tk["input"] + tk["cache_write"] + tk["cache_read"] + tk["output"]
     if by:
         out.append("\nPer client (plugin tasks):")
-        for k, (n, usd) in sorted(by.items(), key=lambda kv: -kv[1][1]):
-            out.append(f"• {k}: {n} task(s), {money(usd, cfg)}")
-    ag = defaultdict(lambda: {"n": 0, "usd": 0.0, "calls": 0, "cached": 0, "models": defaultdict(float)})
+        for k, (cnt, usd, tok) in sorted(by.items(), key=lambda kv: -kv[1][1]):
+            out.append(f"• {k}: {cnt} task(s), {n(tok)} tokens, est. {money(usd, cfg)}")
+    ag = defaultdict(lambda: {"n": 0, "usd": 0.0, "calls": 0, "cached": 0, "tok": {}, "models": defaultdict(float)})
     for r in tasks:
         g = ag[r["agent"].split(":", 1)[1]]
         g["n"] += 1; g["usd"] += r["usd"]; g["calls"] += r.get("tool_calls", 0); g["cached"] += r.get("cache_read", 0)
+        add(g["tok"], task_tok(r))
         ms = r.get("models") or ["?"]
         for mm in ms:
             g["models"][mm.replace("claude-", "")] += r["usd"] / len(ms)
@@ -319,8 +374,9 @@ def report_all(a, cfg):
         out.append("\nPer agent (average per task):")
         for k, g in sorted(ag.items(), key=lambda kv: -kv[1]["usd"]):
             mix = ", ".join(f"{mm} {v / g['usd']:.0%}" for mm, v in sorted(g["models"].items(), key=lambda kv: -kv[1])) if g["usd"] else ""
-            out.append(f"• {k}: {g['n']} task(s), avg {money(g['usd'] / g['n'], cfg)}, {g['calls'] // g['n']} tool calls, "
-                       f"{short(g['cached'] // g['n'])} re-read tokens · cost by model: {mix}")
+            avg = {kk: v // g["n"] for kk, v in g["tok"].items()}
+            out.append(f"• {k}: {g['n']} task(s), avg per task: {tokens_text(avg)}, {g['calls'] // g['n']} tool calls, "
+                       f"est. {money(g['usd'] / g['n'], cfg)} · cost by model: {mix}")
     out.append("\nNote: each session's main-conversation cost is recorded when a plugin agent finishes, so the part after its last agent "
                "isn't included; sessions from before the session history started (v1.33.1) show only their plugin tasks.")
     text = "\n".join(out)
@@ -386,7 +442,17 @@ def main():
                 continue
             seen.add(sf)
             update_session_row(sf, tasks_of(sf, pricing), pricing); n += 1
-        print(f"Session history rebuilt: {n} session(s) → {SESSIONS}")
+        # past task rows: exact token breakdown re-measured from their transcripts
+        rows, fixed = load_jsonl(LEDGER), 0
+        for r in rows:
+            tp = Path(r.get("transcript") or "")
+            if r.get("transcript") and tp.is_file() and "input_tokens" not in r:
+                t = measure(cr.read_jsonl(tp), pricing)
+                r.update({"input_tokens": t["input"], "cache_write_tokens": t["cache_write"], "cache_read": t["cache_read"],
+                          "output_tokens": t["output"], "thinking_tokens": t["thinking"]}); fixed += 1
+        if fixed:
+            LEDGER.write_text("".join(json.dumps(r) + "\n" for r in rows))
+        print(f"Session history rebuilt: {n} session(s) → {SESSIONS}; token breakdown added to {fixed} past task(s)")
         return
 
     if a.all or a.ledger:
@@ -396,17 +462,17 @@ def main():
     sf = find_session(a)
     tasks = [t for t in tasks_of(sf, pricing) if t["agent"] not in SKIP_AGENTS]
     main_t = measure(cr.read_jsonl(sf), pricing, sidechain_only=False)
-    all_usd = main_t["usd"] + sum(t["usd"] for t in tasks)
-    all_new = main_t["new"] + sum(t["new"] for t in tasks)
-    all_cached = main_t["cache_read"] + sum(t["cache_read"] for t in tasks)
+    total = {k: main_t[k] + sum(t.get(k, 0) for t in tasks) for k in ("input", "cache_write", "cache_read", "output", "thinking")}
     models = set(main_t["models"]).union(*[t["models"] for t in tasks]) if tasks else main_t["models"]
     unknown = set(main_t["unknown"]).union(*[t["unknown"] for t in tasks]) if tasks else main_t["unknown"]
 
     if a.json:
-        print(json.dumps({"session": sf.stem, "usd": round(all_usd, 4), "new_tokens": all_new, "cache_read": all_cached,
-                          "main": {k: main_t[k] for k in ("new", "cache_read", "usd")},
-                          "tasks": [{k: (sorted(v) if isinstance(v, set) else v.isoformat() if isinstance(v, datetime) else v)
-                                     for k, v in t.items() if k != "file"} for t in tasks]}, indent=2, default=str))
+        keep = ("input", "cache_write", "cache_read", "output", "thinking")
+        print(json.dumps({"session": sf.stem, "tokens": total, "models": sorted(models),
+                          "main": {k: main_t[k] for k in keep},
+                          "tasks": [{"id": t["id"], "agent": t["agent"], "description": t["description"], "client": t["client"],
+                                     "models": sorted(t["models"]), "tool_calls": t["tool_calls"], "minutes": t["minutes"],
+                                     **{k: t[k] for k in keep}} for t in tasks]}, indent=2, default=str))
         return
 
     if a.task:
@@ -418,12 +484,8 @@ def main():
     lines = ["Usage (internal)"] if a.slack else [f"Session {sf.stem[:8]} — {main_t['start']:%d %b %Y}" if main_t["start"] else "Session"]
     for t in tasks:
         lines.append("• " + task_line(t, cfg, pricing))
-    lines.append(f"• Main conversation — {short(main_t['new'])} tokens (+{short(main_t['cache_read'])} cached), {money(main_t['usd'], cfg)}")
-    lines.append(f"• Session total — {len(tasks)} task(s), {short(all_new)} tokens (+{short(all_cached)} cached), {money(all_usd, cfg)} · {model_label(models, pricing)}")
-    if unknown:
-        lines.append(f"• Not priced: {', '.join(sorted(unknown))} (add to pricing.json)")
-    if a.slack:
-        lines.append("_API-equivalent value; on a Pro/Max plan this is not a charge._")
+    lines.append(f"• Main conversation · {models_tokens(main_t, pricing)}")
+    lines.append(f"• Session total · {len(tasks)} task(s) · {tokens_text(total)} · models: {model_label(models, pricing)}")
     print("\n".join(lines))
 
 

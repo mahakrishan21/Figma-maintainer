@@ -210,7 +210,7 @@ Use figma-maintainer: Accessibility Audit &lt;Figma link&gt;</code><button class
       <li><div><h3>Verifies its own work</h3><span>Screenshots, a read-back of the changed text, a missing-font check, and a before/after comparison proving nothing outside the target moved.</span></div></li>
       <li><div><h3>Reports</h3><span>A designer report with a checklist and an Undo line, a Slack update for the team, and a client message with Figma prototype links.</span></div></li>
       <li><div><h3>QA checks it independently</h3><span>Automatic and enforced: the session can't finish until QA has run. If it fails, the fixable items go back once, and QA checks again. If it still fails, the client message is held for you.</span></div></li>
-      <li><div><h3>Files everything</h3><span>Request, plan, report, QA, messages and snapshots go into the project folder. <code>PROJECT.md</code> is updated, and a usage line shows the time and cost.</span></div></li>
+      <li><div><h3>Files everything</h3><span>Request, plan, report, QA, messages and snapshots go into the project folder. <code>PROJECT.md</code> is updated, and a usage line shows the model and exact tokens used.</span></div></li>
     </ol>
   </section>
 
@@ -247,7 +247,7 @@ Use figma-maintainer: Accessibility Audit &lt;Figma link&gt;</code><button class
       <div class="job"><h3>QA verdict</h3><p>At the top of the report, with a fix list if anything failed.</p></div>
       <div class="job"><h3>Slack update</h3><p>What changed, the link, and questions for the client. Copy-paste ready, no costs.</p></div>
       <div class="job"><h3>Client message</h3><p>Our house format: what we did, each page with its prototype link, a note on what we still need, and thank you. Held if QA failed.</p></div>
-      <div class="job"><h3>Usage (internal)</h3><p>Tokens, cost in USD and INR, and time per task. For the team only.</p></div>
+      <div class="job"><h3>Usage (internal)</h3><p>Exact tokens per task and model: input (uncached, cache write, cache read), output with reasoning, total. No prices; estimated cost only in the cost history. For the team only.</p></div>
       <div class="job"><h3>Project records</h3><p>Every job in its own folder. <code>PROJECT.md</code> keeps the living context for the next job.</p></div>
     </div>
 <pre class="tree">~/.claude/figma-maintainer/work/&lt;you&gt;/&lt;agency&gt;/&lt;project&gt;/

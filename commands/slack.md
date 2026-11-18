@@ -1,6 +1,6 @@
 ---
 disable-model-invocation: true
-description: Write the Slack update for the work done in this session, plus a separate internal token/cost block
+description: Write the Slack update for the work done in this session, plus a separate internal token-usage block
 argument-hint: [optional: which task or client]
 ---
 

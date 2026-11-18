@@ -78,7 +78,7 @@ More examples: `/figma-maintainer:prompts`.
 - **Every job ends with:**
   - the report, including an **Undo** line;
   - a **Slack update** and a **client message** (with prototype links), ready to copy;
-  - an internal usage line (time and cost).
+  - an internal usage line: the model, and exact input, output and total tokens.
 - **Keep costs down:**
   - **one job per conversation:** start a new conversation or type `/clear` when a job is done, and the plugin reminds you;
   - **Opus or Sonnet, not Fable,** for routine work (`/model opus`);

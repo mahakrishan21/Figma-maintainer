@@ -20,7 +20,7 @@ It follows each client's SOP and keeps a record of every job. An independent QA 
 | `client-comments` | Reads a new client comment and writes a plan for your approval | No |
 | `qa-checker` | Checks finished work against the client's comments or your request | No |
 | `consistency-auditor` · `content-auditor` · `accessibility-auditor` | Audits | No |
-| `usage-reporter` | Tokens and cost per task (USD + INR) | No |
+| `usage-reporter` | Exact token usage per task or conversation (estimated cost only in the consolidated history) | No |
 
 ---
 
@@ -99,7 +99,7 @@ Use figma-maintainer: <client> — <Figma link with node-id> — <what to change
 - **One job per conversation.** When a job is done, start a new conversation or type `/clear`. A long conversation re-reads everything on every message: one two-week conversation cost about $134 on its own. The plugin reminds you after each job.
 - **Use Opus or Sonnet for routine work** (`/model opus`). Fable costs 2.5–5× more, and `/figma-maintainer:doctor` warns if it's your default. The plugin's own agents always use their own models: the editor on Opus; analysis, QA and audits on Sonnet; usage on Haiku.
 - **Link the exact frame, one page per prompt.** Small text jobs (up to 3 plain text edits in one frame) automatically get a lighter plan and QA.
-- **Check where it goes:** usage lines flag tasks over budget and say why (Fable, many tool calls, heavy re-reading). `/figma-maintainer:cost-report` shows this conversation or one task; `/figma-maintainer:cost-report-all` shows your whole history on this Mac (sessions, clients, averages per agent and model mix), only when you ask.
+- **Check where it goes:** usage lines flag heavy tasks and say why (Fable, many tool calls, very large input). `/figma-maintainer:cost-report` shows this conversation or one task; `/figma-maintainer:cost-report-all` shows your whole history on this Mac (sessions, clients, averages per agent and model mix), only when you ask.
 
 ### What it won't do
 - **No image editing:** no retouching, no removing objects, no new renders. It adds an annotation instead.
@@ -123,7 +123,7 @@ Use figma-maintainer: <client> — <Figma link with node-id> — <what to change
 6. **Validate.** It takes screenshots and reads the changes back. An after snapshot shows that nothing outside the target changed. It checks fonts.
 7. **Report.** You get the target, the changes, the protected scope, a checklist (anything unchecked is marked UNVERIFIED), the **Undo** line, questions, a **Slack update**, and a **client message** with prototype links.
 8. **QA (automatic, enforced).** The `qa-checker` agent checks the work independently (see [QA](#5-qa-check)). If it fails, fixable items go back to figma-maintainer **once**, and QA checks again. If it still fails, the client message is **held** and you decide.
-9. **Records and usage.** Everything is saved in the job folder, and `PROJECT.md` is rewritten. A usage line (tokens, cost, time) appears.
+9. **Records and usage.** Everything is saved in the job folder, and `PROJECT.md` is rewritten. A usage line appears: the model, input tokens (uncached, cache write, cache read), output tokens (with reasoning), total, tool calls and minutes.
 
 ---
 
@@ -221,7 +221,7 @@ Ask for several audits at once and they run in parallel. Reports go to the proje
   - "Thank you!".
 
   It's held if QA failed.
-- **Usage (internal):** tokens, cost (USD + INR), time. For the team only.
+- **Usage (internal):** exact tokens per task and model (no prices, which change), for the team only. Estimated cost appears only in `/figma-maintainer:cost-report-all`.
 
 **Folders** (`~/.claude/figma-maintainer/`, per person):
 ```

@@ -81,14 +81,27 @@ class Doctor(unittest.TestCase):
 
 
 class Budget(unittest.TestCase):
-    def test_budget_flags(self):
+    def test_heavy_flags_are_token_based(self):
         import usage_report as u
-        base = {"agent": "figma-maintainer:qa-checker", "models": ["claude-sonnet-5-5"], "tool_calls": 30, "cache_read": 1_000_000, "usd": 0.9}
+        base = {"agent": "figma-maintainer:qa-checker", "models": ["claude-sonnet-5-5"], "tool_calls": 30,
+                "input": 10, "cache_write": 100_000, "cache_read": 1_000_000}
         self.assertEqual(u.budget_flag(base), "")
-        self.assertIn("over budget", u.budget_flag(dict(base, usd=2.4)))
+        self.assertIn("70 tool calls", u.budget_flag(dict(base, tool_calls=70)))
+        self.assertIn("input tokens", u.budget_flag(dict(base, cache_read=4_000_000)))
         self.assertIn("Fable", u.budget_flag(dict(base, models=["claude-fable-5-2"])))
-        self.assertEqual(u.budget_flag(dict(base, agent="figma-maintainer:figma-maintainer", usd=2.9)), "")
-        self.assertEqual(u.budget_flag(dict(base, agent="figma-maintainer:usage-reporter", usd=9)), "")
+        self.assertEqual(u.budget_flag(dict(base, agent="figma-maintainer:figma-maintainer", cache_read=5_000_000)), "")
+        self.assertNotIn("$", u.budget_flag(dict(base, tool_calls=99, models=["claude-fable-5-2"])))
+
+    def test_task_line_shows_tokens_not_dollars(self):
+        import usage_report as u
+        t = {"client": "Acme › Site", "description": "Fix hero", "models": {"claude-opus-5-5"}, "tool_calls": 12, "minutes": 3,
+             "input": 20, "cache_write": 1_000, "cache_read": 50_000, "output": 2_000, "thinking": 300, "usd": 1.23,
+             "per_model": {"claude-opus-5-5": {}}, "agent": "figma-maintainer:figma-maintainer"}
+        pricing = json.loads((ROOT / "knowledge" / "pricing.json").read_text())
+        line = u.task_line(t, {"currencies": ["USD", "INR"], "fx": {}}, pricing)
+        self.assertNotIn("$", line); self.assertNotIn("INR", line)
+        for part in ("Opus 5.5", "input 51,020", "uncached 20", "cache write 1,000", "cache read 50,000", "output 2,000", "reasoning 300", "total 53,020"):
+            self.assertIn(part, line)
 
 
 class CostReports(unittest.TestCase):
@@ -138,7 +151,8 @@ class CostReports(unittest.TestCase):
                                                                   "tasks": 2, "tasks_usd": 3.0, "clients": ["Acme › Site"]}) + "\n")
             out = run("usage_report.py", {}, home, args=["--all"])[0]
             self.assertIn("1 session(s), 2 plugin task(s)", out)
-            self.assertIn("Total $7.00", out)  # 4 main + 3 tasks; the other plugin's $50 is left out
+            self.assertIn("$7.00", out)  # estimated cost: 4 main + 3 tasks; the other plugin's $50 is left out
+            self.assertIn("Tokens: input", out)
             out2 = run("usage_report.py", {}, home, args=["--all", "--since", "2026-11-11"])[0]
             self.assertIn("1 plugin task(s)", out2)
         finally:
