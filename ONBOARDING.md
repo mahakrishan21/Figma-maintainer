@@ -11,11 +11,11 @@ It follows each agency's SOP automatically. Every finished job gets an independe
 
 ## 1. Install (once)
 **From the team marketplace (recommended).** You get updates with one command.
-1. **Get access:** ask the SOP manager (Mahakrishan) to add your GitHub account to the private repo `mahakrishan21/e2m-figma-marketplace`.
-2. **Sign in to GitHub on your Mac:** install GitHub Desktop and sign in, or run `gh auth login` in Terminal.
+1. **Get the login:** ask the SOP manager (Mahakrishan) for the team's GitHub login, `E2M-Design-Team`. It has read access to the private repo `E2M-Design/e2m-figma-marketplace`.
+2. **Sign in to GitHub on your Mac with it:** install GitHub Desktop and sign in, or run `gh auth login` in Terminal.
 3. **Install:** in Claude Code, run:
    ```
-   /plugin marketplace add mahakrishan21/e2m-figma-marketplace
+   /plugin marketplace add E2M-Design/e2m-figma-marketplace
    /plugin install figma-maintainer@e2m-figma
    ```
 4. **Restart Claude Code.**

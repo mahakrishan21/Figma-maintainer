@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE))
 from figma_common import FM, FigmaError, get  # noqa: E402
 
 ROOT = HERE.parent  # plugin root
-REPO = "mahakrishan21/e2m-figma-marketplace"  # team marketplace; private, so unauthenticated checks skip
+REPO = "E2M-Design/e2m-figma-marketplace"  # team marketplace; private, so unauthenticated checks skip
 TEST_FILE = "lQHhvuMvDB1t4C4k3Fl5VF"
 RESULTS = []
 

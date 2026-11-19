@@ -128,7 +128,7 @@ def main():
     if market:
         refresh_marketplace(market, new, json.loads(git("show", f"v{new}:.claude-plugin/plugin.json")))
         print("Co-workers (after both pushes): /plugin marketplace update e2m-figma, then /reload-plugins. "
-              "First time: /plugin marketplace add mahakrishan21/e2m-figma-marketplace and /plugin install figma-maintainer@e2m-figma.")
+              "First time: /plugin marketplace add E2M-Design/e2m-figma-marketplace and /plugin install figma-maintainer@e2m-figma.")
     else:
         print("No team marketplace set up (no 'marketplace:' line in .master): only the zip was built.")
 

@@ -54,4 +54,5 @@ Client: alpha-key-digital-moved-to-seo (see client.md in this folder) · teaming
 ## 9. Change log
 - 2026-11-04 — comment review, read only — 4 Sep 2025 round found already applied in Homepage_V3; no Figma changes
 - 2026-11-17 — 4 Sep 2025 round — 9 comments applied and 1 verified in a copy of Homepage_V2, `1374:134` — that frame no longer exists (found missing 2026-11-18)
-- 2026-11-18 — 4 Sep 2025 round, applied again — 9 comments applied and 1 verified in a new copy of Homepage_V2 — https://www.figma.com/design/5Dt1B9os6zadRJeQWvxA0E/?node-id=1400-134
+- 2026-11-18 — 4 Sep 2025 round, applied again — 9 comments applied and 1 verified in a new copy of Homepage_V2, `1400:134` — removed by the user the same day for a demo re-run
+- 2026-11-18 — demo re-run 2 — blocked before any write (Figma connector account without edit access); no applied copy is in the file now

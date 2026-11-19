@@ -23,4 +23,4 @@ Then tell me how co-workers update, after the push:
 2. run `/reload-plugins`;
 3. run `/figma-maintainer:doctor`.
 
-The first time, they run `/plugin marketplace add mahakrishan21/e2m-figma-marketplace` and then `/plugin install figma-maintainer@e2m-figma`.
+The first time, they run `/plugin marketplace add E2M-Design/e2m-figma-marketplace` and then `/plugin install figma-maintainer@e2m-figma`.

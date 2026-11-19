@@ -27,7 +27,7 @@ It follows each client's SOP and keeps a record of every job. An independent QA 
 ## 1. Quick start
 1. **Install** (details in [Setup](#9-setup-and-troubleshooting)):
    ```
-   /plugin marketplace add mahakrishan21/e2m-figma-marketplace
+   /plugin marketplace add E2M-Design/e2m-figma-marketplace
    /plugin install figma-maintainer@e2m-figma
    ```
    The repo is private: you need read access and GitHub signed in on your Mac.
@@ -259,12 +259,12 @@ SOPs, the playbook and prices are **links** into the plugin's `knowledge/` folde
 - **Finding comments without a link** needs access to the Mac's notifications: System Settings → Privacy & Security → Full Disk Access → your terminal or VS Code. Only Figma's notifications are ever read.
 
 ### Install and update
-**Team marketplace (recommended).** The team installs from the private repo `mahakrishan21/e2m-figma-marketplace`. That repo holds only the released plugin: no tests, no release tools, no git history of the source.
-1. **Access:** the SOP manager adds your GitHub account to the repo (Read).
-2. **GitHub sign-in on your Mac:** use GitHub Desktop, or run `gh auth login`.
+**Team marketplace (recommended).** The team installs from the private repo `E2M-Design/e2m-figma-marketplace`. That repo holds only the released plugin: no tests, no release tools, no git history of the source.
+1. **Access:** the repo belongs to the `E2M-Design` organization. The team's GitHub account `E2M-Design-Team` has **Read** access; ask the SOP manager for its login.
+2. **GitHub sign-in on your Mac** with that account: use GitHub Desktop, or run `gh auth login`.
 3. **Install:**
    ```
-   /plugin marketplace add mahakrishan21/e2m-figma-marketplace
+   /plugin marketplace add E2M-Design/e2m-figma-marketplace
    /plugin install figma-maintainer@e2m-figma
    ```
 4. **Finish:** restart Claude Code (or `/reload-plugins`), then run `/figma-maintainer:doctor`.
