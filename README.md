@@ -261,7 +261,7 @@ SOPs, the playbook and prices are **links** into the plugin's `knowledge/` folde
 ### Install and update
 **Team marketplace (recommended).** The team installs from the private repo `E2M-Design/e2m-figma-marketplace`. That repo holds only the released plugin: no tests, no release tools, no git history of the source.
 1. **Access:** the repo belongs to the `E2M-Design` organization. The team's GitHub account `E2M-Design-Team` has **Read** access; ask the SOP manager for its login.
-2. **GitHub sign-in on your Mac** with that account: use GitHub Desktop, or run `gh auth login`.
+2. **GitHub sign-in on your Mac** with that account: install the GitHub CLI (`brew install gh`, or the installer from cli.github.com), run `gh auth login` in Terminal and answer GitHub.com → HTTPS → **Yes** to "Authenticate Git" → Login with a web browser. Being signed in on github.com in the browser alone isn't enough.
 3. **Install:**
    ```
    /plugin marketplace add E2M-Design/e2m-figma-marketplace
@@ -303,6 +303,7 @@ Run **`/figma-maintainer:doctor`** first. It checks:
 | Usage shows no INR | The SOP manager sets `fx.INR` in `knowledge/cost-config.json` |
 | QA keeps asking to run | Let it run, or say `skip QA` |
 | "The file changed at …" prompt | Someone (or you) edited the file mid-job. Check the frame in Figma, then allow |
+| "iStock setup needed: …" | iStock needs no account or extra install: the plugin searches the Basic (Essentials) collection itself. The message gives the reason and the fix, usually turning off a VPN or web filter, or checking the internet connection. Choose "Fix it now" and it re-checks, or pick another source. `/figma-maintainer:doctor` runs the same check |
 | "Font needed: …" | Install or activate that font (Adobe Fonts, the font file, or a shared team font in Figma), then say "installed". If it still won't load, Figma's editing tools need it as a shared team font |
 
 ---

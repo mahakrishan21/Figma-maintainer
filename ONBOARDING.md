@@ -12,7 +12,7 @@ It follows each agency's SOP automatically. Every finished job gets an independe
 ## 1. Install (once)
 **From the team marketplace (recommended).** You get updates with one command.
 1. **Get the login:** ask the SOP manager (Mahakrishan) for the team's GitHub login, `E2M-Design-Team`. It has read access to the private repo `E2M-Design/e2m-figma-marketplace`.
-2. **Sign in to GitHub on your Mac with it:** install GitHub Desktop and sign in, or run `gh auth login` in Terminal.
+2. **Sign in to GitHub on your Mac with it:** install the GitHub CLI (`brew install gh`, or the installer from cli.github.com), run `gh auth login` in Terminal and answer GitHub.com → HTTPS → **Yes** to "Authenticate Git" → Login with a web browser. Being signed in on github.com in the browser alone isn't enough.
 3. **Install:** in Claude Code, run:
    ```
    /plugin marketplace add E2M-Design/e2m-figma-marketplace
@@ -57,7 +57,7 @@ Use figma-maintainer: <client> — <Figma link to the frame> — <what to change
 - **Start with `Use figma-maintainer:`.** A Figma link on its own doesn't switch the plugin on.
 - **Name the client** (agency or project). Its SOP loads automatically: image source, delivery account, rules.
 - **Link the exact frame** (right-click the frame in Figma → Copy link). Only that frame changes.
-- **Say the image source** if you know it: `images: iStock` / `Adobe Stock` / `client: <link>` / `no new images`. Otherwise it asks.
+- **Say the image source** if you know it: `images: iStock` / `Adobe Stock` / `client: <link>` / `no new images`. Otherwise it asks. **iStock** needs no account or install. If it can't reach iStock on your Mac, it tells you why and how to fix it before the job starts.
 
 Examples:
 ```

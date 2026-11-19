@@ -284,7 +284,9 @@ if not CLIENT:
             "in one line (e.g. 'Lasso up image preference: Adobe Stock'); if not set, ask the image/video source question "
             "(Client-provided / iStock / Adobe Stock / other stock such as Getty, Shutterstock, Depositphotos, Envato / AI-generated). "
             "Also apply §3 'Delivery tool (Figma)' (remind if it's the client's own Figma account). Pass 'Client: <name>' and "
-            "'Image/video source: …' to the figma-maintainer agent." + QA_NOTE)
+            "'Image/video source: …' to the figma-maintainer agent. If the source is iStock, first run "
+            "python3 -I ~/.claude/figma-maintainer/scripts/istock_fetch.py --check and, if it prints 'iStock setup needed', tell the user the reason "
+            "and the fix and ask whether to fix it now, use another source, or continue without iStock." + QA_NOTE)
     if SLACK:
         msg += " ALSO, after the job: " + SLACK
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": msg}}))
@@ -297,16 +299,37 @@ if not found and SOP_SOURCE:
 if not found and re.search(r"\b(mobile|tablet|responsive)\b", p) and not re.search(r"\b(new|replace|replacing|swap|swapping|change|add|adding|different)\b(\s+\S+){0,3}?\s+(images?|photos?|pictures?|videos?|imagery)\b", p):
     found = ["existing assets in the file (responsive adaptation reuses the desktop's images)"]
 
+ISTOCK_CHECK = "python3 -I ~/.claude/figma-maintainer/scripts/istock_fetch.py --check"
+ISTOCK_ASK = ("ask the user with AskUserQuestion: 'iStock isn't working on this Mac: <reason>. What now?' Options: "
+              "'Fix it now (Recommended)': do the fix with them (run commands only with their OK), then run " + ISTOCK_CHECK + " again until it says READY; "
+              "'Use another source'; 'Continue without iStock' (the agent leaves image placeholders and lists iStock search terms per slot).")
+
+
+def istock_note():
+    """iStock is the source: check it works on this Mac (a pass is cached for a day) so a failure is fixed before the job."""
+    try:
+        import istock_fetch
+        r = istock_fetch.cached_check()
+    except Exception as e:
+        r = {"ok": False, "reason": f"the iStock script couldn't run ({e})"[:200], "fix": "Update the plugin: /plugin marketplace update e2m-figma, then /reload-plugins."}
+    if r.get("ok"):
+        return ""
+    return (f" iStock CHECK FAILED on this Mac: {r.get('reason')}. Fix: {r.get('fix')} Before launching the agent, " + ISTOCK_ASK)
+
+
 if found:
     msg = (f"figma-maintainer image gate: the prompt names the image/video source ({', '.join(found)}). "
            "Pass it to the figma-maintainer agent verbatim as 'Image/video source: …' and proceed.")
+    if any(f.lower().startswith("istock") for f in found):
+        msg += istock_note()
 else:
     msg = ("figma-maintainer image gate: this prompt doesn't say where images and video come from. "
            "Before doing anything else (no Figma reads, no agent launch, no edits), ask the user with AskUserQuestion: "
            "'Which image/video source for this job?' Options: Client-provided (they'll share files) / iStock / "
            "Adobe Stock / AI-generated. Notes can add 'Use existing assets in the file' or 'No new images or video'. "
            "If the project or client notes (~/.claude/figma-maintainer/clients/<client>/<project>.md and client.md; find them with grep -rl <fileKey>) list a preferred source, mark it '(Recommended)'. "
-           "Do not proceed until the user answers. Then pass the answer to the figma-maintainer agent as 'Image/video source: …'.")
+           "Do not proceed until the user answers. Then pass the answer to the figma-maintainer agent as 'Image/video source: …'. "
+           "If they pick iStock, first run " + ISTOCK_CHECK + "; if it prints 'iStock setup needed', " + ISTOCK_ASK)
 msg += QA_NOTE
 if SLACK:
     msg = msg + " ALSO, after the job: " + SLACK

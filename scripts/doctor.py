@@ -193,6 +193,16 @@ def main():
     except Exception:
         check("Plugin enabled", "skip", "claude CLI not found from this shell")
 
+    # ---- iStock placeholders (no account needed; a live test search)
+    try:
+        import istock_fetch
+        r = istock_fetch.check()
+        check("iStock images", "ok" if r["ok"] else "fail",
+              f"{r.get('results')} test results via {r.get('via')}" if r["ok"] else r.get("reason", ""), r.get("fix", ""))
+    except Exception as e:
+        check("iStock images", "fail", f"the iStock script couldn't run ({e})"[:150],
+              "Update the plugin: /plugin marketplace update e2m-figma, then /reload-plugins.")
+
     # ---- work folder, pending QA, recent guard activity
     work = FM / "work"
     if work.exists():

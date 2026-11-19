@@ -14,6 +14,13 @@ root="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 dest="$HOME/.claude/figma-maintainer"
 mkdir -p "$dest" "$dest/work" "$dest/contributions" "$dest/guides" || exit 0
 
+# Python 3 runs every plugin script (iStock, QA, Figma checks). On a Mac without Apple's Command Line Tools,
+# /usr/bin/python3 is only an installer stub: tell Claude (SessionStart output becomes context) so it asks the user.
+py="$(command -v python3 || true)"
+if [ -z "$py" ] || { [ "$py" = /usr/bin/python3 ] && ! xcode-select -p >/dev/null 2>&1; }; then
+  echo "figma-maintainer setup: Python 3 isn't installed on this Mac (Apple's Command Line Tools are missing), so the plugin's scripts (iStock images, QA, Figma checks, usage reports) can't run. Before any figma-maintainer job, tell the user and ask with AskUserQuestion whether to install it now: 'Install now (Recommended)' runs xcode-select --install (Apple's installer opens; about 5 minutes), then they restart Claude Code; 'Later' continues without the scripts."
+fi
+
 src="$root"
 if [ -f "$dest/.master" ]; then
   m="$(sed -n 's/^source: *//p' "$dest/.master" | head -1)"

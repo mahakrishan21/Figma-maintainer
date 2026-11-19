@@ -57,6 +57,7 @@ Examples:
 
 ### Images, video and copy
 - `… — images: iStock` · `Adobe Stock` · `AI-generated` · `no new images`
+- **iStock** gives watermarked Basic-collection (Essentials) comps as placeholders, with no account needed. If it can't reach iStock on your Mac, it says why and offers to fix it first.
 - `… — use these client photos: <Dropbox/Drive link>` · `… — hero: @assets/hero.jpg` · `… — use @assets/khl-photos/`
 - `… — copy is in <Google Doc link>, use it word for word` (the doc must be shared as "Anyone with the link")
 
