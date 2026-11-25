@@ -166,5 +166,40 @@ class CostReports(unittest.TestCase):
         self.assertIn("Consolidated:", (ROOT / "agents" / "usage-reporter.md").read_text())
 
 
+class ModelRouting(unittest.TestCase):
+    """The pinned models are defaults. Callers pick lighter or heavier ones by job weight, and the hook stays cheap."""
+
+    def test_models_follow_job_weight(self):
+        maker = frontmatter(ROOT / "agents" / "figma-maintainer.md")["description"]
+        for word in ("'sonnet'", "'fable'", "Opus"):
+            self.assertIn(word, maker)
+        self.assertEqual(frontmatter(ROOT / "commands" / "apply-comments.md").get("model", "").strip(), "sonnet")
+        for cmd in ("apply-comments.md", "client-comment.md"):
+            self.assertIn("Model by job weight", (ROOT / "commands" / cmd).read_text(), cmd)
+        self.assertIn("`model: fable`", (ROOT / "commands" / "make-responsive.md").read_text())
+
+    def test_fast_run_is_opt_in(self):
+        apply = (ROOT / "commands" / "apply-comments.md").read_text()
+        self.assertIn("only when my request contains the word `fast`", apply)
+        self.assertIn("`effort: medium`", apply)
+        self.assertIn("the QA check and the hold rule all stay", apply)
+
+    def test_reports_are_saved_by_the_plugin_not_retyped(self):
+        self.assertIn("never write that one", (ROOT / "agents" / "figma-maintainer.md").read_text())
+        self.assertIn("Don't write `qa.md`", (ROOT / "agents" / "qa-checker.md").read_text())
+        apply = (ROOT / "commands" / "apply-comments.md").read_text()
+        self.assertIn("the plugin saves the maker's reply as `report.md`", apply)
+        self.assertIn("usage_report.py --session", apply)
+
+    def test_prompt_hook_hands_over_the_session_id(self):
+        td, home = temp_home()
+        try:
+            out = run("image_gate.py", {"prompt": "Use figma-maintainer: fix the hero copy, images from iStock",
+                                        "transcript_path": "", "session_id": "abcd1234-0000-4000-8000-123456789abc"}, home)[0]
+            self.assertIn("usage_report.py --session: abcd1234-0000-4000-8000-123456789abc", out)
+        finally:
+            td.cleanup()
+
+
 if __name__ == "__main__":
     unittest.main()

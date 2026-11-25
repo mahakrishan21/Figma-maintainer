@@ -5,12 +5,13 @@
 **SOPs live only in the plugin**, the single source of truth. One SOP manager maintains them. The links in `~/.claude/figma-maintainer/` (`clients/`, `playbook.md`, `pricing.json`, `cost-config.json`) point into the plugin's `knowledge/` folder. Everything else in that folder is this person's **session files**: `job-log.md`, logs, `audits/`, `reports/` and `contributions/`.
 
 At the end of every task:
-- **Always, in the job folder** (`jobs/<date>-<task>/`), save:
-  - `report.md`: the full completion report;
+- **Always, in the job folder** (`jobs/<date>-<task>/`), save with **one Bash call**:
   - `slack.md`;
   - `client-message.md`;
   - in comments mode, `comments-applied.md`: each comment's date, author and text, with done / not done / skipped-older status and the node changed.
-- **Always, rewrite `PROJECT.md`** so it reflects the project **now**:
+
+  **Don't write `report.md`.** Claude Code refuses report files from subagents. Your final reply is the report, and the plugin saves it as `report.md` in the job folder (it finds the folder from the "Job folder:" line in your reply).
+- **Always, rewrite `PROJECT.md`** (one Write, not a string of small edits) so it reflects the project **now**:
   - latest frames with prototype links, and current status;
   - new client decisions (dated);
   - open items (add new ones, remove resolved ones);
@@ -20,6 +21,7 @@ At the end of every task:
 - **Always:** append one entry (max ~6 lines) to the **project's** `job-log.md` in the project folder: date, task, file/node, what changed, open items, and any correction received. Also add **one index line** to `~/.claude/figma-maintainer/job-log.md`: `<date> · <agency> › <project> · <task> · <project folder>`. Save the Slack update text in `slack/<YYYY-MM-DD>-<task>.md`.
 - **SOP manager's machine** (`~/.claude/figma-maintainer/.master` exists):
   - Put new or corrected rules straight into the right SOP section: project facts in the project file, client-wide rules in `client.md`, recurring-task rules in the client's `task-*.md`, and cross-client lessons in `playbook.md` (one line, no duplicates).
+  - `clients/` and `playbook.md` are links here, and the edit tools refuse links: edit the real file (`realpath <file>` prints it), with all of a file's changes in one call.
   - Tag every rule with its source and date. Corrections are tagged `(correction, YYYY-MM-DD)`.
   - Remind the user to commit and run `/figma-maintainer:share`.
 - **Co-worker's machine** (no `.master`): **never edit SOPs.** The SOP guard blocks it.

@@ -3,6 +3,8 @@
 
   qa_gate.py --subagent-stop   SubagentStop: figma-maintainer finished with completed Figma writes → mark "QA pending"
                                for this session (files + job folder); qa-checker finished → clear the matching marks.
+                               Also saves each agent's final reply in its job folder (report.md / qa.md), so the main
+                               conversation never has to re-type it (Claude Code refuses report files from subagents).
   qa_gate.py --stop            Stop: if this session has a pending mark and no QA run in progress, block the end of
                                the turn once and tell Claude to run figma-maintainer:qa-checker. Never blocks twice in a
                                row (stop_hook_active); then it only warns.
@@ -22,6 +24,8 @@ REMIND = FM / "qa-remind.json"   # sessions whose job just passed QA: one "start
 GATE_LOG = FM / "qa-gate-log.jsonl"
 MAKER, QA = "figma-maintainer:figma-maintainer", "figma-maintainer:qa-checker"
 JOB_RX = re.compile(r"(/[^\s\"'`]*?/work/[^\s\"'`]+?/jobs/\d{4}-\d{2}-\d{2}-[a-z0-9-]+)")
+JOB_PATH_RX = re.compile(r"(~?/[^\s\"'`\\]*?/work/[^\s\"'`\\]+?/jobs/\d{4}-\d{2}-\d{2}-[a-z0-9-]+)")
+REPORT_FILE = {MAKER: "report.md", QA: "qa.md"}  # the agent's final reply, saved in its job folder
 
 
 def now():
@@ -119,9 +123,87 @@ def first_brief(path):
     return ""
 
 
+def final_reply(path, fallback=""):
+    """The subagent's final report: its last SubagentHandback message, else the longer of the hook's
+    last_assistant_message and the last text it wrote."""
+    handback, last_text = "", ""
+    try:
+        with open(path, encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                if '"assistant"' not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except Exception:
+                    continue
+                if d.get("type") != "assistant":
+                    continue
+                c = (d.get("message") or {}).get("content")
+                if isinstance(c, str):
+                    last_text = c.strip() or last_text
+                    continue
+                text = "\n".join(x.get("text", "") for x in c or [] if isinstance(x, dict) and x.get("type") == "text").strip()
+                last_text = text or last_text
+                for x in c or []:
+                    if isinstance(x, dict) and x.get("type") == "tool_use" and x.get("name") == "SubagentHandback":
+                        m = (x.get("input") or {}).get("message")
+                        if isinstance(m, str) and m.strip():
+                            handback = m.strip()
+    except Exception:
+        pass
+    return handback or max((fallback or "").strip(), last_text, key=len)
+
+
+def job_folder(*texts):
+    """The existing job folder these texts name, inside this person's work/ folder only. A path on a
+    "Job folder:" line wins over other job paths in the text (a report may also mention earlier jobs)."""
+    try:
+        work = (FM / "work").resolve()
+    except Exception:
+        return None
+    labelled = re.compile(r"(?i)job folder[^\n/~]{0,24}" + JOB_PATH_RX.pattern)
+    for rx in (labelled, JOB_PATH_RX):
+        for t in texts:
+            for m in rx.findall(t or ""):
+                d = Path(os.path.expanduser(m))
+                try:
+                    d.resolve().relative_to(work)
+                except Exception:
+                    continue
+                if d.is_dir():
+                    return d
+    return None
+
+
+def save_reply(kind, hook, brief=""):
+    """Save the agent's final reply as <job folder>/report.md (maker) or qa.md (QA). An earlier file with other
+    content is kept under a dated name. Never raises; returns the path or None."""
+    try:
+        name = REPORT_FILE.get(kind)
+        text = final_reply(hook.get("agent_transcript_path") or "", hook.get("last_assistant_message") or "")
+        if not name or len(text) < 200:  # a question or a one-line blocker isn't a report
+            return None
+        d = job_folder(text, brief) if kind == MAKER else job_folder(brief, text)
+        if not d:
+            return None
+        p = d / name
+        if p.exists():
+            if p.read_text(errors="ignore").strip() == text:
+                return p
+            p.rename(d / f"{p.stem}-{datetime.fromtimestamp(p.stat().st_mtime).strftime('%Y-%m-%d-%H%M%S')}.md")
+        p.write_text(text + "\n")
+        gate_log({"event": "saved", "file": str(p), "chars": len(text)})
+        return p
+    except Exception as e:
+        gate_log({"event": "save-failed", "agent": kind, "error": str(e)[:200]})
+        return None
+
+
 def subagent_stop(hook):
     kind, aid = hook.get("agent_type") or "", hook.get("agent_id") or ""
     sess = session_of(hook)
+    if kind in REPORT_FILE:
+        save_reply(kind, hook, first_brief(hook.get("agent_transcript_path") or ""))
     if kind == MAKER:
         files = maker_writes(aid)
         if not files:

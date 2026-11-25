@@ -39,6 +39,7 @@ General rules for any client's file. One line each. Client-specific rules go in 
 - Annotations (`node.annotations = [{label}]`) work on instances. Use them for specs the canvas can't show, such as dropdown options and states.
 - Text layers whose name equals their content auto-rename on a `characters` change ("Heading" became "Test passed"). Set `autoRename=false` first if the layer name must stay. (2026-10-14)
 - Before a comment or copy round, check that every font in the target text loads (`loadFontAsync`). If one doesn't, stop before editing text and tell the user the font name, styles and layers, so they can install or activate it; then re-check and continue with the real font. Annotate the new copy for a designer to type in the desktop app only when the user chooses that. (correction from the user, 2026-10-29; replaces the 27 Oct annotate-first workaround)
+- When re-applying a headline whose approved version sets its lines ("on three lines as in V3"), natural wrapping can break it elsewhere and strand a decorative underline. Screenshot it and set the approved breaks with `\n`. (2026-11-23)
 
 ## Editing: layout, frames, clones and fills
 - Reorder Auto Layout children with `parent.insertChild(index, node)`. Fields keep their component link.

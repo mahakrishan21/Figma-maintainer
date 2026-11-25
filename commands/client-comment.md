@@ -66,18 +66,20 @@ Approved plan: <job folder>/plan.md (follow it exactly; it's my approval for the
 Job folder: <job folder> (use it for this job's records; don't create another)
 Project folder: <project folder>
 ```
-It runs in client comments mode: versioning per the SOP, before and after snapshots, guardrails, and the report, Slack update and client message (prototype links). It saves `report.md`, `slack.md`, `client-message.md` and `comments-applied.md` to the job folder, and updates `PROJECT.md`, including "Comment rounds applied".
+**Model by job weight** (the Agent tool's `model`): pass `sonnet` for a job marked small in step 3 (plain text edits only). Otherwise pass no model: the agent's own (Opus) handles layout, new elements and images.
+
+It runs in client comments mode: versioning per the SOP, before and after snapshots, guardrails, and the report, Slack update and client message (prototype links). It saves `slack.md`, `client-message.md` and `comments-applied.md` to the job folder, and updates `PROJECT.md`, including "Comment rounds applied". The plugin saves its reply as `report.md` there by itself.
 
 **If figma-maintainer returns "Font needed: …"**, ask me with AskUserQuestion, naming the font, styles and layers. Options: "I'll install the font now (Recommended)" / "A designer will type it in the desktop app" / "Skip the text changes". When I say it's installed, resume the same agent to re-check the font and continue with the real font. Don't run QA until the text work is done or I've chosen another option.
 
 ## 6. QA check (automatic, read-only)
-First save any job files figma-maintainer returned as text instead of saving them (`report.md`, `slack.md`, `client-message.md`, `comments-applied.md`). Then, **without asking me**, launch **figma-maintainer:qa-checker** in the foreground:
+Don't save or re-type the maker's report first: the plugin has already saved it as `report.md` in the job folder. If the maker returned `slack.md`, `client-message.md` or `comments-applied.md` as text instead of saving them, save those. Then, **without asking me**, launch **figma-maintainer:qa-checker** in the foreground:
 ```
 Job folder: <job folder>
 File: <fileKey>
 Level: light       (only for a job marked small in step 3)
 ```
-In light mode it skips crops and screenshots, and switches to the full check by itself if anything doesn't match the plan. It checks every comment against Figma (its own layer diff, pixel diff and crops), traces every change back to the plan, checks the report, Slack update and client message against the evidence, and returns `qa.md` with a verdict and a fix list. Save its text as `<job folder>/qa.md`.
+In light mode it skips crops and screenshots, and switches to the full check by itself if anything doesn't match the plan. It checks every comment against Figma (its own layer diff, pixel diff and crops), traces every change back to the plan, checks the report, Slack update and client message against the evidence, and returns `qa.md` with a verdict and a fix list. The plugin saves its reply as `<job folder>/qa.md` by itself; save it yourself only if the file is missing.
 
 - **PASS or PASS WITH NOTES:** go to step 7.
 - **FAIL with AUTO-FIX items (one automatic fix round, don't ask me):**
@@ -90,7 +92,7 @@ In light mode it skips crops and screenshots, and switches to the full check by 
     Fix only these items from <job folder>/qa.md: <the AUTO-FIX items, verbatim>
     ```
   - Apply QA's `message_fixes` to `client-message.md` and `slack.md` yourself; they're local text files.
-  - Run **figma-maintainer:qa-checker** again with `Fix round: 1`, and save the result as `qa.md`, replacing the old one.
+  - Run **figma-maintainer:qa-checker** again with `Fix round: 1`. The plugin saves the new result as `qa.md` and keeps the earlier one under a dated name.
 - **Still FAIL, INCONCLUSIVE, or any USER items:** stop. The client message is **HELD**: show it to me marked "HELD: not ready to send". Show the remaining items and ask with AskUserQuestion: "Send another fix round" / "I'll fix it in Figma" / "Accept with an override". Record my choice at the end of `qa.md`.
 
 ## 7. After the job

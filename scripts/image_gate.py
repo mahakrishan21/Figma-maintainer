@@ -200,6 +200,9 @@ QA_NOTE = (" AFTER the figma-maintainer agent finishes a job that changed Figma:
            "and file key (add 'Level: light' when the job was at most 3 plain text edits in one frame) BEFORE showing the client message. On FAIL with AUTO-FIX items, send only those items back to figma-maintainer "
            "once as a 'QA fix round' (same job folder and output frames, no new duplicate), then run qa-checker again; if it still "
            "fails, hold the client message and ask the user (send another fix round / I'll fix it / accept with an override).")
+SID = str(HOOK.get("session_id") or "")
+if re.fullmatch(r"[A-Za-z0-9-]{8,64}", SID):  # usage_report.py finds this conversation with it, whatever the shell's folder
+    QA_NOTE += f" Session id for usage_report.py --session: {SID}."
 
 # "I got a client comment": the client-comment workflow finds, analyses and plans it before any job starts.
 # The phrase must open the request (first ~300 characters) and not describe a feature ("client comment agent"),
@@ -250,7 +253,7 @@ if re.search(r"slack\s*(message|msg|update)|token(s)?\s*(usage|used|count|report
 
 # A job = a Figma link, a job command, or the plugin named as the one to use ("Use figma-maintainer: …", "figma-maintainer, …").
 # A bare mention of the plugin (e.g. while discussing its development) is not a job.
-is_job = bool(re.search(r"figma\.com/(design|file)/", p) or re.search(r"/figma-maintainer:(apply-comments|make-responsive)\b", p)
+is_job = bool(re.search(r"figma\.com/(design|file)/", p) or re.search(r"/figma-maintainer:(apply-comments|make-responsive|make-inner-page)\b", p)
               or re.search(r"\buse\s+(the\s+)?figma[\s_-]*maintainer\b|(^|\n)\s*figma[\s_-]*maintainer\s*[:,]", p))
 if not is_job and CLIENT and not SLACK:
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": CLIENT_CTX}}))

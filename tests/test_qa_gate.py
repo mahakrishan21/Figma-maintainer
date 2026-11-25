@@ -1,6 +1,7 @@
 """qa_gate.py: a figma-maintainer job that changed Figma can't end without QA (Stop hook), and 'skip QA' waives it."""
 import json, unittest
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from tests.helpers import context, run, temp_home, transcript
 
@@ -91,6 +92,54 @@ class QAGate(unittest.TestCase):
         out, err, rc = run("qa_gate.py", {"transcript_path": str(other), "session_id": "sess2", "stop_hook_active": False},
                            self.home, args=["--stop"])
         self.assertEqual(out.strip(), "")
+
+
+    # ---- the agents' final replies are saved by the hook (report.md / qa.md), so nobody re-types them
+    def reply(self, text, name="agent-a1.jsonl", brief="Use figma-maintainer: fix the hero", handback=True):
+        sub = self.home / "sess1" / "subagents" / name
+        last = ({"type": "tool_use", "name": "SubagentHandback", "input": {"message": text}} if handback
+                else {"type": "text", "text": text})
+        sub.write_text(json.dumps({"type": "user", "message": {"content": brief}}) + "\n"
+                       + json.dumps({"type": "assistant", "message": {"content": [{"type": "text", "text": "Working on it."}]}}) + "\n"
+                       + json.dumps({"type": "assistant", "message": {"content": [last]}}) + "\n")
+        return sub
+
+    def test_maker_reply_is_saved_as_report_md(self):
+        job = Path(self.job); job.mkdir(parents=True)
+        earlier = job.parent / "2026-10-20-earlier-job"; earlier.mkdir()
+        report = (f"All 3 comments are handled. Values match the earlier run in {earlier}.\n\n"
+                  f"- **Job folder:** {job}\n" + "- changed 1:2 to the new copy\n" * 20)
+        self.sub_stop(MAKER, sub=self.reply(report))
+        self.assertEqual((job / "report.md").read_text().strip(), report.strip())
+        self.assertFalse((earlier / "report.md").exists(), "the 'Job folder:' line wins over other job paths")
+
+    def test_plain_final_text_is_saved_too(self):
+        job = Path(self.job); job.mkdir(parents=True)
+        report = f"Report for the job in {job}.\n" + "- changed 1:2 to the new copy\n" * 20
+        sub = self.reply(report, handback=False)
+        run("qa_gate.py", {"agent_type": MAKER, "agent_id": "a1", "transcript_path": str(self.main),
+                           "agent_transcript_path": str(sub), "last_assistant_message": report}, self.home, args=["--subagent-stop"])
+        self.assertEqual((job / "report.md").read_text().strip(), report.strip())
+
+    def test_qa_reply_is_saved_as_qa_md_and_the_earlier_one_is_kept(self):
+        job = Path(self.job); job.mkdir(parents=True)
+        (job / "qa.md").write_text("# QA: the first run\n")
+        qa = "# QA: acme › site, hero fix · Overall: PASS\n" + "| 1 | comment | expected | found | PASS |\n" * 8
+        self.sub_stop(QA, agent_id="q1", sub=self.reply(qa, "agent-q1.jsonl", brief=f"Job folder: {job}\nFile: {KEY}"))
+        self.assertEqual((job / "qa.md").read_text().strip(), qa.strip())
+        kept = list(job.glob("qa-*.md"))
+        self.assertEqual(len(kept), 1)
+        self.assertIn("the first run", kept[0].read_text())
+        self.sub_stop(QA, agent_id="q1", sub=self.home / "sess1" / "subagents" / "agent-q1.jsonl")
+        self.assertEqual(len(list(job.glob("qa-*.md"))), 1, "the same reply again doesn't pile up copies")
+
+    def test_reply_is_not_saved_outside_work_or_when_it_is_only_a_question(self):
+        outside = self.home / "elsewhere" / "work" / "acme" / "jobs" / "2026-10-29-hero-fix"; outside.mkdir(parents=True)
+        self.sub_stop(MAKER, sub=self.reply(f"Report.\n- **Job folder:** {outside}\n" + "- changed\n" * 60))
+        self.assertFalse((outside / "report.md").exists())
+        job = Path(self.job); job.mkdir(parents=True)
+        self.sub_stop(MAKER, sub=self.reply(f"Font needed: Inter — Bold. Job folder: {job}"))
+        self.assertFalse((job / "report.md").exists())
 
 
 if __name__ == "__main__":

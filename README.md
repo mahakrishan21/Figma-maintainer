@@ -62,7 +62,8 @@ Use figma-maintainer: <client> — <Figma link with node-id> — <what to change
 | Apply a client email | `Use figma-maintainer: LSD — <url> — apply this feedback: <paste the email>` |
 | Handle a new Figma comment | `Use figma-maintainer: I got a client comment` (no link needed) |
 | Apply comments on a frame | `/figma-maintainer:apply-comments <url>` |
-| Build an inner page | `Use figma-maintainer: KHL — <url> — build the About page using the Founding Families layout — images: iStock` |
+| Design an inner page from the homepage | `/figma-maintainer:make-inner-page <homepage url> About — copy: <Google Doc link> — images: iStock` |
+| Build an inner page from a layout | `Use figma-maintainer: KHL — <url> — build the About page using the Founding Families layout — images: iStock` |
 | Make mobile / tablet | `Use figma-maintainer: <url> — make the mobile version` (or `/figma-maintainer:make-responsive <url> both`) |
 | Change a hover or state | `Use figma-maintainer: <url> — make the primary button hover darker using the existing colour styles` |
 | Use client photos | `… — use these photos: <Dropbox/Drive link>` or `… — hero: @assets/hero.jpg` |
@@ -98,7 +99,7 @@ Use figma-maintainer: <client> — <Figma link with node-id> — <what to change
 
 ### Keep costs down
 - **One job per conversation.** When a job is done, start a new conversation or type `/clear`. A long conversation re-reads everything on every message: one two-week conversation cost about $134 on its own. The plugin reminds you after each job.
-- **Use Opus or Sonnet for routine work** (`/model opus`). Fable costs 2.5–5× more, and `/figma-maintainer:doctor` warns if it's your default. The plugin's own agents always use their own models: the editor on Opus; analysis, QA and audits on Sonnet; usage on Haiku.
+- **Use Opus or Sonnet for routine work** (`/model opus`). Fable costs 2.5–5× more, and `/figma-maintainer:doctor` warns if it's your default. The plugin picks the model by job weight, whatever your session runs on: the editor on Opus (Sonnet for text-only jobs, Fable for responsive builds and component or state work); analysis, QA and audits on Sonnet; usage on Haiku; and `/figma-maintainer:apply-comments` runs its own steps on Sonnet. Add the word `fast` to that command to run the editor on Sonnet at medium effort whatever the round holds: quicker, with more layout risk for QA to catch.
 - **Link the exact frame, one page per prompt.** Small text jobs (up to 3 plain text edits in one frame) automatically get a lighter plan and QA.
 - **Check where it goes:** usage lines flag heavy tasks and say why (Fable, many tool calls, very large input). `/figma-maintainer:cost-report` shows this conversation or one task; `/figma-maintainer:cost-report-all` shows your whole history on this Mac (sessions, clients, averages per agent and model mix), only when you ask.
 
@@ -376,6 +377,7 @@ It compiles every script with this Mac's Python, runs the offline test suite in 
 | Task type (any client) | Generic action | Client configurations |
 |---|---|---|
 | Tablet and mobile from desktop | `/figma-maintainer:make-responsive` | `digital-drive/task-responsive-designs.md` |
+| Inner page from the homepage | `/figma-maintainer:make-inner-page` | none yet (`<agency>/task-inner-pages.md` overrides the defaults) |
 | Client comments | `/figma-maintainer:client-comment` (finds them) · `:apply-comments` (with a link) | none yet |
 | Audits | `/figma-maintainer:*-audit` | none yet |
 | Brief check, version compare | `:check-brief`, `:compare-versions` | none yet |
@@ -394,6 +396,7 @@ A client's `task-<name>.md` applies **only to that client**. **Scope is always t
 | `/figma-maintainer:apply-comments <url>` | Apply the comments on a frame (latest round) |
 | `/figma-maintainer:qa [latest\|job\|links] [since …] [check: …]` | QA one task on its own, including manual work |
 | `/figma-maintainer:make-responsive <url> [mobile\|tablet\|both]` | Mobile and tablet versions of a desktop frame |
+| `/figma-maintainer:make-inner-page <homepage url> <page> [— copy: …] [— images: …]` | A new desktop inner page in the homepage's exact style, next to the homepage |
 | `/figma-maintainer:components-and-interactions` | Guide for hover, variant and prototype changes |
 | `/figma-maintainer:consistency-audit <url>` | Read-only consistency audit |
 | `/figma-maintainer:content-audit <url>` | Read-only copy audit |

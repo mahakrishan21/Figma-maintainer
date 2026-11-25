@@ -11,10 +11,10 @@ Client: alpha-key-digital-moved-to-seo (see client.md in this folder) · teaming
 
 ## 2. Files and page map
 - Alpha Key Digital: fileKey `5Dt1B9os6zadRJeQWvxA0E`  (homepage versions and internal pages)
-- Pages: Homepage `1:16`: Homepage_V2 `208:194671` (carries the 4 Sep 2025 comments); "Homepage_V2 - Comments applied - 18 Nov 2026" `1400:134` (copy of V2 with that round applied, 2026-11-18, at x=11160, y=0); Homepage_V3 `326:44` (label "5 Sep 2025"); Homepage_V3 `1098:187` (label "30 Dec 2025 - images update", the latest design version); date labels `326:24725`, `1098:24348`. The 17 Nov copy `1374:134` no longer exists (found missing 2026-11-18); ids 1374:*, 1376:*, 1377:* are dead
+- Pages: Homepage `1:16`: Homepage_V2 `208:194671` (carries the 4 Sep 2025 comments); "Homepage_V2 - Comments applied - 23 Nov 2026" `1429:134` (copy of V2 with that round applied, 2026-11-23, at x=11160, y=0; the 18 Nov copy `1400:134` was removed by the user); Homepage_V3 `326:44` (label "5 Sep 2025"); Homepage_V3 `1098:187` (label "30 Dec 2025 - images update", the latest design version); date labels `326:24725`, `1098:24348`. The 17 Nov copy `1374:134` no longer exists (found missing 2026-11-18); ids 1374:*, 1376:*, 1377:* are dead
 - Other pages seen in comments: "Internal Pages" (About Page `344:24303`, Resources/Blog Listing `351:1268`); "Sales Services and Case Study Landing Page" (Sales Services_Landing Page `727:216753`)
 - Approved originals (never edit): not stated. Treat Homepage_V2 and both Homepage_V3 frames as protected and work on a copy (rule from the user, 2026-11-04)
-- Latest round: 4 Sep 2025 comments (Alex Zinni), applied 2026-11-18 in `1400:134` (first applied 2026-11-17 in `1374:134`, which is gone)
+- Latest round: 4 Sep 2025 comments (Alex Zinni), applied 2026-11-23 in `1429:134` (earlier copies `1374:134` and `1400:134` are gone)
 
 ## 3. Overrides of the agency SOP
 - Image/video source (overrides client.md): <not set> (when set, used automatically without asking)
@@ -36,9 +36,9 @@ Client: alpha-key-digital-moved-to-seo (see client.md in this folder) · teaming
 - Confirmed form fields: <not set>
 
 ## 6. Asset log
-- Hero background (`1400:24202` in `1400:134`) — image — client-provided, attached to comment 1412508349, already in the file — image ref `61af5d0b31fe063f7011e2960b0a12913e1e86f5` (same as V3 `1098:24286`) — the client's own photo — supplied by the client; shows an identifiable person and a hospital badge; no separate approval recorded
-- CRM Creation icon (`1404:182` in `1400:134`) — icon — existing asset, cloned from V3 `1098:24181` — n/a — no separate approval recorded
-- Why Choose Us photo (`1400:15037` in `1400:134`) — image — existing asset from V2, layer "istockphoto-1181594511-2048x2048", iStock watermark visible — purchase status not known — not approved; only the crop changed on 2026-11-18 (same crop as on 2026-11-17)
+- Hero background (`1429:24202` in `1429:134`) — image — client-provided, attached to comment 1412508349, already in the file — image ref `61af5d0b31fe063f7011e2960b0a12913e1e86f5` (same as V3 `1098:24286`) — the client's own photo — supplied by the client; shows an identifiable person and a hospital badge; no separate approval recorded
+- CRM Creation icon (`1430:182` in `1429:134`) — icon — existing asset, cloned from V3 `1098:24181` — n/a — no separate approval recorded
+- Why Choose Us photo (`1429:15037` in `1429:134`) — image — existing asset from V2, layer "istockphoto-1181594511-2048x2048", iStock watermark visible — purchase status not known — not approved; only the crop changed on 2026-11-18 (same crop as on 2026-11-17)
 
 ## 7. Fonts
 - Licensed / available: Inter and "Helvetica Now Text " (Bold, Black) loaded in Figma's editing tools on 2026-11-17; licence <not set>
@@ -55,4 +55,6 @@ Client: alpha-key-digital-moved-to-seo (see client.md in this folder) · teaming
 - 2026-11-04 — comment review, read only — 4 Sep 2025 round found already applied in Homepage_V3; no Figma changes
 - 2026-11-17 — 4 Sep 2025 round — 9 comments applied and 1 verified in a copy of Homepage_V2, `1374:134` — that frame no longer exists (found missing 2026-11-18)
 - 2026-11-18 — 4 Sep 2025 round, applied again — 9 comments applied and 1 verified in a new copy of Homepage_V2, `1400:134` — removed by the user the same day for a demo re-run
-- 2026-11-18 — demo re-run 2 — blocked before any write (Figma connector account without edit access); no applied copy is in the file now
+- 2026-11-18 — demo re-run 2 — blocked before any write (Figma connector account without edit access)
+- 2026-11-23 — 4 Sep 2025 round, re-run 3 — 9 comments applied and 1 verified in a new copy of Homepage_V2, `1429:134`; 0 changes outside it
+- 2026-11-23 — the user removed `1429:134` the same day for another demo re-run (checked 16:20 IST: the Homepage page holds only V2, both V3 frames and the two date labels); ids 1429:*, 1430:* are dead; no applied copy is in the file now

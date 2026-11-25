@@ -134,5 +134,55 @@ class EndToEnd(unittest.TestCase):
             td.cleanup()
 
 
+class LargeFrames(unittest.TestCase):
+    """A frame with more layers than SPLIT_ABOVE is aligned child by child. The result must match the single flat pass."""
+
+    def big(self):
+        def section(name, rows):
+            return node("FRAME", name, [node("GROUP", f"{name} row {i}", [node("TEXT", "label", characters=f"{name} {i}"),
+                                                                      node("VECTOR", "Vector")]) for i in range(rows)])
+        grid = node("GROUP", "Grid", [node("VECTOR", "Vector") for _ in range(300)])  # hundreds of same-named layers
+        return node("FRAME", "Home", [section("Hero", 40), grid, section("Services", 40), section("Footer", 10)], w=1920, h=9000)
+
+    def both(self, src, out):
+        keep = q.SPLIT_ABOVE
+        try:
+            q.SPLIT_ABOVE = 10 ** 9
+            flat = q.diff_pair(src, out)
+            q.SPLIT_ABOVE = 20
+            split = q.diff_pair(src, out)
+        finally:
+            q.SPLIT_ABOVE = keep
+        self.assertEqual(json.dumps(flat, sort_keys=True), json.dumps(split, sort_keys=True))
+        return split
+
+    def test_edits_and_added_layers(self):
+        src = self.big(); out = renumber(src); out["name"] = "Home - copy"
+        out["children"][0]["children"][3]["children"][0]["characters"] = "New hero line"
+        out["children"][2]["children"].insert(5, node("GROUP", "Services row new", [node("TEXT", "label", characters="CRM Creation")]))
+        out["children"][3]["children"][1]["children"][1]["visible"] = False
+        r = self.both(src, out)
+        self.assertEqual([c["after"] for c in r["text"]], ["New hero line"])
+        self.assertEqual([c["name"] for c in r["added"]], ["Services row new", "label"])
+        self.assertEqual(len(r["visibility"]), 1)
+        self.assertEqual(r["removed"], [])
+
+    def test_renamed_section_keeps_its_layers_aligned(self):
+        src = self.big(); out = renumber(src)
+        out["children"][2]["name"] = "Services v2"
+        out["children"][2]["children"][7]["children"][0]["characters"] = "Edited inside the renamed section"
+        r = self.both(src, out)
+        self.assertEqual([c["name"] for c in r["removed"]], ["Services"])
+        self.assertEqual([c["name"] for c in r["added"]], ["Services v2"])
+        self.assertEqual([c["after"] for c in r["text"]], ["Edited inside the renamed section"])
+
+    def test_moved_section_is_reordered_not_removed_and_added(self):
+        src = self.big(); out = renumber(src)
+        out["children"].insert(0, out["children"].pop(3))
+        r = self.both(src, out)
+        self.assertEqual([c["name"] for c in r["reordered"]], ["Footer"])
+        self.assertEqual((r["added"], r["removed"]), ([], []))
+
+
 if __name__ == "__main__":
     unittest.main()

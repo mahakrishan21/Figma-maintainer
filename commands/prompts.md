@@ -1,7 +1,7 @@
 ---
 disable-model-invocation: true
-description: Show the figma-maintainer prompt cheat sheet (how to prompt, comments, QA, responsive, components, audits, images, Slack, setup)
-argument-hint: [topic: basics | comments | qa | responsive | components | audits | images | outputs | setup | costs | all]
+description: Show the figma-maintainer prompt cheat sheet (how to prompt, comments, QA, inner pages, responsive, components, audits, images, Slack, setup)
+argument-hint: [topic: basics | comments | qa | inner pages | responsive | components | audits | images | outputs | setup | costs | all]
 ---
 
 Show me the cheat sheet below. If I named a topic ($ARGUMENTS), show only that section; otherwise show all of it. Print it as is: no tools, no extra commentary.
@@ -35,6 +35,12 @@ Examples:
 - `/figma-maintainer:qa` checks the newest job · `/figma-maintainer:qa PIPP` checks a job by name.
 - `/figma-maintainer:qa <old url> <new url>` checks a new version against the comments on the old one.
 - `/figma-maintainer:qa <url> since 2026-10-29 14:00 check: hero says "…"` checks work done directly in a frame, including manual work.
+
+### Inner pages (from the homepage's style)
+- `/figma-maintainer:make-inner-page <homepage url> About — copy: <Google Doc link> — images: iStock`
+- `/figma-maintainer:make-inner-page <homepage url> Services — sections: intro, 3 service cards, process, FAQ, CTA — images: no new images`
+- **How it works:** the homepage stays untouched and is the style source. The new frame goes next to it, using the same header, footer, grid, type, colours and components, with the homepage's own sections reused where they fit.
+- **No copy?** It writes realistic placeholder text in layers named `Placeholder – …` and lists them for the client.
 
 ### Responsive (desktop only unless you ask)
 - `Use figma-maintainer: <url> — make the mobile version` · `— make tablet and mobile versions`

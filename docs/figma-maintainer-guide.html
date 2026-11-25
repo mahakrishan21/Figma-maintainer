@@ -174,6 +174,7 @@ pre.tree span{color:var(--muted)}
 &lt;paste client email&gt;</code><button class="copy" type="button">Copy</button></div>
       <div class="prompt"><span class="when">A new comment in Figma (no link needed)</span><code>Use figma-maintainer: I got a client comment</code><button class="copy" type="button">Copy</button></div>
       <div class="prompt"><span class="when">Comments on a specific frame</span><code>/figma-maintainer:apply-comments &lt;Figma frame link&gt;</code><button class="copy" type="button">Copy</button></div>
+      <div class="prompt"><span class="when">New inner page in the homepage's exact style</span><code>/figma-maintainer:make-inner-page &lt;homepage frame link&gt; About — copy: &lt;Google Doc link&gt; — images: iStock</code><button class="copy" type="button">Copy</button></div>
       <div class="prompt"><span class="when">New inner page from a copy document</span><code>Use figma-maintainer: KHL — &lt;Figma link&gt; — design the Referral page using this copy doc &lt;Google Doc link&gt;. Don't change any wording. images: iStock</code><button class="copy" type="button">Copy</button></div>
       <div class="prompt"><span class="when">Mobile and tablet (desktop only unless you ask)</span><code>Use figma-maintainer: &lt;desktop frame link&gt; — make the mobile and tablet versions</code><button class="copy" type="button">Copy</button></div>
       <div class="prompt"><span class="when">A client's recurring task (follows that client's own rules)</span><code>Use figma-maintainer: Digital Drive — Create Tablet and Mobile Designs from Desktop Designs. Work file: &lt;Figma section link&gt;</code><button class="copy" type="button">Copy</button></div>
@@ -324,6 +325,7 @@ Use figma-maintainer: Accessibility Audit &lt;Figma link&gt;</code><button class
           <tr><td><code>/figma-maintainer:apply-comments &lt;url&gt;</code></td><td>Apply a frame's comments (latest round)</td></tr>
           <tr><td><code>/figma-maintainer:qa</code></td><td>QA one task on its own, including manual work</td></tr>
           <tr><td><code>/figma-maintainer:make-responsive &lt;url&gt;</code></td><td>Mobile and tablet from a desktop frame</td></tr>
+          <tr><td><code>/figma-maintainer:make-inner-page &lt;homepage url&gt; &lt;page&gt;</code></td><td>A new inner page in the homepage's exact style, placed next to the homepage</td></tr>
           <tr><td><code>/figma-maintainer:consistency-audit</code> · <code>:content-audit</code> · <code>:accessibility-audit</code></td><td>Read-only audits</td></tr>
           <tr><td><code>/figma-maintainer:check-brief</code> · <code>:compare-versions</code></td><td>Page vs brief; changes between two frames</td></tr>
           <tr><td><code>/figma-maintainer:client-message</code> · <code>:slack</code> · <code>:cost-report</code></td><td>Client message, Slack update, cost of this conversation or one task</td></tr>

@@ -57,6 +57,7 @@ Use figma-maintainer: <client> — <Figma link to the frame> — <what to change
 - **Start with `Use figma-maintainer:`.** A Figma link on its own doesn't switch the plugin on.
 - **Name the client** (agency or project). Its SOP loads automatically: image source, delivery account, rules.
 - **Link the exact frame** (right-click the frame in Figma → Copy link). Only that frame changes.
+- **New inner page from the homepage:** `/figma-maintainer:make-inner-page <homepage frame link> About — copy: <Google Doc link> — images: iStock`. It reuses the homepage's header, footer, styles and sections, and puts the new page next to the homepage.
 - **Say the image source** if you know it: `images: iStock` / `Adobe Stock` / `client: <link>` / `no new images`. Otherwise it asks. **iStock** needs no account or install. If it can't reach iStock on your Mac, it tells you why and how to fix it before the job starts.
 
 Examples:

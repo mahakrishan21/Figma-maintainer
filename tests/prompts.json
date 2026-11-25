@@ -38,5 +38,8 @@
 
   {"prompt": "skip QA", "session": true, "expect": ["skipqa"]},
   {"prompt": "ok, no QA for this one", "session": true, "expect": ["skipqa"]},
-  {"prompt": "skip qa", "expect": ["silent"]}
+  {"prompt": "skip qa", "expect": ["silent"]},
+
+  {"prompt": "/figma-maintainer:make-inner-page https://www.figma.com/design/jUau2sA38TBr0R2HjR75HE/x?node-id=1-2 About — company story and team", "expect": ["client:lions-share-digital", "gate-ask", "qa-note"]},
+  {"prompt": "/figma-maintainer:make-inner-page https://www.figma.com/design/jUau2sA38TBr0R2HjR75HE/x?node-id=1-2 Services — images: no new images", "expect": ["client:lions-share-digital", "gate-source"]}
 ]

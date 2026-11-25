@@ -4,7 +4,7 @@ description: Create or update the mobile (390) and tablet (768) versions of a de
 argument-hint: <desktop frame URL> [mobile | tablet | both] [extra instructions]
 ---
 
-Use the figma-maintainer agent (figma-maintainer:figma-maintainer) in responsive mode for this request:
+Use the figma-maintainer agent (figma-maintainer:figma-maintainer) in responsive mode for this request. Launch it with `model: fable` (the Agent tool's `model`): responsive builds are the plugin's heaviest work, and the model is chosen by job weight.
 
 $ARGUMENTS
 
