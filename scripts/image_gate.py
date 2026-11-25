@@ -20,19 +20,49 @@ if re.match(r"\s*(another claude session sent a message|<agent-message|\[subagen
 # Only figma-maintainer work. Website builds, other plugins and general chat get nothing from this hook.
 if not prompt_is_fm(prompt, HOOK.get("transcript_path", "")):
     sys.exit(0)
+import qa_gate  # noqa: E402
+SESSION = qa_gate.session_of(HOOK)
+CHECK_CMD = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "commands", "check-figma.md")
+
+
+def account_note():
+    """Figma work starts only after the user confirmed the connected Figma account in this conversation."""
+    if os.environ.get("FIGMA_MAINTAINER_ACCOUNT_CHECK") == "off":
+        return ""
+    try:
+        import figma_account
+        if figma_account.confirmed(SESSION):
+            return ""
+    except Exception:
+        pass
+    return ("FIGMA ACCOUNT CHECK FIRST: this conversation hasn't confirmed which Figma account is connected. Before any Figma call or "
+            f"agent launch, read {CHECK_CMD} and follow it (session id {SESSION}): show the connected account's name and email and ask "
+            "the user to confirm. Continue with the request below only after they say yes (Figma edits are blocked until then). ")
+
+
+def emit(ctx, account=False):
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit",
+                                             "additionalContext": (account_note() if account else "") + ctx}}))
+
+
+if re.match(r"\s*/figma-maintainer:check-figma\b", prompt):
+    emit(f"Session id for figma_account.py: {SESSION}.")
+    sys.exit(0)
+
 # "skip QA": the user waives the QA check for the pending job(s) in this session (the Stop-hook gate is cleared)
 if re.search(r"\b(skip|no|without|don'?t (run|do))\s+(the\s+)?qa\b", prompt, re.I):
     import qa_gate
     marks = qa_gate.clear(qa_gate.session_of(HOOK))
     if len(prompt) < 120:
         jobs = "; ".join(m.get("job") or ", ".join(m["files"]) for m in marks) or "no job was waiting for QA"
-        print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext":
-            f"figma-maintainer: the user chose to skip the QA check ({jobs}). Don't run qa-checker for it; write 'QA skipped by the user' "
-            "in the report and keep the client message marked as not QA-checked."}}))
+        emit(f"figma-maintainer: the user chose to skip the QA check ({jobs}). Don't run qa-checker for it; write 'QA skipped by the user' "
+            "in the report and keep the client message marked as not QA-checked.")
         sys.exit(0)
 
 # These slash commands carry their own instructions (no image question for a read-only QA run)
 if re.match(r"\s*/figma-maintainer:(client-comment|qa)\b", prompt):
+    if account_note():
+        emit("", account=True)
     sys.exit(0)
 p = prompt.lower()
 
@@ -219,12 +249,12 @@ if cc and re.search(r"\b(don'?t|do not|didn'?t|haven'?t|no|not|never|without)\b"
     cc = None
 if cc and cc.start() < 300:
     cmd = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "commands", "client-comment.md")
-    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": CLIENT_CTX +
+    emit(CLIENT_CTX +
         f"figma-maintainer client comment: the user says they have a new client comment. Read {cmd} and follow it step by step "
         "(the arguments are this prompt): find the comment with comment_inbox.py (Figma's Mac notifications; a Figma link or file name "
         "in the prompt takes priority), analyse it with the read-only figma-maintainer:client-comments agent, show the plan and ask the "
         "user to approve it, and only then hand it to figma-maintainer:figma-maintainer. Don't ask the image/video question now: "
-        "it's settled after the analysis, from the client SOP or by asking. No Figma edits before the user approves the plan." + QA_NOTE}}))
+        "it's settled after the analysis, from the client SOP or by asking. No Figma edits before the user approves the plan." + QA_NOTE, account=True)
     sys.exit(0)
 
 # "Consistency Audit" is read-only: route it to the auditor, no image question.
@@ -237,11 +267,10 @@ asked = [(n, ag) for n, ag, rx in AUDITS if re.search(rx, p)]
 if asked:
     names = " + ".join(n for n, _ in asked)
     agents = ", ".join(f"figma-maintainer:{ag}" for _, ag in asked)
-    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext":
-        CLIENT_CTX + f"figma-maintainer: the user asked for {names}. Launch {agents} (read-only, report only, never changes the file; "
+    emit(CLIENT_CTX + f"figma-maintainer: the user asked for {names}. Launch {agents} (read-only, report only, never changes the file; "
         "several audits can run in parallel) with the Figma URL from this prompt or from the conversation. "
         "If there is no Figma URL in either, ask for it. No image/video source question is needed. "
-        "Show each audit's summary, high-severity rows and its 'Slack update' block."}}))
+        "Show each audit's summary, high-severity rows and its 'Slack update' block.", account=True)
     sys.exit(0)
 
 # "give me slack message" / token usage / cost report
@@ -257,11 +286,11 @@ if re.search(r"slack\s*(message|msg|update)|token(s)?\s*(usage|used|count|report
 is_job = bool(re.search(r"figma\.com/(design|file)/", p) or re.search(r"/figma-maintainer:(apply-comments|make-responsive|make-inner-page)\b", p)
               or re.search(r"\buse\s+(the\s+)?figma[\s_-]*maintainer\b|(^|\n)\s*figma[\s_-]*maintainer\s*[:,]", p))
 if not is_job and CLIENT and not SLACK:
-    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": CLIENT_CTX}}))
+    emit(CLIENT_CTX)
     sys.exit(0)
 if not is_job:
     if SLACK:
-        print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": CLIENT_CTX + SLACK}}))
+        emit(CLIENT_CTX + SLACK)
     sys.exit(0)
 
 SOURCES = [
@@ -293,7 +322,7 @@ if not CLIENT:
             "and the fix and ask whether to fix it now, use another source, or continue without iStock." + QA_NOTE)
     if SLACK:
         msg += " ALSO, after the job: " + SLACK
-    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": msg}}))
+    emit(msg, account=True)
     sys.exit(0)
 
 found = [name for name, rx in SOURCES if re.search(rx, p)]
@@ -337,4 +366,4 @@ else:
 msg += QA_NOTE
 if SLACK:
     msg = msg + " ALSO, after the job: " + SLACK
-print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": CLIENT_CTX + msg}}))
+emit(CLIENT_CTX + msg, account=True)

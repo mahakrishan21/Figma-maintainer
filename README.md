@@ -391,6 +391,7 @@ A client's `task-<name>.md` applies **only to that client**. **Scope is always t
 | Command | What it does |
 |---|---|
 | `/figma-maintainer:prompts [topic]` | Prompt cheat sheet |
+| `/figma-maintainer:check-figma` | Show the connected Figma account (name, email) and confirm it; runs automatically before the first Figma job in a conversation |
 | `/figma-maintainer:doctor` | Check this Mac's setup and say how to fix each problem |
 | `/figma-maintainer:client-comment [link\|file\|client]` | Find a new client comment, plan, ask to approve, apply, QA |
 | `/figma-maintainer:read-comments <url>` | List the comments on a frame, matched to their layers |

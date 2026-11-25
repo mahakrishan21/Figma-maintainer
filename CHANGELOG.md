@@ -2,6 +2,9 @@
 
 Newest first. `/figma-maintainer:about` shows the latest three versions.
 
+## 1.38.0 · 25 Nov 2026
+- New `/figma-maintainer:check-figma`: shows the connected Figma account (name and email) and asks you to confirm it. It runs by itself before the first Figma job in each conversation, and Figma edits wait until you confirm, so work never runs under the wrong account on a shared setup.
+
 ## 1.37.0 · 25 Nov 2026
 - Lower token use on every job: agents no longer carry unused tool definitions (about 25k fewer tokens on every step).
 - The client SOP, playbook and project history load as one short digest instead of many file reads.

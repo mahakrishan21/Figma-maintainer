@@ -31,7 +31,7 @@ def transcript(home, messages=(), fm_session=False, name="session-test"):
 
 def run(script, payload, home, args=(), env=None):
     """Run a plugin script the way hooks do (python3 -I), with stdin JSON. Returns (stdout, stderr, returncode)."""
-    e = dict(os.environ, FIGMA_MAINTAINER_HOME=str(home))
+    e = dict(os.environ, FIGMA_MAINTAINER_HOME=str(home), FIGMA_MAINTAINER_ACCOUNT_CHECK="off")  # tests opt in to the account check
     e.pop("FIGMA_TOKEN", None)
     e.update(env or {})
     r = subprocess.run([sys.executable, "-I", str(SCRIPTS / script), *args], input=json.dumps(payload),

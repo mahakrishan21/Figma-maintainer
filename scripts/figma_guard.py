@@ -226,6 +226,17 @@ def main():
     if any(who.endswith(a) for a in READ_ONLY_AGENTS):
         out("deny", f"{who} is read-only and may not write to Figma ({short}).")
 
+    # The user must have confirmed the connected Figma account in this conversation (/figma-maintainer:check-figma)
+    if os.environ.get("FIGMA_MAINTAINER_ACCOUNT_CHECK") != "off":
+        try:
+            import figma_account
+            ok = figma_account.confirmed(session_of(hook))
+        except Exception:
+            ok = None
+        if not ok:
+            out("deny", "the Figma account hasn't been confirmed in this conversation. Run /figma-maintainer:check-figma first "
+                        "(it shows the connected account's name and email and asks the user to confirm), then retry.")
+
     if short in ("create_new_file",):
         out("ask", "creates a new Figma file. Confirm this is wanted.")
 

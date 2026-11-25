@@ -75,6 +75,7 @@ Examples:
 - `/figma-maintainer:cost-report-all` · `since 2026-11-01` · `client KHL` · `html`: your whole cost history on this Mac, only when you ask
 
 ### Setup, rules and help
+- `/figma-maintainer:check-figma` shows which Figma account is connected (name and email) and asks you to confirm it. It runs by itself before the first Figma job in each conversation; Figma edits wait until you confirm.
 - `/figma-maintainer:doctor` checks the token, scopes, Figma access, notifications and version, with fixes.
 - `figma-maintainer: next time, <rule>` saves a correction as a rule.
 - `figma-maintainer: Lasso Up desktop frames are 1920` adds an SOP rule · `figma-maintainer: show the Lasso Up SOP` shows what's set.

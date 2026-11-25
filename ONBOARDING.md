@@ -101,6 +101,7 @@ When a new version is live, the plugin asks you at the start of your next sessio
 Then run `/figma-maintainer:doctor`. It also tells you when you're behind. Your work folders aren't touched.
 
 ## Help
+- **`/figma-maintainer:check-figma`:** which Figma account is connected. It runs by itself before your first Figma job in each conversation: check the name and email, then confirm.
 - **`/figma-maintainer:doctor`:** setup problems.
 - **`/figma-maintainer:about`:** version, what it can do, what's new, updates.
 - **`/figma-maintainer:prompts`:** the prompt cheat sheet.
