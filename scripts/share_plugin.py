@@ -69,6 +69,19 @@ def refresh_marketplace(market, version, plugin_json):
           f"Publish with: git -C {market} push origin main --tags")
 
 
+def add_changelog(version, msg):
+    """Make sure CHANGELOG.md has an entry for this version (what /figma-maintainer:about shows the team)."""
+    cl = PLUGIN / "CHANGELOG.md"
+    text = cl.read_text() if cl.exists() else "# What's new in figma-maintainer\n\n"
+    if re.search(rf"^## {re.escape(version)}\b", text, re.M):
+        return
+    from datetime import date
+    d = date.today()
+    entry = f"## {version} · {d.day} {d:%b %Y}\n- {re.sub(r'^v[0-9.]+: *', '', msg.splitlines()[0])}\n\n"
+    m = re.search(r"^## ", text, re.M)
+    cl.write_text(text[:m.start()] + entry + text[m.start():] if m else text.rstrip() + "\n\n" + entry)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--version", help="exact new version, e.g. 1.32.0")
@@ -76,7 +89,7 @@ def main():
     ap.add_argument("--message", help="commit and tag message")
     a = ap.parse_args()
     if not (FM / ".master").exists():
-        sys.exit("Only the SOP manager shares the plugin. Co-workers: send proposals with /figma-maintainer:contribute.")
+        sys.exit("Only the SOP manager releases the plugin.")
 
     print("Release check …")
     rc = subprocess.run(["bash", str(PLUGIN / "scripts" / "release_check.sh")], cwd=PLUGIN, capture_output=True, text=True)
@@ -101,6 +114,7 @@ def main():
         files = [l[3:] for l in git("status", "--porcelain").splitlines()]
         sops = sum(1 for f in files if f.startswith("knowledge/"))
         msg = a.message or f"v{new}: share with the team ({sops} SOP/knowledge file(s), {len(files) - sops} other file(s))"
+        add_changelog(new, msg)
         git("add", "-A")
         git("commit", "-q", "-m", msg)
         git("tag", "-a", f"v{new}", "-m", msg.splitlines()[0])
@@ -127,7 +141,7 @@ def main():
     market = marketplace_dir()
     if market:
         refresh_marketplace(market, new, json.loads(git("show", f"v{new}:.claude-plugin/plugin.json")))
-        print("Co-workers (after both pushes): /plugin marketplace update e2m-figma, then /reload-plugins. "
+        print("Co-workers (after both pushes): the plugin asks them to update at their next session, or /figma-maintainer:about. "
               "First time: /plugin marketplace add E2M-Design/e2m-figma-marketplace and /plugin install figma-maintainer@e2m-figma.")
     else:
         print("No team marketplace set up (no 'marketplace:' line in .master): only the zip was built.")

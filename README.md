@@ -270,7 +270,7 @@ SOPs, the playbook and prices are **links** into the plugin's `knowledge/` folde
    ```
 4. **Finish:** restart Claude Code (or `/reload-plugins`), then run `/figma-maintainer:doctor`.
 
-**To update:** `/plugin marketplace update e2m-figma`, then `/reload-plugins`, or turn on auto-update under `/plugin` → Marketplaces. The doctor warns you when you're behind.
+**To update:** when a newer version is live, the plugin asks once at the start of a session (checked at most every 12 hours); choose **Update now**, then `/reload-plugins`. Any time: `/figma-maintainer:about`. By hand: `claude plugin marketplace update e2m-figma` and `claude plugin update figma-maintainer@e2m-figma`, then `/reload-plugins`. What changed in each version is in `CHANGELOG.md`.
 
 **Switching from a zip install:** remove it first, so the agents don't load twice:
 - **Uploaded zip:** Customize → Plugins → remove figma-maintainer.
@@ -350,7 +350,7 @@ Name the client, or paste its Figma link, and its SOP applies. You never have to
   - `_index.md` (every agency and its projects).
 - **Precedence:** your prompt > project SOP > task SOP > `client.md` > playbook.
 - **`<not set>` means unknown:** the agent asks and never guesses. SOP rules are only added when you or the client state them.
-- **Add a rule:** `figma-maintainer: Lasso Up desktop frames are 1920` or `/figma-maintainer:sop Lasso up — desktop width 1920`. `/figma-maintainer:sop <client>` shows what's set and what's missing.
+- **Add a rule:** `figma-maintainer: Lasso Up desktop frames are 1920` `figma-maintainer: show the Lasso Up SOP` shows what's set and what's missing.
 
 | Agency SOP (`client.md`) | Project SOP (`<project>.md`) |
 |---|---|
@@ -360,12 +360,12 @@ Name the client, or paste its Figma link, and its SOP applies. You never have to
 
 ### Who changes what
 - **SOP manager** (the session folder has a `.master` file pointing to the plugin source):
-  - edits SOPs directly (ask the agent, or use `/figma-maintainer:sop`);
-  - reviews co-workers' proposals with `/figma-maintainer:review-contributions <zip>`;
-  - shares with `/figma-maintainer:share`. It runs the release check, commits, bumps the version, makes an annotated tag, and writes `~/ClaudeAI/Figma-maintainer.zip` from exactly that tagged version. It then refreshes the team marketplace repo with the same build (set by the `marketplace:` line in `.master`), then commits and tags it there.
+  - edits SOPs directly (ask the agent);
+  - reviews co-workers' proposals: `python3 -I scripts/contribute.py --extract <zip>` unpacks them for review;
+  - releases with `python3 -I scripts/share_plugin.py --bump patch|minor --message "vX: what changed"` (or ask Claude to release). It adds the version to `CHANGELOG.md` if missing, runs the release check, commits, bumps the version, makes an annotated tag, and writes `~/ClaudeAI/Figma-maintainer.zip` from exactly that tagged version. It then refreshes the team marketplace repo with the same build (set by the `marketplace:` line in `.master`), then commits and tags it there.
     - Paths marked `export-ignore` in `.gitattributes` (tests, release tools, the management briefing) never reach the team.
     - It doesn't push: run `git push origin main --tags` in both repos. It doesn't touch your own plugin install either (`/reload-plugins` picks up changes).
-- **Co-workers:** SOPs are read-only. New rules or corrections become proposals in `~/.claude/figma-maintainer/contributions/`. `/figma-maintainer:contribute` zips them for the SOP manager.
+- **Co-workers:** SOPs are read-only. New rules or corrections become proposals in `~/.claude/figma-maintainer/contributions/`. `python3 -I ~/.claude/figma-maintainer/scripts/contribute.py --pack` zips them for the SOP manager.
 
 ### Release check (before every version)
 ```bash
@@ -407,5 +407,4 @@ A client's `task-<name>.md` applies **only to that client**. **Scope is always t
 | `/figma-maintainer:slack [task]` | Slack update plus an internal usage block |
 | `/figma-maintainer:cost-report [latest\|"task"\|html]` | Tokens and cost of this conversation or one task |
 | `/figma-maintainer:cost-report-all [since …] [client …] [html]` | Consolidated cost history on this Mac (only when asked) |
-| `/figma-maintainer:sop <client> [— rule]` | Show or add client SOP rules |
-| `/figma-maintainer:contribute` · `:review-contributions` · `:share` | SOP proposals and releases |
+| `/figma-maintainer:about` | Version, release date, what it can do, what's new; offers an update when one is live |

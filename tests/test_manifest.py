@@ -30,8 +30,7 @@ class TeamBuild(unittest.TestCase):
     """What co-workers receive (zip and marketplace): no tests, release tools or the management briefing."""
     def test_exclude_list(self):
         ex = excluded()
-        for path in ("tests/", "scripts/share_plugin.py", "scripts/release_check.sh", "commands/share.md",
-                     "commands/review-contributions.md", "docs/figma-maintainer-briefing.html"):
+        for path in ("tests/", "scripts/share_plugin.py", "scripts/release_check.sh", "docs/figma-maintainer-briefing.html"):
             self.assertIn(path, ex)
 
     def test_shipped_files_dont_need_excluded_ones(self):

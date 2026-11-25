@@ -62,6 +62,8 @@ pslug="$(tr '[:upper:]' '[:lower:]' < "$dest/.person" | head -1 | sed -E "s/['â€
 mkdir -p "$dest/work/${pslug:-me}"
 [ -e "$dest/job-log.md" ] || printf '# Job Log\n\nNewest last. Max ~6 lines per entry. (Personal session log, not shared.)\n' > "$dest/job-log.md"
 rm -f "$dest/.sync-state.json"
+# A newer version live in the team repo: one line of context so Claude asks to update (checked at most every 12 h)
+[ -n "$py" ] && python3 -I "$root/scripts/version_info.py" --session 2>/dev/null || true
 # Old local SOP copies (from earlier plugin versions) that differ from the plugin -> listed for contribution
 if [ -f "$dest/.old-notes-moved" ]; then
   python3 -I "$src/scripts/contribute.py" --review-old "$dest" "$K" 2>/dev/null || true

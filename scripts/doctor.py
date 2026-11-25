@@ -160,25 +160,12 @@ def main():
         local = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text()).get("version", "?")
     except Exception:
         local = "?"
-    latest = None
-    try:
-        # The source folder (SOP manager) or the team marketplace clone: ls-remote uses this Mac's GitHub sign-in.
-        market = Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude") / "plugins" / "marketplaces" / "e2m-figma"
-        repo = ROOT if (ROOT / ".git").exists() else market if (market / ".git").exists() else None
-        if repo:
-            r = subprocess.run(["git", "-C", str(repo), "ls-remote", "--tags", "origin"], capture_output=True, text=True, timeout=15)
-            tags = re.findall(r"refs/tags/v(\d+\.\d+\.\d+)$", r.stdout, re.M)
-        else:
-            req = urllib.request.Request(f"https://api.github.com/repos/{REPO}/tags?per_page=100", headers={"User-Agent": "figma-maintainer"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                tags = [t["name"].lstrip("v") for t in json.load(resp) if re.match(r"v?\d+\.\d+\.\d+$", t["name"])]
-        latest = max(tags, key=semver) if tags else None
-    except Exception:
-        pass
+    import version_info
+    latest = version_info.latest()
     if latest and local != "?":
         newer = semver(latest) > semver(local)
         check("Plugin version", "warn" if newer else "ok", f"installed {local}, latest {latest}",
-              "Update: /plugin marketplace update e2m-figma, then /reload-plugins.")
+              "Update: run /figma-maintainer:about (it asks, then updates), or claude plugin marketplace update e2m-figma && claude plugin update figma-maintainer@e2m-figma, then /reload-plugins.")
     else:
         check("Plugin version", "skip" if latest is None else "ok", f"installed {local}" + ("" if latest else ", latest unknown (offline or private repo)"))
     try:
@@ -201,7 +188,7 @@ def main():
               f"{r.get('results')} test results via {r.get('via')}" if r["ok"] else r.get("reason", ""), r.get("fix", ""))
     except Exception as e:
         check("iStock images", "fail", f"the iStock script couldn't run ({e})"[:150],
-              "Update the plugin: /plugin marketplace update e2m-figma, then /reload-plugins.")
+              "Update the plugin: /figma-maintainer:about, then /reload-plugins.")
 
     # ---- work folder, pending QA, recent guard activity
     work = FM / "work"

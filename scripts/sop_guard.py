@@ -50,11 +50,11 @@ def main():
         if in_source:
             sys.exit(0)  # SOP manager editing the plugin source: allowed
         out("this file is an installed copy of the plugin; edit the plugin source "
-            f"({master_src}/knowledge/...) instead, then commit and run /figma-maintainer:share.")
+            f"({master_src}/knowledge/...) instead, then commit and release a new version.")
     out("client SOPs, the playbook and system files are managed centrally by the SOP manager and come with "
         "the plugin. Don't edit them here. Write the proposed change as a contribution file in "
         "~/.claude/figma-maintainer/contributions/ (format: clients/_template/contribution.md), and tell the user "
-        "to send it with /figma-maintainer:contribute.")
+        "to send it to the SOP manager (run python3 -I ~/.claude/figma-maintainer/scripts/contribute.py --pack to zip the proposals).")
 
 
 if __name__ == "__main__":

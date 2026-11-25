@@ -77,7 +77,8 @@ Examples:
 ### Setup, rules and help
 - `/figma-maintainer:doctor` checks the token, scopes, Figma access, notifications and version, with fixes.
 - `figma-maintainer: next time, <rule>` saves a correction as a rule.
-- `/figma-maintainer:sop Lasso up — desktop width 1920` adds an SOP rule · `/figma-maintainer:sop Lasso up` shows what's set.
+- `figma-maintainer: Lasso Up desktop frames are 1920` adds an SOP rule · `figma-maintainer: show the Lasso Up SOP` shows what's set.
+- `/figma-maintainer:about` shows the version, what it can do and what's new, and offers an update when one is live.
 - **"The file changed at …" prompt:** someone edited the file mid-job. Check the frame in Figma, then allow.
 
 ### Keep costs down

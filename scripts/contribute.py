@@ -69,8 +69,8 @@ def review_old(session, knowledge):
         rep = session / "contributions" / f"{datetime.now():%Y-%m-%d}-old-local-notes-review.md"
         with open(rep, "w") as fh:
             fh.write("# Contribution: old local SOP copies\n\nThese local notes from an earlier plugin version differ from the "
-                     "central SOPs. If any of them hold real client rules, describe the change here and send this file with "
-                     "/figma-maintainer:contribute. The old files are under ~/.claude/figma-maintainer/_old-local-notes/.\n\n")
+                     "central SOPs. If any of them hold real client rules, describe the change here and send this file to "
+                     "the SOP manager (python3 -I ~/.claude/figma-maintainer/scripts/contribute.py --pack zips them). The old files are under ~/.claude/figma-maintainer/_old-local-notes/.\n\n")
             fh.writelines(f"- `{r}`: {why}\n" for r, why in sorted(rows))
         print(f"figma-maintainer: {len(rows)} old local SOP file(s) differ from the plugin; see {rep}", file=sys.stderr)
 

@@ -89,14 +89,12 @@ More examples: `/figma-maintainer:prompts`.
 ## 6. Rules and corrections
 - **SOPs are read-only for you.** They're maintained centrally, so everyone gets the same rules.
 - **Teach it something**, e.g. `figma-maintainer: next time, KHL buttons are full width in forms`. Your note becomes a proposal.
-- **Send proposals** with `/figma-maintainer:contribute`, which makes a zip, to the SOP manager. Approved rules reach everyone in the next version.
+- **Send proposals** to the SOP manager: ask `figma-maintainer: zip my SOP proposals` and send the zip. Approved rules reach everyone in the next version.
 
 ## 7. Updates
-When a new version is announced, run:
-```
-/plugin marketplace update e2m-figma
-/reload-plugins
-```
+When a new version is live, the plugin asks you at the start of your next session: choose **Update now**, then type `/reload-plugins`.
+- **Any time:** `/figma-maintainer:about` shows your version, what it can do and what's new, and offers the update.
+- **By hand:** in Terminal, `claude plugin marketplace update e2m-figma` and `claude plugin update figma-maintainer@e2m-figma`, then `/reload-plugins`.
 - **To update automatically:** turn on auto-update under `/plugin` → Marketplaces → e2m-figma.
 - **Zip users:** upload the new zip the same way and replace the old one.
 
@@ -104,6 +102,7 @@ Then run `/figma-maintainer:doctor`. It also tells you when you're behind. Your 
 
 ## Help
 - **`/figma-maintainer:doctor`:** setup problems.
+- **`/figma-maintainer:about`:** version, what it can do, what's new, updates.
 - **`/figma-maintainer:prompts`:** the prompt cheat sheet.
 - **`docs/figma-maintainer-guide.html`** in the plugin folder: the full visual guide (open it in a browser).
 - **`README.md`:** the complete reference.

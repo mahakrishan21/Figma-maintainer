@@ -23,10 +23,10 @@ At the end of every task:
   - Put new or corrected rules straight into the right SOP section: project facts in the project file, client-wide rules in `client.md`, recurring-task rules in the client's `task-*.md`, and cross-client lessons in `playbook.md` (one line, no duplicates).
   - `clients/` and `playbook.md` are links here, and the edit tools refuse links: edit the real file (`realpath <file>` prints it), with all of a file's changes in one call.
   - Tag every rule with its source and date. Corrections are tagged `(correction, YYYY-MM-DD)`.
-  - Remind the user to commit and run `/figma-maintainer:share`.
+  - Remind the user to commit and release a new version.
 - **Co-worker's machine** (no `.master`): **never edit SOPs.** The SOP guard blocks it.
   - For each new client requirement, correction or workflow improvement, write a proposal file `~/.claude/figma-maintainer/contributions/<YYYY-MM-DD>-<agency>-<topic>.md`, using the format in `clients/_template/contribution.md`.
-  - List the proposals in the report, and tell the user to send them with `/figma-maintainer:contribute`.
+  - List the proposals in the report, and tell the user to send them to the SOP manager (`python3 -I ~/.claude/figma-maintainer/scripts/contribute.py --pack` zips them).
 - When the user's message contains a correction ("no, always…", "next time…", "that's wrong"), apply it to the current job now, then record it as above.
 - Keep SOPs tight. On the SOP manager's machine, merge or delete rules that turn out to be wrong or redundant.
 

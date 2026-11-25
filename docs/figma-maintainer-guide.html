@@ -121,7 +121,7 @@ pre.tree span{color:var(--muted)}
   <section aria-labelledby="start">
     <h2 id="start">Quick start</h2>
     <ol class="steps">
-      <li><div><h3>Install the plugin</h3><span>Ask Mahakrishan for the team's GitHub login (<code>E2M-Design-Team</code>, read access to the private repo <code>E2M-Design/e2m-figma-marketplace</code>) and sign in to GitHub with it on your Mac with <code>gh auth login</code> in Terminal, answering <b>Yes</b> to “Authenticate Git” (a browser sign-in alone isn't enough). Then, in Claude Code, run <code>/plugin marketplace add E2M-Design/e2m-figma-marketplace</code> and <code>/plugin install figma-maintainer@e2m-figma</code>. Update with <code>/plugin marketplace update e2m-figma</code> and <code>/reload-plugins</code>. If you had the zip version, remove it first.</span></div></li>
+      <li><div><h3>Install the plugin</h3><span>Ask Mahakrishan for the team's GitHub login (<code>E2M-Design-Team</code>, read access to the private repo <code>E2M-Design/e2m-figma-marketplace</code>) and sign in to GitHub with it on your Mac with <code>gh auth login</code> in Terminal, answering <b>Yes</b> to “Authenticate Git” (a browser sign-in alone isn't enough). Then, in Claude Code, run <code>/plugin marketplace add E2M-Design/e2m-figma-marketplace</code> and <code>/plugin install figma-maintainer@e2m-figma</code>. When a new version is live, the plugin asks you to update at the start of a session; then run <code>/reload-plugins</code>. <code>/figma-maintainer:about</code> shows your version and what's new. If you had the zip version, remove it first.</span></div></li>
       <li><div><h3>Restart Claude Code</h3><span>Or run <code>/reload-plugins</code>. The safety hooks only load when a session starts.</span></div></li>
       <li><div><h3>Connect Figma and add the team token</h3><span>For edits, use the Figma MCP in Claude Code (<code>/plugin install figma@claude-plugins-official</code>, then sign in) or, on the web, the claude.ai Figma connector. Sign in with the team account (Design Studio). The team token is the same for everyone: get it from the SOP manager privately and store it with <code>security add-generic-password -U -s figma-maintainer -a FIGMA_TOKEN -w</code>.</span></div></li>
       <li><div><h3>Run the doctor</h3><span><code>/figma-maintainer:doctor</code> checks the Figma token and its scopes, Figma access, notifications, the image library and the plugin version, and tells you how to fix anything missing.</span></div></li>
@@ -330,8 +330,7 @@ Use figma-maintainer: Accessibility Audit &lt;Figma link&gt;</code><button class
           <tr><td><code>/figma-maintainer:check-brief</code> · <code>:compare-versions</code></td><td>Page vs brief; changes between two frames</td></tr>
           <tr><td><code>/figma-maintainer:client-message</code> · <code>:slack</code> · <code>:cost-report</code></td><td>Client message, Slack update, cost of this conversation or one task</td></tr>
           <tr><td><code>/figma-maintainer:cost-report-all</code></td><td>Your whole cost history on this Mac (sessions, clients, agents), only when you ask</td></tr>
-          <tr><td><code>/figma-maintainer:sop &lt;client&gt;</code></td><td>Show or add client SOP rules</td></tr>
-          <tr><td><code>/figma-maintainer:contribute</code> · <code>:review-contributions</code> · <code>:share</code></td><td>SOP proposals and releases (SOP manager)</td></tr>
+          <tr><td><code>/figma-maintainer:about</code></td><td>Version, what it can do, what's new; offers an update when one is live</td></tr>
         </tbody>
       </table>
     </div>

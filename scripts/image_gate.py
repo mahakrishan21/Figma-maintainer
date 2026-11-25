@@ -187,13 +187,13 @@ if CLIENT:
         deliv_ctx = "Delivery tool: " + delivery + " (mention it in the final report). "
     else:
         deliv_ctx = ("Delivery tool isn't set in this client's SOP: in the final report, ask once whether delivery is in E2M's Figma or the client's "
-                     "Figma account, and save the answer with /figma-maintainer:sop. ")
+                     "Figma account, and save the answer as a rule in this client's SOP. ")
     CLIENT_CTX = (f"Client detected: {folder.name} → follow its SOP in {folder / 'client.md'}"
                   + (f"; task SOPs available: {'; '.join(tasks)}. If the request matches one, follow it" if tasks else "")
                   + (f"; project notes {proj}" if proj else "") + " (precedence: prompt > project > task SOP > client). "
                   + (f"IMAGE PREFERENCE REMINDER: the SOP sets the image/video source to {SOP_SOURCE} (from {src_file.name}). Use it without asking, but tell the user "
                      f"in one line at the start of the job (\"{folder.name} image preference: {SOP_SOURCE}\") and repeat it in the report. " if SOP_SOURCE else "")
-                  + (f"IMAGE SOURCE CONFLICT in the SOP: {conflict} Ask the user which source applies before starting, then save the answer with /figma-maintainer:sop. " if conflict else "")
+                  + (f"IMAGE SOURCE CONFLICT in the SOP: {conflict} Ask the user which source applies before starting, then save the answer as a rule in this client's SOP. " if conflict else "")
                   + deliv_ctx)
 
 QA_NOTE = (" AFTER the figma-maintainer agent finishes a job that changed Figma: launch figma-maintainer:qa-checker with the job folder "
@@ -314,7 +314,7 @@ def istock_note():
         import istock_fetch
         r = istock_fetch.cached_check()
     except Exception as e:
-        r = {"ok": False, "reason": f"the iStock script couldn't run ({e})"[:200], "fix": "Update the plugin: /plugin marketplace update e2m-figma, then /reload-plugins."}
+        r = {"ok": False, "reason": f"the iStock script couldn't run ({e})"[:200], "fix": "Update the plugin: /figma-maintainer:about, then /reload-plugins."}
     if r.get("ok"):
         return ""
     return (f" iStock CHECK FAILED on this Mac: {r.get('reason')}. Fix: {r.get('fix')} Before launching the agent, " + ISTOCK_ASK)
