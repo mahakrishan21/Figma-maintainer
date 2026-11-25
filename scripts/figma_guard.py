@@ -208,6 +208,11 @@ def main():
             log({"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "tool": hook.get("tool_name", "").split("__")[-1],
                  "fileKey": inp.get("fileKey", ""), "agent": agent_type(hook), "description": (inp.get("description") or "")[:200],
                  "decision": "completed-with-error" if err else "completed"})
+        size = len(json.dumps(hook.get("tool_response", "")))
+        if hook.get("tool_name", "").endswith("__use_figma") and size > 3000 and is_fm_agent(agent_type(hook)):
+            print(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext":
+                  f"figma-maintainer: that use_figma result was {size} characters, and it stays in context for the rest of the job. "
+                  "Return only ids and changed values from scripts (or counts); for structure use figma_outline.py, which keeps the tree on disk."}}))
         sys.exit(0)
     tool = hook.get("tool_name", "")
     inp = hook.get("tool_input") or {}

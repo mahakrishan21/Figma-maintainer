@@ -39,6 +39,47 @@ def say(s=""):
     OUT_LINES.append(s)
 
 
+KIND_OF = {"Text": "text", "Fills / images": "fills", "Annotations": "annotations", "Visibility": "visibility",
+           "Font / text style": "font", "Component / instance": "component", "Prototype interactions": "interactions",
+           "Layer names": "name", "Layout / style": "layout"}
+
+
+def brief(lines, out_dir, per_kind=3, cap=180):
+    """The printed summary (summary.md keeps every line): at most `per_kind` examples per change kind, repeated
+    warnings grouped, long lines cut. Everything left out is one fm_query.py call away."""
+    res, kind, shown, extra, warn = [], None, 0, 0, {}
+
+    def close():
+        nonlocal extra
+        if extra:
+            res.append(f"  - (… {extra} more: fm_query.py evidence {out_dir} --kind {KIND_OF.get(kind, kind)})")
+        extra = 0
+    for l in lines:
+        if l.lstrip().startswith("- "):
+            l = " / ".join(x.strip() if i else x for i, x in enumerate(l.split("\n")))
+        if l.startswith("  - ") and kind and not l.startswith("  - crop"):
+            shown += 1
+            if shown > per_kind:
+                extra += 1
+                continue
+        else:
+            close()
+            m = __import__("re").match(r"- ([^:]+): \d+$", l)
+            kind, shown = (m.group(1), 0) if m else (None, 0)
+            w = __import__("re").match(r"- ⚠ (new hidden layer|text \S+ .* height|FONT FAMILY changed)", l)
+            if w:
+                key = w.group(1).split(" ")[0]
+                warn[key] = warn.get(key, 0) + 1
+                if warn[key] > 3:
+                    continue
+        res.append(l if len(l) <= cap else l[:cap - 1] + "…")
+    close()
+    for key, n in warn.items():
+        if n > 3:
+            res.append(f"- ⚠ … {n - 3} more '{key}' warning(s) of the same kind (full list in summary.md)")
+    return res
+
+
 def pil():
     """PIL lives in the user's site-packages, which `python3 -I` skips: add it explicitly."""
     try:
@@ -334,7 +375,31 @@ def render_diff(key, src, out, tok, crops_dir, max_crops=6, src_version=None):
         p = crops_dir / f"{src.replace(':', '-')}{'-inplace' if src_version else ''}_{i:02d}.png"
         sheet.save(p)
         crops.append({"file": str(p), "y": r["y"], "x": r["x"]})
-    return {"regions": regions, "crops": crops, "note": size_note, "renders": [str(crops_dir / n) for _, n in urls]}
+    sheet_path = contact_sheet(Image, [c["file"] for c in crops], crops_dir / f"{src.replace(':', '-')}{'-inplace' if src_version else ''}_sheet.png")
+    return {"regions": regions, "crops": crops, "sheet": sheet_path, "note": size_note,
+            "renders": [str(crops_dir / n) for _, n in urls]}
+
+
+def contact_sheet(Image, files, path, width=1000, max_h=2400):
+    """All before|after crops stacked in one image (numbered by order), so QA looks at one image, not six."""
+    if len(files) < 2:
+        return None
+    ims = []
+    for f in files:
+        im = Image.open(f).convert("RGB")
+        if im.width > width:
+            im = im.resize((width, max(1, round(im.height * width / im.width))))
+        ims.append(im)
+    gap = 16
+    h = sum(i.height for i in ims) + gap * (len(ims) - 1)
+    sheet = Image.new("RGB", (max(i.width for i in ims), h), (200, 200, 200))
+    y = 0
+    for im in ims:
+        sheet.paste(im, (0, y)); y += im.height + gap
+    if sheet.height > max_h:
+        sheet = sheet.resize((max(1, round(sheet.width * max_h / sheet.height)), max_h))
+    sheet.save(path)
+    return str(path)
 
 
 def file_state(key, tok):
@@ -396,6 +461,7 @@ def main():
     ap.add_argument("--since", help="with --inplace and no --before: compare with Figma's saved version from before this time")
     ap.add_argument("--job"); ap.add_argument("--out", required=True)
     ap.add_argument("--no-render", action="store_true")
+    ap.add_argument("--full", action="store_true", help="print every summary line (summary.md always has them all)")
     a = ap.parse_args()
     key, tok = a.file, token()
     out = Path(a.out).expanduser(); crops = out / "crops"; crops.mkdir(parents=True, exist_ok=True)
@@ -486,6 +552,8 @@ def main():
         elif rd:
             say(f"- Pixel diff: {len(rd['regions'])} changed region(s)" + (f" ({rd['note']})" if rd.get("note") else "")
                 + (": " + "; ".join(f"y {g['y'][0]}–{g['y'][1]} x {g['x'][0]}–{g['x'][1]}" for g in rd["regions"][:8]) if rd["regions"] else ""))
+            if rd.get("sheet"):
+                say(f"  - contact sheet, all {len(rd['crops'])} crops in one image (look at this first): {rd['sheet']}")
             for c in rd["crops"]:
                 say(f"  - crop (before | after): {c['file']}")
 
@@ -538,6 +606,8 @@ def main():
             rd = r.get("render") or {}
             if rd.get("regions") is not None:
                 say(f"- Pixel diff: {len(rd['regions'])} changed region(s)")
+                if rd.get("sheet"):
+                    say(f"  - contact sheet, all {len(rd['crops'])} crops in one image (look at this first): {rd['sheet']}")
                 for c in rd["crops"]:
                     say(f"  - crop (before | after): {c['file']}")
             elif rd.get("skipped"):
@@ -700,7 +770,7 @@ def main():
         say("- No edits after the maker's last logged write." if lw else "- No maker writes found in the log for this job.")
     (out / "evidence.json").write_text(json.dumps(ev, indent=1, ensure_ascii=False, default=str))
     (out / "summary.md").write_text("\n".join(OUT_LINES) + "\n")
-    print("\n".join(OUT_LINES))
+    print("\n".join(OUT_LINES if a.full else brief(OUT_LINES, out)))
     print(f"\nEvidence: {out / 'evidence.json'} · summary: {out / 'summary.md'} · crops: {crops}")
 
 

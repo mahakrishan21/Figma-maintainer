@@ -15,7 +15,7 @@ import argparse, json, os, re, sys
 from collections import defaultdict
 from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from figma_common import get, link, resolve_targets  # noqa: E402
+from figma_common import get, link, print_capped, resolve_targets  # noqa: E402
 import urllib.parse  # noqa: E402
 
 INTERACTIVE = re.compile(r"\b(button|btn|cta|link|toggle|switch|checkbox|radio|tab|chip|close|menu|hamburger|icon[- ]?button|dropdown|select|input|field|textarea|search|pagination|arrow|chevron|nav item)\b", re.I)
@@ -222,7 +222,7 @@ def main():
         md.append(f"\n## Text over images — check contrast visually ({stats['on_image']})")
         md += [f"- {r['frame']}: “{r['text']}”  {r['link']}" for r in review]
     (out / "a11y.md").write_text("\n".join(md) + "\n")
-    print("\n".join(md))
+    print_capped("\n".join(md).splitlines(), out / "a11y.md")
 
 
 if __name__ == "__main__":

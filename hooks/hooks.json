@@ -52,6 +52,15 @@
             "command": "python3 -I \"${CLAUDE_PLUGIN_ROOT}/scripts/sop_guard.py\""
           }
         ]
+      },
+      {
+        "matcher": "Read|mcp__.*[Ff]igma.*__get_screenshot",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"${CLAUDE_PLUGIN_ROOT}/scripts/image_budget.py\""
+          }
+        ]
       }
     ],
     "PostToolUse": [

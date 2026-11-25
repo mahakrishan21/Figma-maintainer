@@ -30,7 +30,7 @@ MAX_EX = 5
 
 # ---------- API ----------
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from figma_common import get, token  # noqa: E402  (shared: retries, clear errors, test fixtures)
+from figma_common import get, print_capped, token  # noqa: E402  (shared: retries, clear errors, test fixtures)
 
 
 def parse_url(url):
@@ -463,7 +463,7 @@ def main():
         for f in sorted(r["findings"], key=lambda x: {"high": 0, "medium": 1, "low": 2}[x["severity"]]):
             md.append(f"- [{f['severity']}] {f['type']}: {f['current']} → expected {f['expected']}  " + " ".join(f["examples"]))
     (out / "audit.md").write_text("\n".join(md) + "\n")
-    print("\n".join(md))
+    print_capped("\n".join(md).splitlines(), out / "audit.md")
 
 
 if __name__ == "__main__":

@@ -2,6 +2,12 @@
 
 Newest first. `/figma-maintainer:about` shows the latest three versions.
 
+## 1.37.0 · 25 Nov 2026
+- Lower token use on every job: agents no longer carry unused tool definitions (about 25k fewer tokens on every step).
+- The client SOP, playbook and project history load as one short digest instead of many file reads.
+- QA prints a short summary and puts all before/after crops on one contact sheet; agents ask job files short questions instead of reading them whole.
+- A hook asks you before an agent looks at more images than its budget.
+
 ## 1.36.0 · 25 Nov 2026
 - New `/figma-maintainer:about`: version, release date, what the plugin can do, what's new, and an update check.
 - Asks once per session to update when a newer version is live in the team repo.

@@ -196,3 +196,15 @@ def visible_walk(n, fn, path=()):
     fn(n, path)
     for c in n.get("children", []) or []:
         visible_walk(c, fn, path + (n,))
+
+
+def print_capped(lines, path, cap=10000):
+    """Print a report's lines up to `cap` characters; the full report is in `path`. Big outputs stay on disk
+    instead of in the conversation, where they would be re-read on every later step."""
+    n, shown = 0, 0
+    for l in lines:
+        if n + len(l) > cap:
+            break
+        print(l); n += len(l) + 1; shown += 1
+    if shown < len(lines):
+        print(f"\n(… {len(lines) - shown} more line(s) in {path}: read that file with an offset only for the part you need)")

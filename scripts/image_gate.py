@@ -188,7 +188,8 @@ if CLIENT:
     else:
         deliv_ctx = ("Delivery tool isn't set in this client's SOP: in the final report, ask once whether delivery is in E2M's Figma or the client's "
                      "Figma account, and save the answer as a rule in this client's SOP. ")
-    CLIENT_CTX = (f"Client detected: {folder.name} → follow its SOP in {folder / 'client.md'}"
+    CLIENT_CTX = (f"Client detected: {folder.name} → follow its SOP in {folder / 'client.md'} (agents load it as a digest with "
+                  f"scripts/job_context.py; don't cat the SOP files)"
                   + (f"; task SOPs available: {'; '.join(tasks)}. If the request matches one, follow it" if tasks else "")
                   + (f"; project notes {proj}" if proj else "") + " (precedence: prompt > project > task SOP > client). "
                   + (f"IMAGE PREFERENCE REMINDER: the SOP sets the image/video source to {SOP_SOURCE} (from {src_file.name}). Use it without asking, but tell the user "
